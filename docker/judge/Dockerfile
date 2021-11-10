@@ -3,7 +3,7 @@ WORKDIR /root
 # RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 # RUN sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 RUN apt-get -qq update && \
-    apt-get install -y gcc g++ python python3 openjdk-8-jdk-headless
+    apt-get install -y gcc g++ python python3 openjdk-8-jdk-headless \
     fp-compiler \
     php7.0-cli \
     rustc \
