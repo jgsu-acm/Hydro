@@ -36,18 +36,20 @@ jobs:
         with:
           images: stagoh/judge
 
-      - name: Build and push Docker image 
+      - name: Build and push Docker image Backend
         uses: docker/build-push-action@5e11b373bfed0d8024ef33d1586c675819690e95
         with:
-          context: docker/judge
+          context: .
           push: true
           tags: ${{ steps.b_meta.outputs.tags }}
           labels: ${{ steps.b_meta.outputs.labels }}
+          file: docker/backend/Dockerfile
 
-      - name: Build and push Docker image ( Dev )
+      - name: Build and push Docker image Judge
         uses: docker/build-push-action@5e11b373bfed0d8024ef33d1586c675819690e95
         with:
-          context: docker/backend
+          context: .
           push: true
           tags: ${{ steps.j_meta.outputs.tags }}
           labels: ${{ steps.j_meta.outputs.labels }}
+          file: docker/judge/Dockerfile
