@@ -25,12 +25,12 @@ jobs:
         with:
           username: stagoh
           password: ${{ secrets.DH_TOKEN }}
-      
+
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.4.1
         with:
           node-version: 16.x
-      
+
       - name: Build Hydro
         run: |
           YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
@@ -42,7 +42,7 @@ jobs:
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
         with:
           images: stagoh/backend
-      
+
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
@@ -54,7 +54,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.b_meta.outputs.tags }}
+          tags: stagoh/backend:latest
           labels: ${{ steps.b_meta.outputs.labels }}
           file: docker/backend/Dockerfile
 
@@ -63,6 +63,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.j_meta.outputs.tags }}
+          tags: stagoh/judge:latest
           labels: ${{ steps.j_meta.outputs.labels }}
           file: docker/judge/Dockerfile
