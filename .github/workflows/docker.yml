@@ -17,20 +17,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
       - name: Log in to the Container registry
         uses: docker/login-action@7f47463f5646678eb7ccf8f0f2e2d0896916a10a
         with:
           username: stagoh
           password: ${{ secrets.DH_TOKEN }}
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.4.1
+        with:
+          cache: 'yarn'
+          node-version: 16.x
+      
+      - name: Build Hydro
+        run: |
+          yarn build
+          yarn build:ui:production
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Backend Image
         id: b_meta
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
         with:
           images: stagoh/backend
       
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
         with:
