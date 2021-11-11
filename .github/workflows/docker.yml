@@ -33,6 +33,7 @@ jobs:
       
       - name: Build Hydro
         run: |
+          yarn install
           yarn build
           yarn build:ui:production
 
