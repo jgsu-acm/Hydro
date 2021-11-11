@@ -33,7 +33,7 @@ jobs:
       
       - name: Build Hydro
         run: |
-          yarn install
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
           yarn build
           yarn build:ui:production
 
