@@ -53,5 +53,7 @@ __*
 *.local
 
 # Docker-Compose
-docker/docker-compose.yml
+docker/docker-compose*.yml
 docker/data
+docker/dev
+TestDockerfile
