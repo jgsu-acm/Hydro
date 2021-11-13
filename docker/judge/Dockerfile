@@ -16,12 +16,10 @@ RUN apt-get -qq update && \
 
 ADD docker/judge/entrypoint.sh entrypoint.sh
 ADD docker/judge/judge.yaml judge.yaml
-ADD docker/modify.js modify.js
 ADD packages/utils packages/utils
 ADD packages/hydrooj packages/hydrooj
 ADD packages/hydrojudge packages/hydrojudge
-RUN node modify.js hydrojudge && node modify.js hydrooj && \
-    yarn global add pm2 file:/root/packages/utils file:/root/packages/hydrooj file:/root/packages/hydrojudge && \
+RUN yarn global add pm2 file:/root/packages/utils file:/root/packages/hydrooj file:/root/packages/hydrojudge && \
     wget https://s3.undefined.moe/file/executor-amd64 -O /usr/bin/sandbox && \
     chmod +x /usr/bin/sandbox && chmod +x entrypoint.sh
 ENTRYPOINT /root/entrypoint.sh
