@@ -9,7 +9,9 @@ import {
 import { User } from '../interface';
 import avatar from '../lib/avatar';
 import { sendMail } from '../lib/mail';
-import { isEmail, isPassword, isUname } from '../lib/validator';
+import {
+    isEmail, isJGSUEmail, isPassword, isUname,
+} from '../lib/validator';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
 import oauth from '../model/oauth';
@@ -151,7 +153,7 @@ export class UserRegisterHandler extends Handler {
         this.response.template = 'user_register.html';
     }
 
-    @post('mail', Types.String, true, isEmail)
+    @post('mail', Types.String, true, isJGSUEmail)
     @post('phone', Types.String, true, (s) => /^\d{11}$/.test(s))
     async post(domainId: string, mail: string, phoneNumber: string) {
         if (mail) {

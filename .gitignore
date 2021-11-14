@@ -57,3 +57,5 @@ docker/docker-compose*.yml
 docker/data
 docker/dev
 TestDockerfile
+
+.idea/
