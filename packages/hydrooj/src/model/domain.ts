@@ -92,6 +92,7 @@ class DomainModel {
         const res = await coll.findOneAndUpdate(
             { _id: domainId },
             // FIXME
+            // @ts-ignore
             { $inc: { [field]: n } },
             { returnDocument: 'after' },
         );
