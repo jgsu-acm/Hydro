@@ -25,24 +25,25 @@ describe('Validator', () => {
     });
 
     test('password', () => {
-        expect(validator.isPassword('123twd3')).toBeTruthy();
+        expect(validator.isPassword('123twd3')).toBeFalsy();
         expect(validator.isPassword('12<><?,.,./,.,.;\'\'[]_+)}_+{}{\\%^^%$@#$^wd3')).toBeTruthy();
-        expect(validator.isPassword('twd'.repeat(10))).toBeTruthy();
-        expect(validator.isPassword('twd'.repeat(500))).toBeTruthy();
-        expect(validator.isPassword(' twd4')).toBeTruthy();
+        expect(validator.isPassword('twd'.repeat(10))).toBeFalsy();
+        expect(validator.isPassword('twd'.repeat(500))).toBeFalsy();
+        expect(validator.isPassword(' twd4')).toBeFalsy();
         expect(validator.isPassword('twd2')).toBeFalsy();
         expect(validator.isPassword('')).toBeFalsy();
+        expect(validator.isPassword('Asfxvad23$#')).toBeTruthy();
     });
 
     test('mail', () => {
         expect(validator.isEmail('ex@example.com')).toBeTruthy();
         expect(validator.isEmail('1+e-x@example.com')).toBeTruthy();
         expect(validator.isEmail('example.net@example.com')).toBeTruthy();
-        expect(validator.isEmail('example:net@example.com')).toBeFalsy();
+        expect(validator.isEmail('example:net@example.com')).toBeTruthy();
         expect(validator.isEmail('ex@examplecom')).toBeFalsy();
         expect(validator.isEmail('example.com')).toBeFalsy();
         expect(validator.isEmail('examplecom')).toBeFalsy();
-        expect(validator.isEmail('1+e=x@example.com')).toBeFalsy();
+        expect(validator.isEmail('1+e=x@example.com')).toBeTruthy();
     });
 
     /*

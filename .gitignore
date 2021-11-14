@@ -30,6 +30,7 @@ tsconfig.json
 # Project Rules
 ## Core
 packages/**/*.js
+!*.config.js
 !/build/*.js
 !**/bin/*.js
 !*.page.js
