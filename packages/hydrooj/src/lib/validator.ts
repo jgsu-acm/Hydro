@@ -7,7 +7,8 @@ const RE_UNAME = /^.{3,31}$/i;
 const RE_ROLE = /^[_0-9A-Za-z]{1,31}$/i;
 const RE_MAIL = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/i;
 const RE_JGSU_MAIL = /@jgsu.edu.cn$/;
-const RE_STRONG_PASSWORD = /(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}/;
+// A strong password must be alphanumeric with at least 1 special character
+const RE_STRONG_PASSWORD = /(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9])/;
 
 // eslint-disable-next-line consistent-return
 function _validate(scheme: any, arg: any, base: string): void {
@@ -71,7 +72,7 @@ export const isUname = (s) => RE_UNAME.test(s);
 export const checkUname = (s) => { if (!isUname(s)) throw new ValidationError('uname'); else return s; };
 export const isRole = (s) => RE_ROLE.test(s);
 export const checkRole = (s) => { if (!isRole(s)) throw new ValidationError('role'); else return s; };
-export const isPassword = (s) => RE_STRONG_PASSWORD.test(s);
+export const isPassword = (s) => RE_STRONG_PASSWORD.test(s) && s.length >= 8 && s.length <= 16;
 export const checkPassword = (s) => { if (!(s && s.length >= 5)) throw new ValidationError('password'); else return s; };
 export const isEmail = (s) => RE_MAIL.test(s);
 export const isJGSUEmail = (s) => isEmail(s) && RE_JGSU_MAIL.test(s);
