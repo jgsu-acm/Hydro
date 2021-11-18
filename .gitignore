@@ -60,3 +60,4 @@ docker/dev
 TestDockerfile
 
 .idea/
+.vscode/launch.json
