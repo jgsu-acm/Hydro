@@ -16,7 +16,8 @@
           name:setting.key,
           value:'' if (secret or isFileConfig) else (current[setting.key]|default(setting.value)),
           disabled:setting.disabled,
-          placeholder:'Please edit in ~/.hydro/env instead' if isFileConfig else (_('(Not changed)') if secret else '')
+          placeholder:'Please edit in ~/.hydro/env instead' if isFileConfig else (_('(Not changed)') if secret else ''),
+          extra_attr: 'pattern="\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}"' if setting.key == 'displayName' else ''
         }) }}
   {% elif setting.type == 'select' %}
     {{ form.form_select({

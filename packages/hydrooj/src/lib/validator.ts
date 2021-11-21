@@ -9,6 +9,7 @@ const RE_MAIL = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/i;
 const RE_JGSU_MAIL = /@jgsu.edu.cn$/;
 // A strong password must be alphanumeric with at least 1 special character, and length in [8,16]
 const RE_STRONG_PASSWORD = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/;
+const RE_DISPLAYNAME = /\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}/;
 
 // eslint-disable-next-line consistent-return
 function _validate(scheme: any, arg: any, base: string): void {
@@ -87,6 +88,7 @@ export const isIntro = () => true;
 export const checkIntro = (s) => { if (!isIntro()) throw new ValidationError('intro'); else return s; };
 export const isDescription = (s: any) => s && s.length < 65536;
 export const checkDescription = (s) => { if (!(s && s.length < 65536)) throw new ValidationError('description'); else return s; };
+export const isDisplayName = (s:string) => RE_DISPLAYNAME.test(s);
 
 export const parsePid = (s) => (Number.isNaN(+s) ? s : `P${s}`);
 
@@ -118,4 +120,5 @@ global.Hydro.lib.validator = {
     checkDescription,
     isJGSUEmail,
     parsePid,
+    isDisplayName,
 };

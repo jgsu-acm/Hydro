@@ -1,6 +1,8 @@
 import { Dictionary } from 'lodash';
 import { FilterQuery } from 'mongodb';
+import { ValidationError } from '../error';
 import { DomainDoc } from '../interface';
+import { isDisplayName } from '../lib/validator';
 import * as bus from '../service/bus';
 import db from '../service/db';
 import { MaybeArray, NumberKeys } from '../typeutils';
@@ -204,6 +206,9 @@ class DomainModel {
     }
 
     static async setUserInDomain(domainId: string, uid: number, params: any) {
+        if (!params.displayName || !isDisplayName(params.displayName)) {
+            throw new ValidationError('DisplayName');
+        }
         const udoc = await UserModel.getById(domainId, uid);
         deleteUserCache(udoc);
         return await collUser.updateOne({ domainId, uid }, { $set: params }, { upsert: true });

@@ -10,10 +10,12 @@ import { User } from '../interface';
 import avatar from '../lib/avatar';
 import { sendMail } from '../lib/mail';
 import {
+    isDisplayName,
     isEmail, isJGSUEmail, isPassword, isUname,
 } from '../lib/validator';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
+import dbDomain from '../model/domain';
 import oauth from '../model/oauth';
 import * as system from '../model/system';
 import task from '../model/task';
@@ -207,9 +209,10 @@ class UserRegisterWithCodeHandler extends Handler {
     @param('verifyPassword', Types.String)
     @param('uname', Types.Name, isUname)
     @param('code', Types.String)
+    @param('displayName', Types.String, isDisplayName)
     async post(
         domainId: string, password: string, verify: string,
-        uname: string, code: string,
+        uname: string, code: string, displayName: string,
     ) {
         const tdoc = await token.get(code, token.TYPE_REGISTRATION);
         if (!tdoc || (!tdoc.mail && !tdoc.phone)) throw new InvalidTokenError(token.TYPE_REGISTRATION, code);
@@ -222,6 +225,7 @@ class UserRegisterWithCodeHandler extends Handler {
         if (domain === 'qq.com' && !Number.isNaN(+id)) $set.avatar = `qq:${id}`;
         if (this.session.viewLang) $set.viewLang = this.session.viewLang;
         if (Object.keys($set).length) await user.setById(uid, $set);
+        await dbDomain.setUserInDomain(domainId, uid, { displayName });
         this.session.viewLang = '';
         this.session.uid = uid;
         this.session.scpoe = PERM.PERM_ALL.toString();
