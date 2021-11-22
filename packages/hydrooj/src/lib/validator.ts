@@ -3,9 +3,11 @@ import { ValidationError } from '../error';
 const RE_UID = /^-?\d+$/i;
 const RE_DOMAINID = /^[a-zA-Z][a-zA-Z0-9_]{3,31}$/i;
 const RE_PID = /^[a-zA-Z]+[a-zA-Z0-9]*$/i;
-const RE_UNAME = /^.{3,31}$/i;
-const RE_ROLE = /^[_0-9A-Za-z]{1,31}$/i;
-const RE_MAIL = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/i;
+const RE_UNAME = /^.{4,16}$/;
+const RE_ROLE = /^[_0-9A-Za-z]{1,256}$/i;
+// Ref to RFC 5322 Official Standard
+// eslint-disable-next-line no-control-regex,max-len
+const RE_MAIL = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])/;
 const RE_JGSU_MAIL = /@jgsu.edu.cn$/;
 // A strong password must be alphanumeric with at least 1 special character, and length in [8,16]
 const RE_STRONG_PASSWORD = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/;
@@ -88,7 +90,7 @@ export const isIntro = () => true;
 export const checkIntro = (s) => { if (!isIntro()) throw new ValidationError('intro'); else return s; };
 export const isDescription = (s: any) => s && s.length < 65536;
 export const checkDescription = (s) => { if (!(s && s.length < 65536)) throw new ValidationError('description'); else return s; };
-export const isDisplayName = (s:string) => RE_DISPLAYNAME.test(s);
+export const isDisplayName = (s: string) => RE_DISPLAYNAME.test(s);
 
 export const parsePid = (s) => (Number.isNaN(+s) ? s : `P${s}`);
 

@@ -12,20 +12,21 @@
     <div>
       <label class="inverse material textbox">
         {{ _('Username') }}
-        <input name="uname" type="text" autofocus>
+        <input name="uname" type="text" autofocus pattern="^.{4,16}$" placeholder="长度在4~16之间">
       </label>
     </div>
-      <div>
-          <label class="inverse material textbox">
-              班级姓名
-              <input name="displayName" type="text" pattern="\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}" placeholder="形如20软件2-张三">
-          </label>
-      </div>
+    <div>
+      <label class="inverse material textbox">
+        班级姓名
+        <input name="displayName" type="text" pattern="\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}"
+          placeholder="形如20软件2-张三">
+      </label>
+    </div>
     <div>
       <label class="inverse material textbox">
         {{ _('Password') }}
         <input name="password" type="password" pattern="^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}$"
-               placeholder="密码需至少包含一个字母、一个数字及一个特殊字符">
+          placeholder="至少包含一个字母、一个数字及一个特殊字符；长度在8~16之间">
       </label>
     </div>
     <div>
