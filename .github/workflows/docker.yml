@@ -32,7 +32,7 @@ jobs:
 
       - name: Modify Package
         run: |
-          node docker/modify.js hydrooj && node docker/modify.js hydrojudge
+          node docker/modify.js hydrooj && node docker/modify.js hydrojudge && node docker/modify.js vjudge
 
       - name: Build Hydro
         run: |
