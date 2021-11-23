@@ -9,7 +9,7 @@ import { DomainDoc, MessageDoc, Setting } from '../interface';
 import avatar from '../lib/avatar';
 import { md5 } from '../lib/crypto';
 import * as mail from '../lib/mail';
-import { isDomainId, isEmail, isPassword } from '../lib/validator';
+import { isDomainId, isJGSUEmail, isPassword } from '../lib/validator';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
 import * as contest from '../model/contest';
@@ -170,7 +170,7 @@ class HomeSecurityHandler extends Handler {
     }
 
     @param('password', Types.String)
-    @param('mail', Types.Name, isEmail)
+    @param('mail', Types.Name, isJGSUEmail)
     async postChangeMail(domainId: string, current: string, email: string) {
         const mailDomain = email.split('@')[1];
         if (await BlackListModel.get(`mail::${mailDomain}`)) throw new BlacklistedError(mailDomain);
