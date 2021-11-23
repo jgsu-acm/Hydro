@@ -14,7 +14,7 @@ fi
 
 if [ ! -f "$ROOT/first" ]; then
     echo "for marking use only!" > "$ROOT/first"
-	  hydrooj cli system set file.accessKey "$ACCESS_KEY"
+    hydrooj cli system set file.accessKey "$ACCESS_KEY"
     hydrooj cli system set file.secretKey "$SECRET_KEY"
     # TODO 变成变量
     hydrooj cli system set file.endPoint http://oj-minio:9000/
