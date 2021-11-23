@@ -21,4 +21,5 @@ ADD packages/hydrojudge packages/hydrojudge
 RUN yarn global add pm2 file:/root/packages/utils file:/root/packages/hydrooj file:/root/packages/hydrojudge && \
     wget https://github.com/criyle/go-judge/releases/download/v1.3.8/executorserver-amd64 -O /usr/bin/sandbox && \
     chmod +x /usr/bin/sandbox
+RUN chmod +x /root/entrypoint.sh
 ENTRYPOINT /root/entrypoint.sh

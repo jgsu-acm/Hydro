@@ -9,4 +9,5 @@ RUN yarn global add file:/root/packages/import-qduoj file:/root/packages/vjudge 
     file:/root/packages/onlyoffice && \
     hydrooj addon add @hydrooj/import-qduoj && hydrooj addon add @hydrooj/vjudge && \
     hydrooj addon add @hydrooj/onlyoffice
+RUN chmod +x /root/entrypoint.sh
 ENTRYPOINT /root/entrypoint.sh
