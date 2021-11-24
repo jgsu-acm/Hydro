@@ -22,4 +22,4 @@ RUN prefix="file:/root/packages" && \
 
 # Entrypoint
 ADD docker/judge/entrypoint.sh entrypoint.sh
-ENTRYPOINT /root/entrypoint.sh
+ENTRYPOINT bash /root/entrypoint.sh

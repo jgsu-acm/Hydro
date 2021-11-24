@@ -13,4 +13,4 @@ RUN prefix="file:/root/packages" && \
 
 # Entrypoint
 ADD docker/backend/entrypoint.sh entrypoint.sh
-ENTRYPOINT /root/entrypoint.sh
+ENTRYPOINT bash /root/entrypoint.sh
