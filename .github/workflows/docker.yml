@@ -60,7 +60,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: jgsu-acm/backend:latest
+          tags: ${{ env.REGISTRY }}/jgsu-acm/backend:latest
           labels: ${{ steps.b_meta.outputs.labels }}
           file: docker/backend/Dockerfile
 
@@ -69,6 +69,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: jgsu-acm/judge:latest
+          tags: ${{ env.REGISTRY }}/jgsu-acm/judge:latest
           labels: ${{ steps.j_meta.outputs.labels }}
           file: docker/judge/Dockerfile
