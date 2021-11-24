@@ -54,10 +54,11 @@ __*
 *.local
 
 # Docker-Compose
-docker/docker-compose*.yml
+docker/docker-compose-test.yml
+TestDockerfile
+test.cmd
 docker/data
 docker/dev
-TestDockerfile
 
 .idea/
 .vscode/launch.json

@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  oj-minio:
+    image: minio/minio
+    container_name: oj-minio
+    command: server /data
+    restart: always
+    volumes:
+      - ./data/minio:/data
+    environment:
+      - MINIO_ACCESS_KEY=CHANGE_THIS
+      - MINIO_SECRET_KEY=CHANGE_THIS
+
+  oj-mongo:
+    image: mongo:4.4.10-focal
+    container_name: oj-mongo
+    restart: always
+    volumes:
+      - ./data/mongo:/data/db
+
+  oj-sonic:
+    image: valeriansaliou/sonic:v1.3.2
+    container_name: oj-sonic
+    restart: always
+    volumes:
+      - ./data/sonic:/data/sonic
+      - ./sonic_config.cfg:/etc/sonic.cfg
+
+  oj-backend:
+    image: stagoh/backend:latest
+    container_name: oj-backend
+    restart: always
+    depends_on:
+      - oj-minio
+      - oj-mongo
+      - oj-sonic
+    volumes:
+      - ./data/backend/config:/root/.hydro
+      - ./data/backend/sonic:/data/sonic
+    environment:
+      - ACCESS_KEY=CHANGE_THIS
+      - SECRET_KEY=CHANGE_THIS
+    ports:
+      - "0.0.0.0:80:8888"
+
+  oj-judge:
+    image: stagoh/judge:latest
+    container_name: oj-judge
+    restart: always
+    privileged: true
+    depends_on:
+      - oj-backend
+    volumes:
+      - ./data/judge/config:/root/.config/hydro

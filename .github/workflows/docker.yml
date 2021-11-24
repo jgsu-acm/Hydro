@@ -2,7 +2,7 @@ name: Create and publish a Docker image
 
 on:
   push:
-    branches: [ 'master' ]
+    branches: ["master"]
 
 env:
   YARN_ENABLE_IMMUTABLE_INSTALLS: false
@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Log in to the Container registry
         uses: docker/login-action@7f47463f5646678eb7ccf8f0f2e2d0896916a10a

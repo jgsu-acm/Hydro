@@ -1,25 +1,25 @@
-FROM node:14
+FROM node:lts-slim
 WORKDIR /root
-# Base
-RUN apt-get -qq update && \
-    apt-get install -y gcc g++ python python3 openjdk-8-jdk-headless
-# Extension
-# RUN apt-get install -y fp-compiler \
-#     php7.0-cli \
-#     rustc \
-#     haskell-platform \
-#     libjavascriptcoregtk-4.0-bin \
-#     golang \
-#     ruby \
-#     mono-runtime mono-mcs
-
-ADD docker/judge/entrypoint.sh entrypoint.sh
-ADD docker/judge/judge.yaml judge.yaml
 ADD packages/utils packages/utils
 ADD packages/hydrooj packages/hydrooj
 ADD packages/hydrojudge packages/hydrojudge
-RUN yarn global add pm2 file:/root/packages/utils file:/root/packages/hydrooj file:/root/packages/hydrojudge && \
-    wget https://github.com/criyle/go-judge/releases/download/v1.3.8/executorserver-amd64 -O /usr/bin/sandbox && \
-    chmod +x /usr/bin/sandbox
-RUN chmod +x /root/entrypoint.sh
+
+# Environment
+ADD docker/judge/judge.yaml judge.yaml
+RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
+    build_deps="wget" && \
+    apt-get -qq update && \
+    apt-get install -y $compiler $build_deps && \
+    wget https://gh.zxilly.workers.dev/https://github.com/criyle/go-judge/releases/download/v1.3.8/executorserver-amd64 -O /usr/bin/sandbox && \
+    chmod +x /usr/bin/sandbox && \
+    apt-get purge -y --auto-remove $build_deps && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Hydro
+RUN prefix="file:/root/packages" && \
+    yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/hydrojudge && \
+    rm -rf packages
+
+# Entrypoint
+ADD docker/judge/entrypoint.sh entrypoint.sh
 ENTRYPOINT /root/entrypoint.sh
