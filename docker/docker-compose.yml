@@ -28,7 +28,7 @@ services:
       - ./sonic_config.cfg:/etc/sonic.cfg
 
   oj-backend:
-    image: stagoh/backend:latest
+    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/backend
     container_name: oj-backend
     restart: always
     depends_on:
@@ -45,7 +45,7 @@ services:
       - "0.0.0.0:80:8888"
 
   oj-judge:
-    image: stagoh/judge:latest
+    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/judge
     container_name: oj-judge
     restart: always
     privileged: true
