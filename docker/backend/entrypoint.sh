@@ -22,6 +22,7 @@ if [ ! -f "$ROOT/first" ]; then
     hydrooj cli system set file.secretKey "$SECRET_KEY"
     hydrooj cli system set file.endPoint http://oj-minio:9000/
     hydrooj cli system set sonic.host oj-sonic
+    hydrooj cli system set sonic.auth "SecretPassword"
 
     hydrooj cli user create systemadmin@systemjudge.local root rootroot 2
     hydrooj cli user setSuperAdmin 2
