@@ -6,6 +6,8 @@ on:
 
 env:
   YARN_ENABLE_IMMUTABLE_INSTALLS: false
+  REGISTRY: registry.cn-hangzhou.aliyuncs.com
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -22,8 +24,9 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@7f47463f5646678eb7ccf8f0f2e2d0896916a10a
         with:
+          registry: ${{ env.REGISTRY }}
           username: stagoh
-          password: ${{ secrets.DH_TOKEN }}
+          password: ${{ secrets.ALIYUN_DOCKER }}
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.4.1
@@ -44,20 +47,20 @@ jobs:
         id: b_meta
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
         with:
-          images: stagoh/backend
+          images: ${{ env.REGISTRY }}/jgsu-acm/backend
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@a287d15e54221320e8a1b9d1a4bb26519678d2c3
         with:
-          images: stagoh/judge
+          images: ${{ env.REGISTRY }}/jgsu-acm/judge
 
       - name: Build and push Docker image Backend
         uses: docker/build-push-action@5e11b373bfed0d8024ef33d1586c675819690e95
         with:
           context: .
           push: true
-          tags: stagoh/backend:latest
+          tags: jgsu-acm/backend:latest
           labels: ${{ steps.b_meta.outputs.labels }}
           file: docker/backend/Dockerfile
 
@@ -66,6 +69,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: stagoh/judge:latest
+          tags: jgsu-acm/judge:latest
           labels: ${{ steps.j_meta.outputs.labels }}
           file: docker/judge/Dockerfile
