@@ -37,7 +37,6 @@ services:
       - oj-sonic
     volumes:
       - ./data/backend/config:/root/.hydro
-      - ./data/backend/sonic:/data/sonic
     environment:
       - ACCESS_KEY=CHANGE_THIS
       - SECRET_KEY=CHANGE_THIS
