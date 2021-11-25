@@ -1,0 +1,22 @@
+学术:
+  - name: 算法
+  - name: 数据结构
+  - name: 图论
+  - name: 数学
+  - name: 博弈论
+比赛:
+  - name: 实验室比赛
+  - name: ICPC
+  - name: CCPC
+  - name: 蓝桥杯
+  - name: 其他比赛
+其他OJ:
+  - name: 洛谷
+  - name: CodeForces
+  - name: ATCoder
+泛:
+  - name: C/C++
+  - name: Java
+  - name: Python
+  - name: JavaScript/TypeScript
+  - name: 计算机科学

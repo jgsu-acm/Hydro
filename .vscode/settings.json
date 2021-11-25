@@ -4,7 +4,7 @@
     "files.eol": "\n",
     "editor.detectIndentation": true,
     "editor.formatOnSave": true,
-    "editor.renderWhitespace": "boundary",
+    "editor.renderWhitespace": "selection",
     "typescript.tsdk": "node_modules/typescript/lib",
     "[json]": {
         "files.insertFinalNewline": true,
