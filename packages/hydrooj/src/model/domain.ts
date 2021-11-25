@@ -206,8 +206,10 @@ class DomainModel {
     }
 
     static async setUserInDomain(domainId: string, uid: number, params: any) {
-        if (!params.displayName || !isDisplayName(params.displayName)) {
-            throw new ValidationError('DisplayName');
+        if (params.displayName !== undefined) {
+            if (!isDisplayName(params.displayName)) {
+                throw new ValidationError('DisplayName');
+            }
         }
         const udoc = await UserModel.getById(domainId, uid);
         deleteUserCache(udoc);
