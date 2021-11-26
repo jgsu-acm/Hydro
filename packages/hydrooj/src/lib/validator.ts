@@ -3,7 +3,7 @@ import { ValidationError } from '../error';
 const RE_UID = /^-?\d+$/i;
 const RE_DOMAINID = /^[a-zA-Z][a-zA-Z0-9_]{3,31}$/i;
 const RE_PID = /^[a-zA-Z]+[a-zA-Z0-9]*$/i;
-const RE_UNAME = /^.{4,16}$/;
+const RE_UNAME = /^[A-Z,0-9,_]{4,16}$/i;
 const RE_ROLE = /^[_0-9A-Za-z]{1,256}$/i;
 // Ref to RFC 5322 Official Standard
 // eslint-disable-next-line no-control-regex,max-len
