@@ -10,7 +10,7 @@ RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
     build_deps="wget" && \
     apt-get -qq update && \
     apt-get install -y $compiler $build_deps && \
-    wget https://gh.zxilly.workers.dev/https://github.com/criyle/go-judge/releases/download/v1.3.8/executorserver-amd64 -O /usr/bin/sandbox && \
+    wget https://github.com/criyle/go-judge/releases/download/v1.3.8/executorserver-amd64 -O /usr/bin/sandbox && \
     chmod +x /usr/bin/sandbox && \
     apt-get purge -y --auto-remove $build_deps && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
