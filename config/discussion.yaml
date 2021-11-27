@@ -21,5 +21,7 @@
   - name: Java
   - name: Python
   - name: JavaScript/TypeScript
+  - name: Markdown
+  - name: LaTeX
   - name: 计算机科学
   - name: 其他
