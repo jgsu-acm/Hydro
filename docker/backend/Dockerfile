@@ -5,7 +5,7 @@ ADD packages packages
 # Hydro
 RUN prefix="file:/root/packages" && \
     yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    $prefix/import-qduoj \
+    hydro-pdf-preview \
     $prefix/vjudge \
     $prefix/onlyoffice \
     $prefix/sonic && \

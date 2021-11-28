@@ -9,6 +9,7 @@ if [ ! -f "$ROOT/addon.json" ]; then
     hydrooj addon add @hydrooj/vjudge
     hydrooj addon add @hydrooj/onlyoffice
     hydrooj addon add @hydrooj/sonic
+    hydrooj addon add hydro-pdf-preview
 fi
 
 if [ ! -f "$ROOT/config.json" ]; then
