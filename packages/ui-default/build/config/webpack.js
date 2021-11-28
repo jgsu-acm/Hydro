@@ -232,6 +232,11 @@ export default function (env = {}) {
       }),
       ...env.measure ? [new BundleAnalyzerPlugin({ analyzerPort: 'auto' })] : [],
     ],
+    performance: {
+      hints: false,
+      maxEntrypointSize: 512000,
+      maxAssetSize: 512000,
+    },
   };
 
   return env.measure ? smp.wrap(config) : config;
