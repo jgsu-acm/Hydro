@@ -1,6 +1,7 @@
 FROM node:lts-slim
 WORKDIR /root
 ADD packages packages
+ADD LICENSE-AGPL3.txt LICENSE-AGPL3.txt
 
 # Hydro
 RUN prefix="file:/root/packages" && \
