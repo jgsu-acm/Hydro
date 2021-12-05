@@ -65,20 +65,6 @@ class Nunjucks extends nunjucks.Environment {
     this.addFilter('assign', (self, data) => Object.assign(self, data));
     this.addFilter('markdown', (self, html = false) => markdown.render(self, html));
     this.addFilter('markdownInline', (self, html = false) => markdown.renderInline(self, html));
-    // FIXME So foolish......
-    this.addFilter('truncatetext', (self, length, omission) => {
-      let sum = 0;
-      if (self) {
-        const RE_IMAGELINK = /\[!\[.*\]\(.+\)\]\(.+\)/g;
-        const RESULT = self.match(RE_IMAGELINK);
-        if (RESULT) {
-          RESULT.forEach((element) => {
-            sum += element.length;
-          });
-        }
-      }
-      return truncate(self, { length: sum + length, omission });
-    });
     this.addFilter('ansi', (self) => misc.ansiToHtml(self));
     this.addFilter('base64_encode', (s) => Buffer.from(s).toString('base64'));
     this.addFilter('base64_decode', (s) => Buffer.from(s, 'base64').toString());
