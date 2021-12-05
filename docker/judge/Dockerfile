@@ -3,6 +3,7 @@ WORKDIR /root
 ADD packages/utils packages/utils
 ADD packages/hydrooj packages/hydrooj
 ADD packages/hydrojudge packages/hydrojudge
+ADD LICENSE-AGPL3.txt LICENSE-AGPL3.txt
 
 # Environment
 ADD docker/judge/judge.yaml judge.yaml
