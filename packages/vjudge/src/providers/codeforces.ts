@@ -28,27 +28,28 @@ const VERDICT = {
     'Idleness limit exceeded': STATUS.STATUS_TIME_LIMIT_EXCEEDED,
 };
 
+const cfurl = 'https://codeforces.com';
+
 export default class CodeforcesProvider implements IBasicProvider {
     constructor(public account: RemoteAccount, private save: (data: any) => Promise<void>) {
         if (account.cookie) this.cookie = account.cookie;
     }
 
     cookie: string[] = [];
-    // @ts-ignore
     csrf: string;
 
     get(url: string) {
         logger.debug('get', url);
-        if (!url.includes('//')) url = `${this.account.endpoint || 'https://cf.zxilly.workers.dev'}${url}`;
-        const req = superagent.get(url).set('Cookie', this.cookie).timeout(2000);
+        if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
+        const req = superagent.get(url).set('Cookie', this.cookie).timeout(10000).retry(3);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
     }
 
     post(url: string) {
         logger.debug('post', url, this.cookie);
-        if (!url.includes('//')) url = `${this.account.endpoint || 'https://cf.zxilly.workers.dev'}${url}`;
-        const req = superagent.post(url).type('form').set('Cookie', this.cookie).timeout(2000);
+        if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
+        const req = superagent.post(url).type('form').set('Cookie', this.cookie).timeout(10000).retry(3);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
     }
@@ -65,77 +66,27 @@ export default class CodeforcesProvider implements IBasicProvider {
         return _tta;
     }
 
-    ca76fd64a80cdc35(_0x87ebx2) {
-        const _0xca4e = ['\x6C\x65\x6E\x67\x74\x68', '\x63\x68\x61\x72\x43\x6F\x64\x65\x41\x74', '\x66\x6C\x6F\x6F\x72'];
-        let _0x87ebx3 = 0;
-        for (let _0x87ebx4 = 0; _0x87ebx4 < _0x87ebx2[_0xca4e[0]]; _0x87ebx4++) {
-            _0x87ebx3 = (_0x87ebx3 + (_0x87ebx4 + 1) * (_0x87ebx4 + 2) * _0x87ebx2[_0xca4e[1]](_0x87ebx4)) % 1009;
-            if (_0x87ebx4 % 3 === 0) {
-                _0x87ebx3++;
-            }
-            if (_0x87ebx4 % 2 === 0) {
-                _0x87ebx3 *= 2;
-            }
-            if (_0x87ebx4 > 0) {
-                _0x87ebx3 -= Math[_0xca4e[2]](_0x87ebx2[_0xca4e[1]](Math[_0xca4e[2]](_0x87ebx4 / 2)) / 2) * (_0x87ebx3 % 5);
-            }
-            while (_0x87ebx3 < 0) {
-                _0x87ebx3 += 1009;
-            }
-            while (_0x87ebx3 >= 1009) {
-                _0x87ebx3 -= 1009;
-            }
-        }
-        return _0x87ebx3;
-    }
-
-    async getCsrfToken(url: string) {
-        const { text: html } = await this.get(url);
+    async getCsrfAndTta(url: string) {
+        const req = await this.get(url);
+        const html = req['text'];
         const { window: { document } } = new JSDOM(html);
         if (document.body.children.length < 2 && html.length < 512) {
             throw new Error(document.body.textContent);
         }
-        return (
-            document.querySelector('meta[name="X-Csrf-Token"]')
-            || document.querySelector('input[name="csrf_token"]')
-        )?.getAttribute('content');
-    }
-
-    async getTokens(url: string) {
-        const req = await this.get(url);
-        const html = req.text;
+        const csrf_token = document.querySelector('meta[name="X-Csrf-Token"]')?.getAttribute('content')
+            || document.querySelector('input[name="csrf_token"]')?.getAttribute('value');
         if (!this.cookie || this.cookie.length === 0) {
             this.cookie = req.headers['set-cookie'];
         }
-        const cookie_array = this.cookie
-            .join(';')
-            .split(';');
-        cookie_array.forEach((element: string) => {
-            element.trim();
-        });
-        const _39ce7 = cookie_array.find((str: string) => str.startsWith('39ce7='))
+        const _39ce7 = this.cookie.join()
+            .match(/39ce7=.{8}/)[0]
             .substr(6);
-        const tta = this.ca76fd64a80cdc35(_39ce7);
-        const { window: { document } } = new JSDOM(html);
-        if (document.body.children.length < 2 && html.length < 512) {
-            throw new Error(document.body.textContent);
-        }
-
-        const csrf_token = (
-            document.querySelector('meta[name="X-Csrf-Token"]')
-            || document.querySelector('input[name="csrf_token"]')
-        )?.getAttribute('content');
-        const purehtml = html.replace(/\s*/g, '');
-        const ftaa_seg = purehtml.match(/window._ftaa="[0-9a-z]{18}/);
-        const bfaa_seg = purehtml.match(/window._bfaa="[0-9a-z]{32}/);
-        const ftaa = ftaa_seg ? ftaa_seg[0].substr(14) : '';
-        const bfaa = bfaa_seg ? bfaa_seg[0].substr(14) : '';
-        return [csrf_token, ftaa, bfaa, tta];
+        return [csrf_token, this.tta(_39ce7)];
     }
 
     get loggedIn() {
         logger.debug('Testing if logged in.');
-        return this.get('/enter?back=%2F').then(({ text: html }) => {
+        return this.get('/enter').then(({ text: html }) => {
             if (html.includes('Login into Codeforces')) {
                 logger.debug('Testing failed');
                 return false;
@@ -148,17 +99,16 @@ export default class CodeforcesProvider implements IBasicProvider {
     async ensureLogin() {
         if (await this.loggedIn) return true;
         logger.info('retry login');
-        // const csrf_token = await this.getCsrfToken('/enter');
-        const [csrf_token, ftaa, bfaa, tta] = await this.getTokens('/enter?back=%2F');
-        const res = await this.post('/enter?back=%2F').send({
+        const [csrf_token, _tta] = await this.getCsrfAndTta('/enter');
+        const res = await this.post('/enter').send({
             csrf_token,
             action: 'enter',
-            ftaa,
-            bfaa,
+            ftaa: '',
+            bfaa: '',
             handleOrEmail: this.account.handle,
             password: this.account.password,
             remember: 'on',
-            _tta: tta,
+            _tta,
         });
         const cookie = res.header['set-cookie'];
         if (cookie && !this.account.frozen) {
@@ -277,8 +227,7 @@ export default class CodeforcesProvider implements IBasicProvider {
         const [, contestId, submittedProblemIndex] = id.startsWith('P921')
             ? ['', '921', id.split('P921')[1]]
             : /^P(\d+)([A-Z][0-9]*)$/.exec(id);
-        // const csrf_token = await this.getCsrfToken('/problemset/submit');
-        const [csrf_token, ftaa, bfaa, tta] = await this.getTokens('/enter?back=%2F');
+        const [csrf_token, _tta] = await this.getCsrfAndTta('/problemset/submit');
         // TODO check submit time to ensure submission
         await this.post(`/problemset/submit?csrf_token=${csrf_token}`).send({
             csrf_token,
@@ -289,9 +238,9 @@ export default class CodeforcesProvider implements IBasicProvider {
             source: code,
             tabsize: 4,
             sourceFile: '',
-            ftaa,
-            bfaa,
-            _tta: tta,
+            ftaa: '',
+            bfaa: 'f1b3f18c715565b589b7823cda7448ce',
+            _tta,
             sourceCodeConfirmed: true,
         });
         const { text: status } = await this.get('/problemset/status?my=on');
@@ -302,8 +251,7 @@ export default class CodeforcesProvider implements IBasicProvider {
 
     async waitForSubmission(id: string, next, end) {
         let i = 1;
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        for (; ;) {
             await sleep(3000);
             const { body } = await this.post('/data/submitSource').send({
                 csrf_token: this.csrf,
