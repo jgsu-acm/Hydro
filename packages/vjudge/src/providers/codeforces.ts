@@ -41,7 +41,7 @@ export default class CodeforcesProvider implements IBasicProvider {
     get(url: string) {
         logger.debug('get', url);
         if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
-        const req = superagent.get(url).set('Cookie', this.cookie).timeout(10000).retry(3);
+        const req = superagent.get(url).set('Cookie', this.cookie).timeout(180 * 1000).retry(3);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
     }
@@ -49,7 +49,7 @@ export default class CodeforcesProvider implements IBasicProvider {
     post(url: string) {
         logger.debug('post', url, this.cookie);
         if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
-        const req = superagent.post(url).type('form').set('Cookie', this.cookie).timeout(10000).retry(3);
+        const req = superagent.post(url).type('form').set('Cookie', this.cookie).timeout(180 * 1000).retry(3);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
     }
