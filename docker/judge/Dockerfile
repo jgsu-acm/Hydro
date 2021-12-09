@@ -7,6 +7,7 @@ ADD LICENSE-AGPL3.txt LICENSE-AGPL3.txt
 
 # Environment
 ADD docker/judge/judge.yaml judge.yaml
+ADD docker/judge/mount.yaml /usr/bin/mount.yaml
 RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
     build_deps="wget" && \
     apt-get -qq update && \
