@@ -52,3 +52,4 @@ services:
       - oj-backend
     volumes:
       - ./data/judge/config:/root/.config/hydro
+    shm_size: '2gb'
