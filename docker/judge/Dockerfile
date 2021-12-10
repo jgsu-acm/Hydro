@@ -19,7 +19,7 @@ RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
 
 # Hydro
 RUN prefix="file:/root/packages" && \
-    yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/hydrojudge && \
+    yarn global add pm2 $prefix/utils $prefix/hydrojudge && \
     rm -rf packages
 
 # Entrypoint

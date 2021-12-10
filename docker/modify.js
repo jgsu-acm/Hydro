@@ -1,6 +1,8 @@
 const fs = require('fs');
-const PATH = `packages/${process.argv[2]}/package.json`;
-const data_oj = JSON.parse(fs.readFileSync(PATH).toString());
-const data_ut = JSON.parse(fs.readFileSync('packages/utils/package.json').toString());
-data_oj['dependencies']['@hydrooj/utils'] = data_ut['version'];
-fs.writeFileSync(PATH, JSON.stringify(data_oj, null, 4));
+for (let i = 2; i < process.argv.length; i++) {
+    const path = `packages/${process.argv[i]}/package.json`;
+    const data_target = JSON.parse(fs.readFileSync(path).toString());
+    const data_utils = JSON.parse(fs.readFileSync('packages/utils/package.json').toString());
+    data_target['dependencies']['@hydrooj/utils'] = data_utils['version'];
+    fs.writeFileSync(path, JSON.stringify(data_target, null, 4));
+}
