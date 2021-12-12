@@ -20,26 +20,26 @@ __hint__:
       target: Compiler output file
       display: Display name
 c:
-  compile: /usr/bin/gcc -Wall --std=c99 -o ${name} foo.c -lm -O2 -fdiagnostics-color=always
+  compile: /usr/bin/gcc -Wall --std=c99 -o ${name} foo.c -lm -O2 -DONLINE_JUDGE -fdiagnostics-color=always
   highlight: c astyle-c
   monaco: cpp
   display: C
 cc:
-  compile: /usr/bin/g++ -Wall -std=c++14 -o ${name} foo.cc -lm -O2 -fdiagnostics-color=always
+  compile: /usr/bin/g++ -Wall -std=c++14 -o ${name} foo.cc -lm -O2 -DONLINE_JUDGE -fdiagnostics-color=always
   code_file: foo.cc
   highlight: cpp astyle-c
   monaco: cpp
   display: C++
 cc.std98:
-  compile: /usr/bin/g++ -Wall -std=c++98 -o ${name} foo.cc -lm -O2 -fdiagnostics-color=always
+  compile: /usr/bin/g++ -Wall -std=c++98 -o ${name} foo.cc -lm -O2 -DONLINE_JUDGE -fdiagnostics-color=always
   display: C++ 98
 cc.std11:
-  compile: /usr/bin/g++ -Wall -std=c++11 -o ${name} foo.cc -lm -O2 -fdiagnostics-color=always
+  compile: /usr/bin/g++ -Wall -std=c++11 -o ${name} foo.cc -lm -O2 -DONLINE_JUDGE -fdiagnostics-color=always
   display: C++ 11
 cc.std14:
   display: C++ 14
 cc.std17:
-  compile: /usr/bin/g++ -Wall -std=c++17 -o ${name} foo.cc -lm -O2 -fdiagnostics-color=always
+  compile: /usr/bin/g++ -Wall -std=c++17 -o ${name} foo.cc -lm -O2 -DONLINE_JUDGE -fdiagnostics-color=always
   display: C++ 17
 java:
   compile: /usr/bin/javac -d ${dir} -encoding utf8 ./Main.java
@@ -66,43 +66,6 @@ py.py3:
     '${dir}/${name}', doraise=True)"
   execute: /usr/bin/python3 ${name}
   display: Python 3
-
-# pas:
-#   compile: /usr/bin/fpc -O2 -o${dir}/${name} foo.pas
-#   highlight: pascal
-#   display: Pascal
-# php:
-#   execute: /usr/bin/php foo.php
-#   display: PHP
-# rs:
-#   compile: /usr/bin/rustc -O -o ${dir}/${name} ${dir}/foo.rs
-#   highlight: rust
-#   display: Rust
-# hs:
-#   compile: /usr/bin/ghc -O -outputdir /tmp -o ${name} foo.hs
-#   highlight: haskell
-#   display: Haskell
-# js:
-#   execute: /usr/bin/jsc ${dir}/foo.js
-#   highlight: javascript
-#   display: Javascript (JSC)
-# go:
-#   compile: /usr/bin/go build -o ${name} foo.go
-#   display: Golang
-# rb:
-#   execute: /usr/bin/ruby foo.rb
-#   highlight: ruby
-#   display: Ruby
-# cs:
-#   compile: /usr/bin/mcs -optimize+ -out:${dir}/${name} ${dir}/foo.cs
-#   execute: /usr/bin/mono ${name}
-#   highlight: csharp astyle-cs
-#   monaco: csharp
-#   display: Csharp
-# jl:
-#   execute: /usr/bin/julia ${dir}/foo.jl
-#   highlight: julia
-#   display: Julia
 
 codeforces:
   execute: none
@@ -237,3 +200,40 @@ codeforces.55:
   highlight: javascript
   display: Node.js 12.6.3
   comment: //
+
+# pas:
+#   compile: /usr/bin/fpc -O2 -o${dir}/${name} foo.pas
+#   highlight: pascal
+#   display: Pascal
+# php:
+#   execute: /usr/bin/php foo.php
+#   display: PHP
+# rs:
+#   compile: /usr/bin/rustc -O -o ${dir}/${name} ${dir}/foo.rs
+#   highlight: rust
+#   display: Rust
+# hs:
+#   compile: /usr/bin/ghc -O -outputdir /tmp -o ${name} foo.hs
+#   highlight: haskell
+#   display: Haskell
+# js:
+#   execute: /usr/bin/jsc ${dir}/foo.js
+#   highlight: javascript
+#   display: Javascript (JSC)
+# go:
+#   compile: /usr/bin/go build -o ${name} foo.go
+#   display: Golang
+# rb:
+#   execute: /usr/bin/ruby foo.rb
+#   highlight: ruby
+#   display: Ruby
+# cs:
+#   compile: /usr/bin/mcs -optimize+ -out:${dir}/${name} ${dir}/foo.cs
+#   execute: /usr/bin/mono ${name}
+#   highlight: csharp astyle-cs
+#   monaco: csharp
+#   display: Csharp
+# jl:
+#   execute: /usr/bin/julia ${dir}/foo.jl
+#   highlight: julia
+#   display: Julia
