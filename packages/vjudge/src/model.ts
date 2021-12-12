@@ -82,7 +82,7 @@ class Service {
     async main() {
         const res = await this.login();
         if (!res) return;
-        setInterval(() => this.login(), 1 * 3600 * 1000);
+        setInterval(() => this.login(), 1 * 1800 * 1000);
         TaskModel.consume({ type: 'remotejudge', subType: this.account.type }, this.judge.bind(this), false);
         const ddocs = await DomainModel.getMulti({ mount: this.account.type }).toArray();
         for (const ddoc of ddocs) {
