@@ -1,28 +1,33 @@
 import { AutoloadPage } from 'vj/misc/Page';
-import request from 'vj/utils/request';
 import i18n from 'vj/utils/i18n';
 import tpl from 'vj/utils/tpl';
 
-const hitokotoPage = new AutoloadPage('hitokotoPage', () => {
-  function getHitokoto($containers) {
+const jinrishiciPage = new AutoloadPage('jinrishiciPage', () => {
+  function getJinrishici($containers) {
     $containers.get().forEach((container) => {
-      request.get('https://v1.hitokoto.cn?c=a&c=b&c=c&c=d&c=e&c=f')
-        .then((hitokoto) => {
-          const dom = $(tpl`<p>${hitokoto.hitokoto}</p>`);
+      new Promise((resolve) => {
+        // eslint-disable-next-line global-require
+        const jinrishici = require('jinrishici');
+        jinrishici.load((result) => {
+          resolve(result.data.content);
+        });
+      })
+        .then((jinrishici) => {
+          const dom = $(tpl`<p>${jinrishici}</p>`);
           dom.appendTo(container);
         })
         .catch((e) => {
           console.error(e);
-          const dom = $(tpl`<p>${i18n('Cannot get hitokoto.')}</p>`);
+          const dom = $(tpl`<p>${i18n('Cannot get jinrishici.')}</p>`);
           dom.appendTo(container);
         });
     });
   }
-  if ($('[name="hitokoto"]')) getHitokoto($('[name="hitokoto"]'));
+  if ($('[name="jinrishici"]')) getJinrishici($('[name="jinrishici"]'));
   $(document).on('vjContentNew', (e) => {
-    const elem = $(e.target).find('[name="hitokoto"]');
-    if (elem.get) getHitokoto(elem);
+    const elem = $(e.target).find('[name="jinrishici"]');
+    if (elem.get) getJinrishici(elem);
   });
 });
 
-export default hitokotoPage;
+export default jinrishiciPage;

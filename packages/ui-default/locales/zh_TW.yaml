@@ -1,28 +1,28 @@
 __langname: 正體中文
-'{0} comments': '{0} 條評論'
-'{0} discussions': '{0} 條討論'
-'{0} limit exceeded (limit: {2} operations in {1} seconds).': '{0} 超過頻率限制。限制：{1} 秒內最多 {2} 次操作。'
-'{0} solutions': '{0} 條題解'
-'{0} views': '{0} 次檢視'
-'{0}: Permissions': '{0}: 許可權'
-'{0}: Roles': '{0}: 角色'
-'{0}: Users': '{0}: 使用者'
-'# My Submissions': '我的遞交數'
-'# Submissions': '遞交數'
-'↓ # Comments': '↓ 評論數'
-'↓ # Enrollees': '↓ 參與人數'
-'↓ # Likes': '↓ 贊數'
-'↓ # Stars': '↓ 收藏數'
-'↓ Create Time': '↓ 創建時間'
-'↓ Update Time': '↓ 更新時間'
-'A domain ID cannot be changed after creation. It is supposed to be:': '創建後將無法更改 ID。ID 必須滿足以下條件：'
-'Current dataset: {0}': '當前測試資料: {0}'
-'Hello, {0}! You can click following link to active your new email of your {1} account:': 您好，{0}！您可以點選以下連結來啟用您 {1} 賬戶的新電子郵件地址：
-'Hello, {0}! You can click following link to reset the password of your {1} account:': 您好，{0}！您可以點選以下連結來重置您 {1} 賬戶的密碼：
-'Hello! You can click following link to sign up your {0} account:': 您好！您可以點選以下連結來註冊您的 {0} 賬戶：
-'No': 否
-'Solved {0} problems, RP: {1} (No. {2})': '解決了 {0} 道題目，RP: {1} (No. {2})'
-'Yes': 是
+"{0} comments": "{0} 條評論"
+"{0} discussions": "{0} 條討論"
+"{0} limit exceeded (limit: {2} operations in {1} seconds).": "{0} 超過頻率限制。限制：{1} 秒內最多 {2} 次操作。"
+"{0} solutions": "{0} 條題解"
+"{0} views": "{0} 次檢視"
+"{0}: Permissions": "{0}: 許可權"
+"{0}: Roles": "{0}: 角色"
+"{0}: Users": "{0}: 使用者"
+"# My Submissions": "我的遞交數"
+"# Submissions": "遞交數"
+"↓ # Comments": "↓ 評論數"
+"↓ # Enrollees": "↓ 參與人數"
+"↓ # Likes": "↓ 贊數"
+"↓ # Stars": "↓ 收藏數"
+"↓ Create Time": "↓ 創建時間"
+"↓ Update Time": "↓ 更新時間"
+"A domain ID cannot be changed after creation. It is supposed to be:": "創建後將無法更改 ID。ID 必須滿足以下條件："
+"Current dataset: {0}": "當前測試資料: {0}"
+"Hello, {0}! You can click following link to active your new email of your {1} account:": 您好，{0}！您可以點選以下連結來啟用您 {1} 賬戶的新電子郵件地址：
+"Hello, {0}! You can click following link to reset the password of your {1} account:": 您好，{0}！您可以點選以下連結來重置您 {1} 賬戶的密碼：
+"Hello! You can click following link to sign up your {0} account:": 您好！您可以點選以下連結來註冊您的 {0} 賬戶：
+"No": 否
+"Solved {0} problems, RP: {1} (No. {2})": "解決了 {0} 道題目，RP: {1} (No. {2})"
+"Yes": 是
 (None): (無)
 About Markdown: 關於 Markdown
 About: 關於

@@ -25,20 +25,20 @@ problem_import: Import Problem
 problem_main: Problem Set
 problem_solution: Problem Solution
 problem_submit: Problem Submit
-problem_type.default: 'Type: Default'
-problem_type.fileio: 'Type: FileIO ({0})'
-problem_type.interactive: 'Type: Interactive'
-problem_type.objective: 'Type: Objective'
-problem_type.remote_judge: 'Type: RemoteJudge'
-problem_type.submit_answer: 'Type: SubmitAnswer'
-problem-category-delim: '|'
-problem-subcategory-delim: ', '
-problem.import.additional_file: '## Additional Files'
-problem.import.hint: '## Hint'
-problem.import.input_format: '## Input Format'
-problem.import.limit_and_hint: '## Limits'
-problem.import.output_format: '## Output Format'
-problem.import.problem_description: '## Description'
+problem_type.default: "Type: Default"
+problem_type.fileio: "Type: FileIO ({0})"
+problem_type.interactive: "Type: Interactive"
+problem_type.objective: "Type: Objective"
+problem_type.remote_judge: "Type: RemoteJudge"
+problem_type.submit_answer: "Type: SubmitAnswer"
+problem-category-delim: "|"
+problem-subcategory-delim: ", "
+problem.import.additional_file: "## Additional Files"
+problem.import.hint: "## Hint"
+problem.import.input_format: "## Input Format"
+problem.import.limit_and_hint: "## Limits"
+problem.import.output_format: "## Output Format"
+problem.import.problem_description: "## Description"
 ranking: Ranking
 record_detail: Record Detail
 record_main: Record

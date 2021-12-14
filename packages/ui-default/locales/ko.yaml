@@ -1,41 +1,41 @@
 __id: ko
 __langname: 한국어
 '"{data}" copied to clipboard!': “{data}”복사 완료
-'{0} comments': '{0} 댓글'
-'{0} discussions': '{0} 토론'
-'{0} is a moderator of this domain.': '{}가 그룹의 관리자입니다.'
-'{0} limit exceeded (limit: {2} operations in {1} seconds).': '{0} 제한 초과：{1} 초 {2} 번'
-'{0} problems': '{0} 문제'
-'{0} sections': '{0} 단락'
-'{0} solutions': '{0} 해설'
-'{0} views': '{0} 조회수'
-'{0}: Permissions': '{0}: 권한'
-'{0}: Roles': '{0}: 역할'
-'{0}: Users': '{0}: 사용자'
-'# My Submissions': '내 제출 기록'
-'# Submissions': '제출 기록'
-'↓ # Comments': '↓ 답글'
-'↓ # Enrollees': '↓ 등록'
-'↓ # Likes': '↓ 좋아요'
-'↓ # Stars': '↓ 북마크'
-'↓ Create Time': '↓ 생성 시각'
-'↓ Update Time': '↓ 업데이트 시각'
-'A domain ID cannot be changed after creation. It is supposed to be:': '그룹 ID는 수정할 수 없으며 다음과 같아야 합니다.：'
-'Copy "{data}" failed :(': '복사“{data}”실패 :('
-'Copy failed :(': '복사 실패 :('
-'Current dataset: {0}': '현재 데이터셋: {0}'
-'Discussion: Terms Of Service': 토론 약관
-'Format: category 1, category 2, ..., category n': 형식：분류1, 분류2, ..., 분류n
-'Hello, {0}! You can click following link to active your new email of your {1} account:': 안녕하세요!，{0}！다음 링크를 눌러 이메일을 인증하세요：
-'Hello, {0}! You can click following link to reset the password of your {1} account:': 안녕하세요，{0}！다음 링크를 눌러 비밀번호를 초기화하세요.：
-'Hello! You can click following link to sign up your {0} account:': 다음 링크를 눌러 로그인하십시오. ：
-'Join {0}': '참여 {0}'
-'No': 아니오
-'Note: Problem title may not be hidden.': '주의: 문제 제목은 숨길 수 없습니다.'
-'Role {1} already exists in domain {0}.': '역할 {1}이(가) 이미 {0}에 존재합니다.'
-'Solved {0} problems, RP: {1} (No. {2})': '총 {0} 문제 해결.RP: {1} (No. {2})'
-'The value `{1}` of {0} already exists.': '{0} 의 값 `{1}` 이 이미 존재합니다.'
-'Yes': 예
+"{0} comments": "{0} 댓글"
+"{0} discussions": "{0} 토론"
+"{0} is a moderator of this domain.": "{}가 그룹의 관리자입니다."
+"{0} limit exceeded (limit: {2} operations in {1} seconds).": "{0} 제한 초과：{1} 초 {2} 번"
+"{0} problems": "{0} 문제"
+"{0} sections": "{0} 단락"
+"{0} solutions": "{0} 해설"
+"{0} views": "{0} 조회수"
+"{0}: Permissions": "{0}: 권한"
+"{0}: Roles": "{0}: 역할"
+"{0}: Users": "{0}: 사용자"
+"# My Submissions": "내 제출 기록"
+"# Submissions": "제출 기록"
+"↓ # Comments": "↓ 답글"
+"↓ # Enrollees": "↓ 등록"
+"↓ # Likes": "↓ 좋아요"
+"↓ # Stars": "↓ 북마크"
+"↓ Create Time": "↓ 생성 시각"
+"↓ Update Time": "↓ 업데이트 시각"
+"A domain ID cannot be changed after creation. It is supposed to be:": "그룹 ID는 수정할 수 없으며 다음과 같아야 합니다.："
+'Copy "{data}" failed :(': "복사“{data}”실패 :("
+"Copy failed :(": "복사 실패 :("
+"Current dataset: {0}": "현재 데이터셋: {0}"
+"Discussion: Terms Of Service": 토론 약관
+"Format: category 1, category 2, ..., category n": 형식：분류1, 분류2, ..., 분류n
+"Hello, {0}! You can click following link to active your new email of your {1} account:": 안녕하세요!，{0}！다음 링크를 눌러 이메일을 인증하세요：
+"Hello, {0}! You can click following link to reset the password of your {1} account:": 안녕하세요，{0}！다음 링크를 눌러 비밀번호를 초기화하세요.：
+"Hello! You can click following link to sign up your {0} account:": 다음 링크를 눌러 로그인하십시오. ：
+"Join {0}": "참여 {0}"
+"No": 아니오
+"Note: Problem title may not be hidden.": "주의: 문제 제목은 숨길 수 없습니다."
+"Role {1} already exists in domain {0}.": "역할 {1}이(가) 이미 {0}에 존재합니다."
+"Solved {0} problems, RP: {1} (No. {2})": "총 {0} 문제 해결.RP: {1} (No. {2})"
+"The value `{1}` of {0} already exists.": "{0} 의 값 `{1}` 이 이미 존재합니다."
+"Yes": 예
 "Effects only when Difficulty is not 'Use algorithm calculated'.": 난이도가 알고리즘에 의해 정해지지 않은 경우에만 적용됩니다.
 "Split by ', '.": “, ”“，”으로 구분
 "What's file?": 파일?
@@ -46,7 +46,7 @@ __langname: 한국어
 #Sample Output: Sample Output
 #Star: Star
 Aborted: 중지됨
-About {0}: '{0}에 대하여'
+About {0}: "{0}에 대하여"
 About Markdown: Markdown에 대하여
 About test data: 테스트 데이터에 대하여
 about: 소개
@@ -96,11 +96,11 @@ Bulletin: 게시판
 By clicking the button, you will become a member of the domain {0}.: 이 버튼을 클릭하면 귀하는 {0} 의 멤버가 됩니다.
 By Contest: 대회
 By Problem: 문제
-By signing up a {0} universal account, you can submit code and join discussions in all online judging services provided by us.: '{0} 계정으로 가입하면 {0}로 제공되는 모든 OJ를 이용하고 참여하실 수 있습니다.'
+By signing up a {0} universal account, you can submit code and join discussions in all online judging services provided by us.: "{0} 계정으로 가입하면 {0}로 제공되는 모든 OJ를 이용하고 참여하실 수 있습니다."
 By Username / UID: 아이디
 Calendar View: 달력 보기
 Calendar: 달력
-Can be Extended For: '추가 접수'
+Can be Extended For: "추가 접수"
 Cancel Score: 채점 취소
 Cancel: 취소
 Categories: 분류
@@ -162,7 +162,7 @@ Create a Discussion: 토론 만들기
 Create a problem: 문제 만들기
 Create Contest: 대회 만들기
 Create contests: 대회 만들기
-Create Discussion in {0}: '{0}에 토론 만들기'
+Create Discussion in {0}: "{0}에 토론 만들기"
 Create Discussion: 토론 만들기
 Create discussions: 토론 만들기
 Create Domain: 그룹 만들기
@@ -323,7 +323,7 @@ Hide categorical tags: 모든 분류 태그 숨기기
 Highlight discussions: 토론 강조
 Highlight: 강조
 Hint: Hint
-Hitokoto: 히토코（ヒトコト）
+Jinrishici: 오늘의 시들 
 home_account: 계정
 home_domain_account: 그룹 계정
 home_domain_create: 그룹 생성
@@ -346,7 +346,7 @@ hour(s): 시간
 If enabled, source code will be emailed to you after the submission is accepted.: 허용하면, 제출이 맞았을 경우 이메일로 보낼 것입니다.
 If left blank, the built-in template of the corresponding language will be used.: 공백으로 둔다면, 기본 언어로 적용합니다.
 Images: 사진
-Import from: '다음에서 가져오기: '
+Import from: "다음에서 가져오기: "
 Import problem from syzoj.: syzoj에서 문제 가져오기
 Import Problem: 문제 가져오기
 Import: 가져오기
@@ -378,15 +378,15 @@ Italic: 기울여쓰기
 Join: 참가하기
 Judge Status: 채점 현황
 judge_playground: 놀이터
-Judged At: '채점 시각'
-Judged By: '채점자'
+Judged At: "채점 시각"
+Judged By: "채점자"
 Judging Queue: 채점 현황
 Keep current expiration: 만료 유지
 Language: 언어
-last active at: '마지막 활동'
-last login at: '마지막 접속'
-Last Submit At: '마지막 제출'
-Last Update At: '마지막 활동'
+last active at: "마지막 활동"
+last login at: "마지막 접속"
+Last Submit At: "마지막 제출"
+Last Update At: "마지막 활동"
 LaTeX Expressions: LaTeX 표현
 Learn More: 더 알아보기
 Leave blank to use numeric pid.: 공란으로 둘 시 자동 배정
@@ -451,7 +451,7 @@ No problem.: 문제가 없습니다.
 No solutions so far...: 아직 해설이 없네요...
 No Submissions: 제출 없음
 No user is allowed to join this domain: 이 그룹은 참여가 불가능합니다.
-no_translation_warn: ''
+no_translation_warn: ""
 None: 없음
 Not Attended: 참여하지 않음
 Not available: 불가능
@@ -471,7 +471,7 @@ Oops, there are no results.: 결과 없음
 Oops!: 앗..!
 Open in Problem Set: 문제에서 열기
 Open Scratchpad: Editor 열기
-Open Since: '시작 시각'
+Open Since: "시작 시각"
 Open Source: 소스 열기
 Open: 열기
 Operating System: 시스템
@@ -528,15 +528,15 @@ problem_import: 문제 가져오기
 problem_main: 문제
 problem_solution: 문제 해설
 problem_submit: 제출
-problem-category-delim: '|'
+problem-category-delim: "|"
 problem-subcategory-delim: 、
 Problem: 문제
-problem.import.additional_file: '## Additional Files'
-problem.import.hint: '## Hint'
-problem.import.input_format: '## Input'
-problem.import.limit_and_hint: '## Limits'
-problem.import.output_format: '## Output'
-problem.import.problem_description: '## Description'
+problem.import.additional_file: "## Additional Files"
+problem.import.hint: "## Hint"
+problem.import.input_format: "## Input"
+problem.import.limit_and_hint: "## Limits"
+problem.import.output_format: "## Output"
+problem.import.problem_description: "## Description"
 Problems Sets: 문제 셋
 Problems: 문제
 Profile Background Image: 프로필 배경
@@ -567,7 +567,7 @@ record_main: 제출 기록
 Records: 제출
 Refresh Records: 새로고침
 Refresh: 새로고침
-Registered at: '등록'
+Registered at: "등록"
 Rejudge all submissions: 모든 제출 재채점
 Rejudge problems: 재채점
 Rejudge records: 재평가
@@ -656,18 +656,18 @@ Sorry, there is no problem in the problem set: 문제 모음에 문제가 없습
 Sorry, there is no training plan.: 학습 계획 없음
 Sorry, there is no user in this domain.: 그룹에 사용자가 없습니다.
 Sorry: 죄송합니다.
-Sort by: '정렬 기준'
+Sort by: "정렬 기준"
 Source type: 소스 방식
 Star Topic: 주제 북마크
-Start at: '시작 시각'
+Start at: "시작 시각"
 Statistics: 분석
 Status is hidden: 결과 비공개
 Status: 결과
 Submission Statistics: 제출 결과
 Submission: 제출
 Submissions: 제출
-Submit At: '제출 시각'
-Submit By: '아아디'
+Submit At: "제출 시각"
+Submit By: "아아디"
 Submit problem: 문제 등록
 Submit Solution: 해설 등록
 Submit Time: 제출 시각
@@ -695,7 +695,7 @@ Their account will not be deleted and they will be with the default role.: 계�
 There are no contests...: 대회 없음
 There is no homework so far ╰(*°▽°*)╯: 과제 없음 ╰(*°▽°*)╯
 This contest is not live.: 대회가 실시간이 아닙니다.
-This email was sent by {0} automatically, and please do not reply directly.: '{0}으로 이메일을 보냈습니다.'
+This email was sent by {0} automatically, and please do not reply directly.: "{0}으로 이메일을 보냈습니다."
 This homework is not open and you cannot view problems.: 과제를 열지 않았기에 문제를 볼 수 없습니다.
 This homework is not open.: 과제가 아직 닫혀 있습니다.
 This is the current session: 현재 세션
@@ -738,7 +738,7 @@ Update: 갱신
 Upload File: 파일 업로드
 Upload Problem: 문제 업로드
 Upload: 업로드
-Uploaded By: '아이디'
+Uploaded By: "아이디"
 Upvote: 좋아요
 Usage exceeded.: 사용 초과
 Use admin specificed: 관리자 사용
@@ -760,7 +760,7 @@ Username / UID: 아이디
 Username: 아이디
 Users with those roles will be removed from the domain.: 이 역할을 가진 사용자들이 그룹에서 제거될 것입니다.
 Users: 사용자
-Using your {0} universal account: '{0} 공용 계정을 사용'
+Using your {0} universal account: "{0} 공용 계정을 사용"
 Valid for registered users who are not members of the domain: 그룹원이 아닌 사람들에게 유효
 Valid for visitors: 방문자에게 유효
 Version: Version
