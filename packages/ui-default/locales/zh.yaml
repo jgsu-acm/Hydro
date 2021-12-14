@@ -405,6 +405,7 @@ Judge Status: 评测状态
 judge_playground: 评测游乐场
 Judged At: 评测时间
 Judged By: 评测机
+Judger: 评测机
 Judging Queue: 评测队列
 Keep current expiration: 保持当前过期设置
 Language: 语言
@@ -675,6 +676,7 @@ Send Password Reset Email: 发送密码重置邮件
 Send Verification Email: 发送验证邮件
 Send: 发送
 Seperated with ',': 用 ',' 分隔
+Server: 服务器
 Service Status: 服务状态
 Set Role: 设置角色
 Set Roles for Selected User: 设置所选用户的角色

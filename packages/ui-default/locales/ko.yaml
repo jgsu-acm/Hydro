@@ -323,7 +323,7 @@ Hide categorical tags: 모든 분류 태그 숨기기
 Highlight discussions: 토론 강조
 Highlight: 강조
 Hint: Hint
-Jinrishici: 오늘의 시들 
+Jinrishici: 오늘의 시들
 home_account: 계정
 home_domain_account: 그룹 계정
 home_domain_create: 그룹 생성
@@ -380,6 +380,7 @@ Judge Status: 채점 현황
 judge_playground: 놀이터
 Judged At: "채점 시각"
 Judged By: "채점자"
+Judger: 심판자
 Judging Queue: 채점 현황
 Keep current expiration: 만료 유지
 Language: 언어
@@ -621,6 +622,7 @@ Send Message: 메시지 보내기
 Send Password Reset Email: 비밀번호 재설정 이메일 보내기
 Send Verification Email: 확인 이메일 보내기
 Send: 보내기
+Server: 섬기는 사람
 Service Status: 서비스 현황
 Set Role: 역할 설정
 Set Roles for Selected User: 선택 사용자 역할 설정

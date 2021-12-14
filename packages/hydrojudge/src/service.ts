@@ -50,7 +50,7 @@ async function postInit() {
     setInterval(async () => {
         const [mid, inf] = await sysinfo.update();
         monitor.updateJudge({ mid, ...inf });
-    }, 1200000);
+    }, 1000 * 60 * 20);
 
     async function processData(folder: string) {
         let files = await fs.readdir(folder);

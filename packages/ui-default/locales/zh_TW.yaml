@@ -230,6 +230,7 @@ Invalid user {0} or password.: 使用者 {0} 不存在或密碼錯誤。
 It works!: 它成了！
 judge_playground: 評測遊樂場
 Judged At: 評測時間
+Judger: 評測機
 Judging Queue: 評測佇列
 Lang.: 語言
 Language: 語言
@@ -414,6 +415,7 @@ Send Code after acceptance: 通過題目後傳送原始碼
 Send Password Reset Email: 傳送密碼重置郵件
 Send Verification Email: 傳送驗證郵件
 Send: 傳送
+Server: 服務器
 Service Status: 服務狀態
 Set Role: 設定角色
 Set Roles for Selected User: 設定所選使用者的角色
