@@ -15,6 +15,14 @@ const {
 } = global.Hydro.model;
 global.Hydro.version.ui = require('./package.json').version;
 
+if (process.env.NODE_ENV === 'production') {
+  global.Hydro.version.docker = readFileSync('/proc/self/cgroup').toString().split('\n')[0].split('/').pop().substring(0, 16);
+} else {
+  global.Hydro.version.docker = 'qaq';
+}
+
+console.log(readFileSync('/proc/self/cgroup').toString())
+
 interface ConstantArgs {
   lang: string;
   domainId: string;
