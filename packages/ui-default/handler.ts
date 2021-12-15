@@ -8,6 +8,7 @@ import * as bus from 'hydrooj/src/service/bus';
 import { Route, Handler } from 'hydrooj/src/service/server';
 import * as db from 'hydrooj/src/service/db';
 import { PERM } from 'hydrooj/src/model/builtin';
+import { nanoid } from 'nanoid';
 import markdown from './backendlib/markdown';
 
 const {
@@ -15,13 +16,7 @@ const {
 } = global.Hydro.model;
 global.Hydro.version.ui = require('./package.json').version;
 
-if (process.env.NODE_ENV === 'production') {
-  global.Hydro.version.docker = readFileSync('/proc/self/cgroup').toString().split('\n')[0].split('/').pop().substring(0, 16);
-} else {
-  global.Hydro.version.docker = 'qaq';
-}
-
-console.log(readFileSync('/proc/self/cgroup').toString())
+global.Hydro.version.id = nanoid(16);
 
 interface ConstantArgs {
   lang: string;
