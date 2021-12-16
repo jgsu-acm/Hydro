@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-
-/* eslint-disable consistent-return */
-
 const map = {};
 require('source-map-support').install({
     handleUncaughtExceptions: false,
@@ -103,7 +100,7 @@ if (argv.args[0] === 'backup') {
     }
     exec('rm', ['-rf', dir]);
     console.log(`Database backup saved at ${target}`);
-    return;
+    return 0;
 }
 
 if (argv.args[0] === 'restore') {
@@ -112,7 +109,7 @@ if (argv.args[0] === 'restore') {
     const dir = `${os.tmpdir()}/${Math.random().toString(36).substring(2)}`;
     if (!fs.existsSync(argv.args[1])) {
         console.error('Cannot find file');
-        return;
+        return -1;
     }
     exec('unzip', [argv.args[1], '-d', dir], { stdio: 'inherit' });
     exec('mongorestore', [`--uri=${url}`, `--dir=${dir}/dump/${JSON.parse(dbConfig).name}`, '--drop'], { stdio: 'inherit' });
@@ -125,7 +122,7 @@ if (argv.args[0] === 'restore') {
     }
     fs.removeSync(dir);
     console.log('Successfully restored.');
-    return;
+    return -1;
 }
 
 if (!addons.includes('@hydrooj/ui-default')) {
@@ -169,7 +166,7 @@ if (argv.args[0] && argv.args[0] !== 'cli') {
         addons = Array.from(new Set(addons));
         console.log('Current Addons: ', addons);
         fs.writeFileSync(addonPath, JSON.stringify(addons, null, 2));
-        return;
+        return 0;
     }
     console.error('Unknown command: ', argv.args[0]);
 } else {
@@ -181,3 +178,4 @@ if (argv.args[0] && argv.args[0] !== 'cli') {
         process.exit(1);
     });
 }
+return 0;
