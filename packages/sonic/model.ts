@@ -5,7 +5,7 @@ import * as bus from 'hydrooj/src/service/bus';
 import sonic from './service';
 
 function push(did: string, key: string, doc: Partial<ProblemDoc>, docId: number) {
-    return sonic.push('problem', `${did}@${key}`, `${doc.domainId}/${docId}`, doc[key].toString());
+    return sonic.push('problem', `${did}@${key}`, `${doc.domainId}/${docId}`, doc[key]);
 }
 
 function flusho(did: string, key: string, domainId: string, docId: number) {
@@ -16,7 +16,7 @@ async function getTask(domainId: string, func: (did: string, key: string) => unk
     const union = await DomainModel.searchUnion({ union: domainId, problem: true });
     const tasks = [];
     for (const did of [domainId, ...union.map((i) => i._id)]) {
-        tasks.concat(['pid', 'title', 'content'].map((key) => func(did, key)));
+        tasks.concat(['pid', 'title'].map((key) => func(did, key)));
     }
     await Promise.all(tasks);
 }
@@ -31,6 +31,5 @@ bus.on('problem/edit', async (pdoc) => getTask(pdoc.domainId, (did: string, key:
 global.Hydro.lib.problemSearch = async (domainId: string, query: string, limit = system.get('pagination.problem')) => {
     const ids = await sonic.query('problem', `${domainId}@pid`, query, { limit });
     if (limit - ids.length > 0) ids.concat(await sonic.query('problem', `${domainId}@title`, query, { limit: limit - ids.length }));
-    if (limit - ids.length > 0) ids.concat(await sonic.query('problem', `${domainId}@content`, query, { limit: limit - ids.length }));
     return ids;
 };

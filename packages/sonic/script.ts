@@ -15,14 +15,14 @@ export async function run({ domainId }, report) {
         const tasks = [];
         for (const did of [pdoc.domainId, ...union.map((j) => j._id)]) {
             tasks.concat(
-                ['pid', 'title', 'content'].map((key) =>
+                ['pid', 'title'].map((key) =>
                     pdoc[key] && sonic.push('problem', `${did}@${key}`, `${pdoc.domainId}/${pdoc.docId}`, pdoc[key].toString())),
             );
         }
         await Promise.all(tasks).catch((e) => console.log(`${pdoc.domainId}/${pdoc.docId}`, e));
     };
-    if (domainId) await iterateAllProblemInDomain(domainId, ['pid', 'title', 'content'], cb);
-    else await iterateAllProblem(['pid', 'title', 'content'], cb);
+    if (domainId) await iterateAllProblemInDomain(domainId, ['pid', 'title'], cb);
+    else await iterateAllProblem(['pid', 'title'], cb);
     return true;
 }
 
