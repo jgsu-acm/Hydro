@@ -3,30 +3,32 @@ version: '3.7'
 services:
   oj-minio:
     image: minio/minio
-    container_name: oj-minio
+    container_name: oj-minio-local
     command: server /data
     restart: always
     volumes:
-      - ./data/minio:/data
+      - ./data/local/minio:/data
 
   oj-mongo:
     image: mongo:4-focal
-    container_name: oj-mongo
+    container_name: oj-mongo-local
     restart: always
     volumes:
-      - ./data/mongo:/data/db
+      - ./data/local/mongo:/data/db
 
   oj-sonic:
     image: valeriansaliou/sonic:v1.3.2
-    container_name: oj-sonic
+    container_name: oj-sonic-local
     restart: always
     volumes:
-      - ./data/sonic:/data/store
+      - ./data/local/sonic:/data/store
       - ./config/sonic/sonic.cfg:/etc/sonic.cfg
 
   oj-backend:
-    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/backend
-    container_name: oj-backend
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile-local
+    container_name: oj-backend-local
     restart: always
     depends_on:
       - oj-minio
@@ -38,12 +40,12 @@ services:
       - "0.0.0.0:80:8888"
 
   oj-judge:
-    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/judge
-    container_name: oj-judge
+    build:
+      context: ..
+      dockerfile: docker/judge/Dockerfile-local
+    container_name: oj-judge-local
     restart: always
     privileged: true
-    depends_on:
-      - oj-backend
     volumes:
       - ./config/judge:/root/.config/hydro
     shm_size: '1536mb'

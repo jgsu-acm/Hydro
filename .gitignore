@@ -52,10 +52,6 @@ __*
 !.gitkeep
 *.local
 
-# Docker-Compose
-docker/**/*test*
-docker/data
-docker/dev
-
 .idea/
 .vscode/launch.json
+docker/data

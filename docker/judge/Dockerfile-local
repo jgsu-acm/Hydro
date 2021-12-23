@@ -3,12 +3,19 @@ WORKDIR /root
 ADD packages packages
 ADD LICENSE-AGPL3.txt LICENSE
 
+# Local
+ADD docker/modify.js modify.js
+RUN sed -i 's/[a-z]\+.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    yarn config set registry https://registry.npm.taobao.org/ && \
+    node modify.js hydrojudge && \
+    rm modify.js
+
 # Environment
 RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
     build_deps="wget" && \
     apt-get -qq update && \
     apt-get install -y $compiler $build_deps && \
-    wget "https://github.com/criyle/go-judge/releases/latest/download/executorserver-amd64" /usr/bin/sandbox && \
+    wget "https://github.com/criyle/go-judge/releases/latest/download/executorserver-amd64" -O /usr/bin/sandbox && \
     chmod +x /usr/bin/sandbox && \
     apt-get purge -y --auto-remove $build_deps && \
     apt-get clean && rm -rf /var/lib/apt/lists/*

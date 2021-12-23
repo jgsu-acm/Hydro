@@ -7,19 +7,16 @@ services:
     command: server /data
     restart: always
     volumes:
-      - ./dev/minio:/data
+      - ./data/dev/minio:/data
     ports:
       - 9000:9000
-    environment:
-      - MINIO_ACCESS_KEY=CHANGE_THIS
-      - MINIO_SECRET_KEY=CHANGE_THIS
 
   oj-mongo:
-    image: mongo:4.4.10-focal
+    image: mongo:4-focal
     container_name: oj-mongo-dev
     restart: always
     volumes:
-      - ./dev/mongo:/data/db
+      - ./data/dev/mongo:/data/db
     ports:
       - 27017:27017
 
@@ -28,7 +25,7 @@ services:
     container_name: oj-sonic-dev
     restart: always
     volumes:
-      - ./dev/sonic:/data/sonic
-      - ./sonic_config.cfg:/etc/sonic.cfg
+      - ./data/dev/sonic:/data/store
+      - ./config/sonic/sonic.cfg:/etc/sonic.cfg
     ports:
       - 1491:1491
