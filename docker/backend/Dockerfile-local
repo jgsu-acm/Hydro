@@ -12,9 +12,7 @@ RUN yarn config set registry https://registry.npm.taobao.org/ && \
 # Hydro
 RUN prefix="file:/root/packages" && \
     yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    hydro-pdf-preview \
     $prefix/vjudge \
-    $prefix/onlyoffice \
     $prefix/sonic && \
     rm -rf packages
 
