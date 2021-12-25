@@ -154,8 +154,9 @@ export class ProblemMainHandler extends ProblemHandler {
         let [pdocs, ppcount, pcount] = fail
             ? [[], 0, 0]
             : await problem.list(
-                domainId, query, undefined,
+                domainId, query,
                 page, system.get('pagination.problem'),
+                undefined, this.user._id,
             );
         if (sort) pdocs = pdocs.sort((a, b) => sort.indexOf(`${a.domainId}/${a.docId}`) - sort.indexOf(`${b.domainId}/${b.docId}`));
         if (q) {
@@ -628,6 +629,7 @@ export class ProblemFileDownloadHandler extends ProblemDetailHandler {
             this.response.etag = file.etag;
             this.response.body = await storage.get(target);
             this.response.type = file['Content-Type'] || fileType;
+            if (file['Content-Encoding']) this.response.addHeader('Content-Encoding', file['Content-Encoding']);
             if (!noDisposition) this.response.disposition = `attachment; filename=${encodeURIComponent(filename)}`;
         } else {
             this.response.redirect = await storage.signDownloadLink(
