@@ -14,24 +14,9 @@ const {
   system, user, setting, problem, contest,
 } = global.Hydro.model;
 global.Hydro.version.ui = require('./package.json').version;
+
 global.Hydro.version.id = nanoid(16);
 
-interface ConstantArgs {
-  lang: string;
-  domainId: string;
-}
-
-declare module 'hydrooj/src/interface' {
-  interface Collections {
-    cache: {
-      _id: string;
-      value: any;
-    }
-  }
-}
-
-const cache = {};
-const coll = db.collection('cache');
 const pages = Object.keys(global.Hydro.ui.manifest)
   .filter((file) => file.endsWith('.page.js'))
   .map((i) => readFileSync(join(global.Hydro.ui.manifest[i], i), 'utf-8'));
