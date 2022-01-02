@@ -147,7 +147,7 @@ export class ProblemModel {
         const pdocs = [];
         for (const id of domainIds) {
             // TODO enhance performance
-            if (uid) {
+            if (typeof uid === 'number') {
                 // eslint-disable-next-line no-await-in-loop
                 const udoc = await user.getById(id, uid);
                 if (!udoc.hasPerm(PERM.PERM_VIEW_PROBLEM)) continue;
@@ -304,7 +304,7 @@ export class ProblemModel {
             for (const pid of pids) {
                 if (!(r[pid] || l[pid])) {
                     if (doThrow) throw new ProblemNotFoundError(domainId, pid);
-                    else r[pid] = { ...ProblemModel.default, domainId, pid: pid.toString() };
+                    if (!indexByDocIdOnly) r[pid] = { ...ProblemModel.default, domainId, pid: pid.toString() };
                 }
             }
         }
