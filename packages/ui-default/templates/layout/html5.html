@@ -32,6 +32,7 @@
       {% else %}
         <script type="text/javascript" src="{{ static_url('hydro-'+global.Hydro.version.ui+'.js') }}?id={{ global.Hydro.version.id }}"></script>
       {% endif %}
+    {% endif %}
     <link rel="stylesheet" media="all" href="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.css') }}?version={{ global.Hydro.version.ui }}&id={{ global.Hydro.version.id }}">
     <title>{{ handler.renderTitle(page_name) }}</title>
     {% if not isIE(handler.request.headers['user-agent']) %}
