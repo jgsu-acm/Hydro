@@ -17,4 +17,7 @@ RUN prefix="file:/root/packages" && \
     rm -rf packages
 
 # Entrypoint
-ENTRYPOINT (test -e /root/.hydro/init.sh && sh /root/.hydro/init.sh); pm2-runtime start hydrooj
+ENTRYPOINT (test -e /root/.hydro/init.sh && \
+    sh /root/.hydro/init.sh && \
+    mv /root/.hydro/init.sh /root/.hydro/init.sh.used); \
+    pm2-runtime start hydrooj
