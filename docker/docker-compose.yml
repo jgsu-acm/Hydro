@@ -15,6 +15,7 @@ services:
     restart: always
     volumes:
       - ./data/mongo:/data/db
+      - ./data/backup:/dump
 
   oj-sonic:
     image: valeriansaliou/sonic:v1.3.2
