@@ -3,32 +3,32 @@ version: '3.7'
 services:
   oj-minio:
     image: minio/minio
-    container_name: oj-minio-local
+    container_name: oj-minio-test
     command: server /data
     restart: always
     volumes:
-      - ./data/local/minio:/data
+      - ./data/test/minio:/data
 
   oj-mongo:
     image: mongo:4-focal
-    container_name: oj-mongo-local
+    container_name: oj-mongo-test
     restart: always
     volumes:
-      - ./data/local/mongo:/data/db
+      - ./data/test/mongo:/data/db
 
   oj-sonic:
     image: valeriansaliou/sonic:v1.3.2
-    container_name: oj-sonic-local
+    container_name: oj-sonic-test
     restart: always
     volumes:
-      - ./data/local/sonic:/data/store
+      - ./data/test/sonic:/data/store
       - ./config/sonic/sonic.cfg:/etc/sonic.cfg
 
   oj-backend:
     build:
       context: ..
-      dockerfile: docker/backend/Dockerfile-local
-    container_name: oj-backend-local
+      dockerfile: docker/backend/Dockerfile-test
+    container_name: oj-backend-test
     restart: always
     depends_on:
       - oj-minio
@@ -42,8 +42,8 @@ services:
   oj-judge:
     build:
       context: ..
-      dockerfile: docker/judge/Dockerfile-local
-    container_name: oj-judge-local
+      dockerfile: docker/judge/Dockerfile-test
+    container_name: oj-judge-test
     restart: always
     privileged: true
     volumes:
