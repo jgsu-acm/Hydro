@@ -25,15 +25,15 @@
       <meta property="og:image" content="{{ static_url('favicon-96x96.png') }}"/>
     {% endblock %}
     {% if not isIE(handler.request.headers['user-agent']) %}
-      <script src="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.js') }}?version={{ global.Hydro.version.ui }}&id={{ global.Hydro.version.id }}"></script>
+      <script src="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
       <script type="text/javascript" src="{{ static_url('l/'+handler.user.viewLang) }}"></script>
       {% if process.env.DEV %}
-        <script type="text/javascript" src="{{ static_url('hydro.js') }}?version={{ global.Hydro.version.ui }}&id={{ global.Hydro.version.id }}"></script>
+        <script type="text/javascript" src="{{ static_url('hydro.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
       {% else %}
-        <script type="text/javascript" src="{{ static_url('hydro-'+global.Hydro.version.ui+'.js') }}?id={{ global.Hydro.version.id }}"></script>
+        <script type="text/javascript" src="{{ static_url('hydro-'+global.Hydro.version['ui-default']+'.js') }}?id={{ global.Hydro.version.id }}"></script>
       {% endif %}
     {% endif %}
-    <link rel="stylesheet" media="all" href="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.css') }}?version={{ global.Hydro.version.ui }}&id={{ global.Hydro.version.id }}">
+    <link rel="stylesheet" media="all" href="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.css') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}">
     <title>{{ handler.renderTitle(page_name) }}</title>
     {% if not isIE(handler.request.headers['user-agent']) %}
       <script>

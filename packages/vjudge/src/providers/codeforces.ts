@@ -58,7 +58,7 @@ export default class CodeforcesProvider implements IBasicProvider {
         if (document.body.children.length < 2 && html.length < 512) {
             throw new Error(document.body.textContent);
         }
-        const csrf_token = document.querySelector('meta[name="X-Csrf-Token"]')?.getAttribute('content')
+        const csrf = document.querySelector('meta[name="X-Csrf-Token"]')?.getAttribute('content')
             || document.querySelector('input[name="csrf_token"]')?.getAttribute('value');
         if (!this.cookie || this.cookie.length === 0) {
             this.cookie = req.headers['set-cookie'];
@@ -66,7 +66,7 @@ export default class CodeforcesProvider implements IBasicProvider {
         const _39ce7 = this.cookie.join()
             .match(/39ce7=.{8}/)[0]
             .substr(6);
-        return [csrf_token, this.tta(_39ce7)];
+        return [csrf, this.tta(_39ce7)];
     }
 
     get loggedIn() {
@@ -84,9 +84,9 @@ export default class CodeforcesProvider implements IBasicProvider {
     async ensureLogin() {
         if (await this.loggedIn) return true;
         logger.info('retry login');
-        const [csrf_token, _tta] = await this.getCsrfAndTta('/enter');
+        const [csrf, _tta] = await this.getCsrfAndTta('/enter');
         const res = await this.post('/enter').send({
-            csrf_token,
+            csrf_token: csrf,
             action: 'enter',
             ftaa: '',
             bfaa: '',
@@ -212,10 +212,10 @@ export default class CodeforcesProvider implements IBasicProvider {
         const [, contestId, submittedProblemIndex] = id.startsWith('P921')
             ? ['', '921', id.split('P921')[1]]
             : /^P(\d+)([A-Z][0-9]*)$/.exec(id);
-        const [csrf_token, _tta] = await this.getCsrfAndTta('/problemset/submit');
+        const [csrf, _tta] = await this.getCsrfAndTta('/problemset/submit');
         // TODO check submit time to ensure submission
-        await this.post(`/problemset/submit?csrf_token=${csrf_token}`).send({
-            csrf_token,
+        await this.post(`/problemset/submit?csrf_token=${csrf}`).send({
+            csrf_token: csrf,
             contestId,
             action: 'submitSolutionFormSubmitted',
             programTypeId,
