@@ -1894,6 +1894,7 @@ __metadata:
     monaco-editor: ^0.31.1
     monaco-editor-nls: ^2.0.0
     monaco-editor-webpack-plugin: ^7.0.1
+    monaco-themes: ^0.4.0
     mongodb: ^3.7.3
     nanoid: ^3.1.30
     normalize.css: ^8.0.1
@@ -7910,6 +7911,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-plist@npm:^0.1.2":
+  version: 0.1.2
+  resolution: "fast-plist@npm:0.1.2"
+  checksum: 3baf1b4c533024561595f28eae7c36f4fa0782f52374b2f4e067561bd62464240f4bcff8d47b1ed6b981333be5f2bb613ce10229c5ec1e0194dfc271b873ade8
+  languageName: node
+  linkType: hard
+
 "fast-safe-stringify@npm:^2.0.7":
   version: 2.1.1
   resolution: "fast-safe-stringify@npm:2.1.1"
@@ -9582,6 +9590,7 @@ fsevents@~2.3.2:
     "@types/mongodb": ^3.6.20
     "@types/nodemailer": ^6.4.4
     "@types/notp": ^2.0.1
+    "@types/semver": ^7.3.9
     "@types/serialize-javascript": ^5.0.2
     "@types/sockjs": ^0.3.33
     "@types/source-map-support": ^0.5.4
@@ -9616,6 +9625,7 @@ fsevents@~2.3.2:
     pm2: ^5.1.2
     reflect-metadata: ^0.1.13
     require-resolve-hook: ^1.1.0
+    semver: ^7.3.5
     serialize-javascript: ^6.0.0
     sockjs: ^0.3.24
     source-map-support: ^0.5.21
@@ -11997,6 +12007,15 @@ fsevents@~2.3.2:
   version: 0.31.1
   resolution: "monaco-editor@npm:0.31.1"
   checksum: 65be40c5570e1186938490e47ac3a23ecd8faf1bda631091a6da1de8275f049efb8d9514fcb780ca40053adf8fe9229413b4c801d86ebbade078371acbb9df3b
+  languageName: node
+  linkType: hard
+
+"monaco-themes@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "monaco-themes@npm:0.4.0"
+  dependencies:
+    fast-plist: ^0.1.2
+  checksum: b48e9597bed6a333ce51a1ebcef3f047a555a463c76d86f66e1f7161d99cf9e8ded0d0ed182dbd48e80b3f73cb5a930ad26954d368b2aed8ef529449fb4b380d
   languageName: node
   linkType: hard
 
