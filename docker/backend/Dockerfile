@@ -5,9 +5,9 @@ ADD LICENSE-AGPL3.txt LICENSE
 
 # Hydro
 RUN prefix="file:/root/packages" && \
-    yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    $prefix/vjudge \
-    $prefix/sonic && \
+    yarn global add pm2 \
+    $prefix/utils $prefix/hydrooj $prefix/ui-default \
+    $prefix/vjudge $prefix/sonic && \
     rm -rf packages
 
 # Entrypoint
