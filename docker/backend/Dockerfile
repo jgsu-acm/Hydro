@@ -7,7 +7,7 @@ ADD LICENSE-AGPL3.txt LICENSE
 RUN prefix="file:/root/packages" && \
     yarn global add pm2 \
     $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    $prefix/vjudge $prefix/sonic && \
+    $prefix/vjudge && \
     rm -rf packages
 
 # Entrypoint

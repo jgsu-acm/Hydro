@@ -17,13 +17,13 @@ services:
       - ./data/mongo:/data/db
       - ./data/backup:/dump
 
-  oj-sonic:
-    image: valeriansaliou/sonic:v1.3.2
-    container_name: oj-sonic
-    restart: always
-    volumes:
-      - ./data/sonic:/data/store
-      - ./config/sonic/sonic.cfg:/etc/sonic.cfg
+  # oj-sonic:
+  #   image: valeriansaliou/sonic:v1.3.2
+  #   container_name: oj-sonic
+  #   restart: always
+  #   volumes:
+  #     - ./data/sonic:/data/store
+  #     - ./config/sonic/sonic.cfg:/etc/sonic.cfg
 
   oj-backend:
     image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/backend
