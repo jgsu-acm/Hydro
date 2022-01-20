@@ -32,7 +32,7 @@ services:
     depends_on:
       - oj-minio
       - oj-mongo
-      - oj-sonic
+      # - oj-sonic
     volumes:
       - ./config/backend:/root/.hydro
     ports:

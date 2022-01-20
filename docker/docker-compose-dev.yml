@@ -20,12 +20,12 @@ services:
     ports:
       - 27017:27017
 
-  oj-sonic:
-    image: valeriansaliou/sonic:v1.3.2
-    container_name: oj-sonic-dev
-    restart: always
-    volumes:
-      - ./data/dev/sonic:/data/store
-      - ./config/sonic/sonic.cfg:/etc/sonic.cfg
-    ports:
-      - 1491:1491
+  # oj-sonic:
+  #   image: valeriansaliou/sonic:v1.3.2
+  #   container_name: oj-sonic-dev
+  #   restart: always
+  #   volumes:
+  #     - ./data/dev/sonic:/data/store
+  #     - ./config/sonic/sonic.cfg:/etc/sonic.cfg
+  #   ports:
+  #     - 1491:1491
