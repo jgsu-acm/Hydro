@@ -67,6 +67,9 @@
         <span class="icon icon-flag"></span> {{ _('My Recent Submissions') }}
       </a></li>
     {% endif %}
+      <li class="menu__item"><a class="menu__link" href="{{ url('record_main', query={tid:tdoc.docId}) }}">
+        <span class="icon icon-flag"></span> {{ _('All Submissions') }}
+      </a></li>
       <li class="menu__item"><a class="menu__link" href="{{ url('wiki', page='help', anchor='homework') }}">
         <span class="icon icon-help"></span> {{ _('Help') }}
       </a></li>
