@@ -12,47 +12,41 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('apple-touch-icon-180x180.png') }}">
-    <link rel="icon" type="image/png" href="{{ static_url('favicon-32x32.png') }}" sizes="32x32">
-    <link rel="icon" type="image/png" href="{{ static_url('android-chrome-192x192.png') }}" sizes="192x192">
-    <link rel="icon" type="image/png" href="{{ static_url('favicon-96x96.png') }}" sizes="96x96">
-    <link rel="icon" type="image/png" href="{{ static_url('favicon-16x16.png') }}" sizes="16x16">
-    <meta name="theme-color" content="#56758f">
-    {% block ogp %}
-      <meta property="og:site_name" content="{{ (handler.domain|default({ui:[]})).ui.name|default(model.system.get('server.name')) }}"/>
-      <meta property="og:title" content="{{ handler.renderTitle(page_name) }}"/>
-      <meta property="og:url" content="{{ model.system.get('server.url') }}{{ handler.ctx.request.path }}"/>
-      <meta property="og:image" content="{{ static_url('favicon-96x96.png') }}"/>
-    {% endblock %}
-    {% if not isIE(handler.request.headers['user-agent']) %}
-      <script src="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
-      <script type="text/javascript" src="{{ static_url('l/'+handler.user.viewLang) }}"></script>
-      {% if process.env.DEV %}
-        <script type="text/javascript" src="{{ static_url('hydro.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
-      {% else %}
-        <script type="text/javascript" src="{{ static_url('hydro-'+global.Hydro.version['ui-default']+'.js') }}?id={{ global.Hydro.version.id }}"></script>
-      {% endif %}
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('apple-touch-icon-180x180.png') }}">
+  <link rel="icon" type="image/png" href="{{ static_url('favicon-32x32.png') }}" sizes="32x32">
+  <link rel="icon" type="image/png" href="{{ static_url('android-chrome-192x192.png') }}" sizes="192x192">
+  <link rel="icon" type="image/png" href="{{ static_url('favicon-96x96.png') }}" sizes="96x96">
+  <link rel="icon" type="image/png" href="{{ static_url('favicon-16x16.png') }}" sizes="16x16">
+  <meta name="theme-color" content="#56758f">
+  {% block ogp %}
+  <meta property="og:site_name" content="{{ (handler.domain|default({ui:[]})).ui.name|default(model.system.get('server.name')) }}" />
+  <meta property="og:title" content="{{ handler.renderTitle(page_name) }}" />
+  <meta property="og:url" content="{{ model.system.get('server.url') }}{{ handler.ctx.request.path.slice(1) }}" />
+  <meta property="og:image" content="{{ static_url('favicon-96x96.png') }}" />
+  {% endblock %}
+  <link rel="stylesheet" media="all" href="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.css') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}">
+  <title>{{ handler.renderTitle(page_name) }}</title>
+  {% if not isIE(handler.request.headers['user-agent']) %}
+  <script>
+    var _htmlNode = document.documentElement;
+    _htmlNode.className = _htmlNode.className.replace(' nojs', ' hasjs');
+  </script>
+  {% endif %}
+</head>
+<body>
+  {% block body %}{% endblock %}
+  {% if not isIE(handler.request.headers['user-agent']) %}
+    <script>
+      var UiContext = '{{ UiContext|json|jsesc|safe }}';
+      var UserContext = '{{ UserContext|json|jsesc|safe }}';
+    </script>
+    <script src="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
+    <script type="text/javascript" src="{{ static_url('l/'+_('__id')) }}"></script>
+    {% if process.env.DEV %}
+      <script type="text/javascript" src="{{ static_url('hydro.js') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}"></script>
+    {% else %}
+      <script type="text/javascript" src="{{ static_url('hydro-'+global.Hydro.version['ui-default']+'.js') }}?id={{ global.Hydro.version.id }}"></script>
     {% endif %}
-    <link rel="stylesheet" media="all" href="{{ static_url((handler.user|default({})).theme|default('default') + '.theme.css') }}?version={{ global.Hydro.version['ui-default'] }}&id={{ global.Hydro.version.id }}">
-    <title>{{ handler.renderTitle(page_name) }}</title>
-    {% if not isIE(handler.request.headers['user-agent']) %}
-      <script>
-        var _htmlNode = document.documentElement;
-        _htmlNode.className = _htmlNode
-          .className
-          .replace(' nojs', ' hasjs');
-        var UiContext = '{{ UiContext|json|jsesc|safe }}';
-        var UserContext = '{{ UserContext|json|jsesc|safe }}';
-      </script>
-    {% endif %}
-  </head>
-  <body>
-    {% block body %}{% endblock %}
-    {% if not isIE(handler.request.headers['user-agent']) %}
-      <script>
-        UiContext = '{{ UiContext|json|jsesc|safe }}';
-        UserContext = '{{ UserContext|json|jsesc|safe }}';
-      </script>
-    {% endif %}
-  </body>
+  {% endif %}
+</body>
 </html>
