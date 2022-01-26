@@ -2,13 +2,18 @@
 {% extends "layout/basic.html" %}
 {% block content %}
 {{ set(UiContext, 'socketUrl', "/record-detail-conn?domainId=" + rdoc.domainId + "&rid=" + rdoc._id) }}
+{{ set(UiContext, 'pdoc', pdoc) }}
 <div class="row">
   <div class="medium-9 columns">
     {% include 'record_detail_status.html' %}
     {% if rdoc['code'] %}
     <div class="section">
       <div class="section__header">
-        <h1 class="section__title">{{ _('Code') }}</h1>
+        {% if pdoc.config.type == 'submit_answer' %}
+          <h1 class="section__title">{{ _('Answer') }}</h1>
+        {% else %}
+          <h1 class="section__title">{{ _('Code') }}</h1>
+        {% endif %}
       </div>
       <div class="section__body">
         <pre><code class="line-numbers language-{{ model.setting.langs[rdoc.lang].highlight }}">{{ rdoc['code'] }}</code></pre>
