@@ -5,7 +5,7 @@
   <div class="medium-9 columns">
     <div class="section">
       <div class="section__header">
-        <h1 class="section__title">{{ _('Submit to Judge') }}</h1>
+        <h1 class="section__title">{{ _('Submit') }}</h1>
       </div>
       <div class="section__body">
         <form method="post">
@@ -17,25 +17,31 @@
                 value:handler.user.codeLang
               }) }}
           </div>
-          <div class="row nojs--hide">
-            <div class="medium-5 columns form__item end">
-              <label>
-                {{ _('Code language') }}
-                <div name="form_item_lang" class="select-container">
-                  <select id="codelang-main-select" class="select"></select>
-                </div>
-              </label>
+          {% if pdoc.config.type != 'submit_answer' %}
+            <div class="row nojs--hide">
+              <div class="medium-5 columns form__item end">
+                <label>
+                  {{ _('Code language') }}
+                  <div name="form_item_lang" class="select-container">
+                    <select id="codelang-main-select" class="select"></select>
+                  </div>
+                </label>
+              </div>
+              <div class="medium-5 columns form__item end" style="display: none" id="codelang-sub-container">
+                <label>
+                  {{ _('Code language') }}
+                  <div name="form_item_lang" class="select-container">
+                    <select id="codelang-sub-select" class="select"></select>
+                  </div>
+                </label>
+              </div>
             </div>
-            <div class="medium-5 columns form__item end" style="display: none" id="codelang-sub-container">
-              <label>
-                {{ _('Code language') }}
-                <div name="form_item_lang" class="select-container">
-                  <select id="codelang-sub-select" class="select"></select>
-                </div>
-              </label>
-            </div>
-          </div>
-          {{ form.form_textarea({label:'Code', columns:12, name:'code', extra_class:'monospace', autofocus:true}) }}
+          {% endif %}
+          {% if pdoc.config.type == 'submit_answer' %}
+            {{ form.form_textarea({label:'Answer', columns:5, name:'code', extra_class:'monospace', autofocus:true, extra_style:'height: 30px'}) }}
+          {% else %}
+            {{ form.form_textarea({label:'Code', columns:12, name:'code', extra_class:'monospace', autofocus:true}) }}
+          {% endif %}
           <div class="row"><div class="columns">
             <input type="hidden" name="csrfToken" value="{{ handler.csrfToken }}">
             <input type="submit" class="rounded primary button" value="{{ _('Submit') }}">

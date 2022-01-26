@@ -72,6 +72,7 @@ All: 全部
 Always granted all privileges: 总是拥有所有权限
 An error has occurred.: 发生了一个错误。
 An example of dataset: 测试数据集的一个例子
+Answer: 答案
 Any user is allowed to join this domain with an invitation code: 任意用户都可以通过邀请码加入此域
 Any user is allowed to join this domain: 任意用户都可以加入此域
 API: API
@@ -575,7 +576,7 @@ problem_edit: 编辑题目
 problem_import: 导入题目
 problem_main: 题库
 problem_solution: 题解
-problem_submit: 递交代码
+problem_submit: 递交
 problem_type.default: 传统题
 problem_type.fileio: "文件IO ({0})"
 problem_type.interactive: 交互题
@@ -733,7 +734,6 @@ Submit By: 递交者
 Submit problem: 递交题目
 Submit Solution: 递交评测
 Submit Time: 递交时间
-Submit to Judge: 递交以评测
 Submit Your Code: 递交代码进行正式评测
 Submit: 递交
 Submitted: 已递交

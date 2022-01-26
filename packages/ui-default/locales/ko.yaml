@@ -71,6 +71,7 @@ All: 전체
 Always granted all privileges: 항상 모든 권한 허가
 An error has occurred.: 문제가 발생했습니다.
 An example of dataset: 데이터셋 예시
+Answer: 대답
 Any user is allowed to join this domain with an invitation code: 누구나 코드가 있으면 참여 가능
 Any user is allowed to join this domain: 누구나 참여 가능
 Argument {0} is invalid.: 인자 {0}이(가) 무효입니다.
@@ -673,7 +674,6 @@ Submit By: "아아디"
 Submit problem: 문제 등록
 Submit Solution: 해설 등록
 Submit Time: 제출 시각
-Submit to Judge: 제출
 Submit Your Code: 제출
 Submit: 제출
 Submitted: 제출함

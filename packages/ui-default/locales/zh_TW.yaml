@@ -40,6 +40,7 @@ All Homeworks: 所有功課
 All: 全部
 Always granted all privileges: 總是擁有所有域許可權
 An error has occurred.: 發生了一個錯誤。
+Answer: 答案
 API: API
 Arguments: 參數
 At least 4 characters: 至少 4 個字元
@@ -343,7 +344,7 @@ problem_create: 創建題目
 problem_edit: 編輯題目
 problem_main: 題庫
 problem_solution: 題解
-problem_submit: 遞交程式碼
+problem_submit: 遞交
 Problem: 題目
 Problems Sets: 題庫
 Problems: 題目
@@ -456,7 +457,6 @@ Submit By: 遞交者
 Submit problem: 遞交題目
 Submit Solution: 遞交評測
 Submit Time: 遞交時間
-Submit to Judge: 遞交以評測
 Submit Your Code: 遞交程式碼進行正式評測
 Submit: 遞交
 Submitted: 已遞交
