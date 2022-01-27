@@ -4,7 +4,7 @@ ADD packages packages
 ADD LICENSE-AGPL3.txt LICENSE
 
 # Environment
-RUN compiler="gcc g++ python python3 openjdk-11-jre-headless" && \
+RUN compiler="gcc g++ python python3 openjdk-11-jdk-headless" && \
     build_deps="wget" && \
     apt-get -qq update && \
     apt-get install -y $compiler $build_deps && \
