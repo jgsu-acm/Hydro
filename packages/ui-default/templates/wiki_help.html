@@ -1,7 +1,7 @@
 {% extends "layout/wiki_base.html" %}
 {% block wiki_content %}
 {% set name = handler.domain.ui.name|default(model.system.get('server.name')) %}
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
+{# <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
     <h1 class="section__title" id="domain" data-heading>{{ _('Domain') }}</h1>
   </div>
@@ -11,7 +11,7 @@
     <p>默认域为 system，用户直接访问 {{ name }} 域名就会访问此域，点击 Hydro Logo 会从任意域跳转回 system 域。</p>
     <p>每个域的题库、讨论、训练以及比赛是独立且自治的。</p>
   </div>
-</div>
+</div> #}
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
     <h1 class="section__title" id="compiler" data-heading>{{ _("Compilers' Version and Parameters") }}</h1>
@@ -130,7 +130,7 @@
     <p>RP 可由题目，活动，比赛等获得。</p>
   </div>
 </div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
+{# <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
     <h1 class="section__title" id="pbmdiff" data-heading>{{ _('Difficulty Algorithm') }}</h1>
   </div>
@@ -144,7 +144,7 @@
     <li>3. 题目的难度由算法计算得出，有可能出现不准确的结果。</li>
     </ul>
   </div>
-</div>
+</div> #}
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
     <h1 class="section__title" id="upload" data-heading>{{ _('Dataset Format') }}</h1>
