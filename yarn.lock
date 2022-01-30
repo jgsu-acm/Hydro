@@ -1933,7 +1933,7 @@ __metadata:
     through2: ^4.0.2
     timeago-react: ^3.0.4
     timeago.js: ^4.0.2
-    vditor: ^3.8.10
+    vditor: ^3.8.11
     vinyl-buffer: ^1.0.1
     web-streams-polyfill: ^3.2.0
     webpack: ^4.46.0
@@ -17312,12 +17312,12 @@ typescript@4.4.3:
   languageName: node
   linkType: hard
 
-"vditor@npm:^3.8.10":
-  version: 3.8.10
-  resolution: "vditor@npm:3.8.10"
+"vditor@npm:^3.8.11":
+  version: 3.8.11
+  resolution: "vditor@npm:3.8.11"
   dependencies:
     diff-match-patch: ^1.0.5
-  checksum: 52a7d03f4d011d53ca401e62243096a17f712724ab670441e95191c016871169d99a304afd5293eb617c3316a6df06318f5a8998088f702b0075bd294651f3db
+  checksum: c1aa9c415d3e3c528b53176b3e323b47815ed88c5ed5fba317c679269a111b3a922a2493f92193b6339cffba7174d378d48572c034054ab8005b8d148be1c6a2
   languageName: node
   linkType: hard
 
