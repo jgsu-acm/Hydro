@@ -287,7 +287,6 @@ export class ContestEditHandler extends Handler {
         };
         await TaskModel.deleteMany(task);
         if (Date.now() <= endAt.getTime() && autoHide) {
-            // eslint-disable-next-line no-await-in-loop
             await Promise.all(pids.map((pid) => problem.edit(domainId, pid, { hidden: true })));
             await TaskModel.add({
                 ...task,
