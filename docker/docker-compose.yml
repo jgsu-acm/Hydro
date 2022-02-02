@@ -35,6 +35,8 @@ services:
       # - oj-sonic
     volumes:
       - ./config/backend:/root/.hydro
+    environment:
+      - TZ=Asia/Shanghai
     ports:
       - "0.0.0.0:80:8888"
 
