@@ -71,9 +71,7 @@
           </div>
         </div>
       {% endif %}
-      {% if handler
-        .user
-        .hasPerm(perm.PERM_VIEW_DISCUSSION) %}
+      {% if handler.user.hasPerm(perm.PERM_VIEW_DISCUSSION) %}
         {% include 'partials/discussion_nodes_widget.html' %}
       {% endif %}
       <div class="section side">

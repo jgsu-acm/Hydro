@@ -1,6 +1,11 @@
 /* eslint-disable no-await-in-loop */
 import { PassThrough } from 'stream';
+import findChrome from 'chrome-finder';
 import { JSDOM } from 'jsdom';
+import type { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import PortalPlugin from 'puppeteer-extra-plugin-portal';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import superagent from 'superagent';
 import proxy from 'superagent-proxy';
 import { STATUS } from '@hydrooj/utils/lib/status';
@@ -13,30 +18,77 @@ import { VERDICT } from '../verdict';
 
 proxy(superagent);
 const logger = new Logger('remote/codeforces');
-const cfurl = 'https://codeforces.com';
+puppeteer.use(StealthPlugin()).use(PortalPlugin({
+    webPortalConfig: {
+        listenOpts: {
+            port: 3000,
+        },
+        baseUrl: 'http://localhost:3000',
+    },
+}));
 
 export default class CodeforcesProvider implements IBasicProvider {
     constructor(public account: RemoteAccount, private save: (data: any) => Promise<void>) {
         if (account.cookie) this.cookie = account.cookie;
+        this.account.endpoint ||= 'https://codeforces.com';
     }
 
     cookie: string[] = [];
     csrf: string;
+    puppeteer: Browser;
+
+    async ensureBrowser() {
+        if (this.puppeteer) return true;
+        try {
+            const executablePath = findChrome();
+            logger.debug(`Using chrome found at ${executablePath}`);
+            const args = ['--disable-gpu', '--disable-setuid-sandbox'];
+            if (this.account.proxy?.startsWith('http://')) args.push(`--proxy-server=${this.account.proxy.split('//')[1]}`);
+            if (process.platform === 'linux' && process.getuid() === 0) args.push('--no-sandbox');
+            this.puppeteer = await puppeteer.launch({ headless: true, executablePath, args });
+            logger.success('Successfully launched browser');
+        } catch (e) {
+            logger.error(e);
+            logger.error('Failed to launch browser, using fallback mode');
+            return false;
+        }
+        return true;
+    }
+
+    async getPage() {
+        const page = await this.puppeteer.newPage();
+        for (const str of this.cookie) {
+            const [name, value] = str.split(';')[0].split('=');
+            await page.setCookie({ name, value, domain: 'codeforces.com' });
+        }
+        return page;
+    }
+
+    async clearPage(page: Page) {
+        const cookies = await page.cookies();
+        this.cookie = cookies.map((i) => `${i.name}=${i.value}`);
+        await this.save({ cookie: this.cookie });
+        await page.close();
+    }
 
     get(url: string) {
         logger.debug('get', url);
-        if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
-        const req = superagent.get(url).set('Cookie', this.cookie).timeout(180 * 1000).retry(3);
+        if (!url.includes('//')) url = `${this.account.endpoint}${url}`;
+        const req = superagent.get(url).set('Cookie', this.cookie);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
     }
 
     post(url: string) {
         logger.debug('post', url, this.cookie);
-        if (!url.includes('//')) url = `${this.account.endpoint || cfurl}${url}`;
-        const req = superagent.post(url).type('form').set('Cookie', this.cookie).timeout(180 * 1000).retry(3);
+        if (!url.includes('//')) url = `${this.account.endpoint}${url}`;
+        const req = superagent.post(url).type('form').set('Cookie', this.cookie);
         if (this.account.proxy) return req.proxy(this.account.proxy);
         return req;
+    }
+
+    getCookie(target: string) {
+        return this.cookie.find((i) => i.startsWith(`${target}=`))?.split('=')[1]?.split(';')[0];
     }
 
     tta(_39ce7: string) {
@@ -51,60 +103,90 @@ export default class CodeforcesProvider implements IBasicProvider {
         return _tta;
     }
 
-    async getCsrfAndTta(url: string) {
-        const req = await this.get(url);
-        const html = req['text'];
+    async checkLogin() {
+        await this.ensureBrowser();
+        const page = await this.getPage();
+        await page.goto(`${this.account.endpoint}/enter`);
+        const html = await page.content();
+        const cookies = await page.cookies();
+        this.cookie = cookies.map((i) => `${i.name}=${i.value}`);
+        await this.save({ cookie: this.cookie });
+        const ftaa = cookies.find((i) => i.name === '70a7c28f3de')?.value;
+        const bfaa = /_bfaa = "(.{32})"/.exec(html)?.[1];
+        await page.close();
+        return [ftaa, bfaa, !html.includes('Login into Codeforces')];
+    }
+
+    async getCsrfToken(url: string) {
+        const { text: html } = await this.get(url);
         const { window: { document } } = new JSDOM(html);
         if (document.body.children.length < 2 && html.length < 512) {
             throw new Error(document.body.textContent);
         }
-        const csrf = document.querySelector('meta[name="X-Csrf-Token"]')?.getAttribute('content')
-            || document.querySelector('input[name="csrf_token"]')?.getAttribute('value');
-        if (!this.cookie || this.cookie.length === 0) {
-            this.cookie = req.headers['set-cookie'];
-        }
-        const _39ce7 = this.cookie.join()
-            .match(/39ce7=.{8}/)[0]
-            .substr(6);
-        return [csrf, this.tta(_39ce7)];
+        const ftaa = this.getCookie('70a7c28f3de');
+        const bfaa = /_bfaa = "(.{32})"/.exec(html)?.[1] || this.getCookie('raa') || this.getCookie('bfaa');
+        return [
+            (
+                document.querySelector('meta[name="X-Csrf-Token"]')
+                || document.querySelector('input[name="csrf_token"]')
+            )?.getAttribute('content'),
+            ftaa, bfaa,
+        ];
     }
 
     get loggedIn() {
-        logger.debug('Testing if logged in.');
-        return this.get('/enter').then(({ text: html }) => {
-            if (html.includes('Login into Codeforces')) {
-                logger.debug('Testing failed');
-                return false;
-            }
-            logger.debug('Testing success');
-            return true;
-        });
+        return this.puppeteer
+            ? this.checkLogin().then(([, , loggedIn]) => loggedIn)
+            : this.get('/enter').then(({ text: html }) => {
+                if (html.includes('Login into Codeforces')) return false;
+                return true;
+            });
     }
 
-    async ensureLogin() {
-        if (await this.loggedIn) return true;
-        logger.info('retry login');
-        const [csrf, _tta] = await this.getCsrfAndTta('/enter');
+    async normalLogin() {
+        const [csrf, ftaa, bfaa] = await this.getCsrfToken('/enter');
         const res = await this.post('/enter').send({
             csrf_token: csrf,
             action: 'enter',
-            ftaa: '',
-            bfaa: '',
+            ftaa,
+            bfaa,
             handleOrEmail: this.account.handle,
             password: this.account.password,
             remember: 'on',
-            _tta,
         });
         const cookie = res.header['set-cookie'];
-        if (cookie && !this.account.frozen) {
+        if (cookie) {
             await this.save({ cookie });
             this.cookie = cookie;
         }
-        if (await this.loggedIn) {
-            logger.info('Login success.');
+    }
+
+    async puppeteerLogin() {
+        if (!this.puppeteer) return false;
+        const page = await this.puppeteer.newPage();
+        await page.goto(`${this.account.endpoint}/enter`);
+        const url = await page.openPortal();
+        logger.info(`Login portal opened: ${url}`);
+        await page.waitForRequest((req) => {
+            if (req.method() !== 'POST') return false;
+            if (!req.url().endsWith('/enter')) return false;
+            console.log(req);
             return true;
-        }
-        logger.error('Login failed.');
+        }, { timeout: 24 * 3600 * 1000 });
+        await page.waitForTimeout(10 * 1000);
+        await this.clearPage(page);
+        return true;
+    }
+
+    async ensureLogin() {
+        await this.ensureBrowser();
+        if (await this.loggedIn) return true;
+        logger.info('retry normal login');
+        await this.normalLogin();
+        if (await this.loggedIn) return true;
+        logger.info('starting puppeteer login');
+        await this.puppeteerLogin();
+        if (await this.loggedIn) return true;
         return false;
     }
 
@@ -209,23 +291,19 @@ export default class CodeforcesProvider implements IBasicProvider {
             if (typeof comment === 'string') code = `${comment} ${msg}\n${code}`;
             else if (comment instanceof Array) code = `${comment[0]} ${msg} ${comment[1]}\n${code}`;
         }
-        const [, contestId, submittedProblemIndex] = id.startsWith('P921')
-            ? ['', '921', id.split('P921')[1]]
-            : /^P(\d+)([A-Z][0-9]*)$/.exec(id);
-        const [csrf, _tta] = await this.getCsrfAndTta('/problemset/submit');
+        const [csrf, ftaa, bfaa] = await this.getCsrfToken('/problemset/submit');
         // TODO check submit time to ensure submission
         await this.post(`/problemset/submit?csrf_token=${csrf}`).send({
             csrf_token: csrf,
-            contestId,
             action: 'submitSolutionFormSubmitted',
             programTypeId,
-            submittedProblemIndex,
+            submittedProblemCode: id.split('P')[1],
             source: code,
             tabsize: 4,
             sourceFile: '',
-            ftaa: '',
-            bfaa: 'f1b3f18c715565b589b7823cda7448ce',
-            _tta,
+            ftaa,
+            bfaa,
+            _tta: this.tta(this.getCookie('39ce7')),
             sourceCodeConfirmed: true,
         });
         const { text: status } = await this.get('/problemset/status?my=on');
@@ -236,7 +314,8 @@ export default class CodeforcesProvider implements IBasicProvider {
 
     async waitForSubmission(id: string, next, end) {
         let i = 1;
-        for (; ;) {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
             await sleep(3000);
             const { body } = await this.post('/data/submitSource').send({
                 csrf_token: this.csrf,

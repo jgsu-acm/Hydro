@@ -291,11 +291,14 @@ export class ProblemDetailHandler extends ProblemHandler {
             this.tdoc = await contest.get(domainId, tid);
             if (!this.tdoc) throw new ContestNotFoundError(domainId, tid);
             this.tsdoc = await contest.getStatus(domainId, tid, this.user._id);
-            this.pdoc.tag.length = 0;
-            const showAccept = contest.canShowScoreboard.call(this, this.tdoc, true);
-            if (!showAccept) this.pdoc.nAccept = 0;
             if (contest.isNotStarted(this.tdoc)) throw new ContestNotLiveError(tid);
             if (!contest.isDone(this.tdoc) && !this.tsdoc?.attend) throw new ContestNotAttendedError(tid);
+            this.pdoc.tag.length = 0;
+            if (!contest.canShowScoreboard(this.tdoc) || !contest.isLocked(this.tdoc)) {
+                delete this.pdoc.nAccept;
+                delete this.pdoc.nSubmit;
+                delete this.pdoc.stats;
+            }
         } else if (!problem.canViewBy(this.pdoc, this.user)) {
             throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
         }
@@ -436,10 +439,7 @@ export class ProblemSubmitHandler extends ProblemDetailHandler {
         const rdoc = await record.get(domainId, rid);
         if (!pretest) {
             await Promise.all([
-                (this.tdoc
-                    ? (this.tsdoc.journal || []).filter((i) => i.pid === this.pdoc.docId).length
-                    : this.psdoc?.rid ? Promise.resolve() : problem.inc(domainId, this.pdoc.docId, 'nSubmit', 1)
-                ) && problem.inc(this.domainId, this.pdoc.docId, 'nSubmit', 1),
+                problem.inc(this.domainId, this.pdoc.docId, 'nSubmit', 1),
                 problem.incStatus(domainId, this.pdoc.docId, this.user._id, 'nSubmit', 1),
                 domain.incUserInDomain(domainId, this.user._id, 'nSubmit'),
                 tid && contest.updateStatus(domainId, tid, this.user._id, rid, this.pdoc.docId),
