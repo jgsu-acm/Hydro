@@ -14,15 +14,15 @@ export async function run({ domainId }, report) {
         const union = await DomainModel.searchUnion({ union: pdoc.domainId, problem: true });
         const tasks = [];
         for (const did of [pdoc.domainId, ...union.map((j) => j._id)]) {
-            tasks.concat(
-                ['pid', 'title'].map((key) =>
-                    pdoc[key] && sonic.push('problem', `${did}@${key}`, `${pdoc.domainId}/${pdoc.docId}`, pdoc[key].toString())),
+            tasks.push(
+                pdoc.title && sonic.push('problem', `${did}@title`, `${pdoc.domainId}/${pdoc.docId}`, `${pdoc.pid || ''} ${pdoc.title}`),
+                pdoc.content.toString() && sonic.push('problem', `${did}@content`, `${pdoc.domainId}/${pdoc.docId}`, pdoc.content.toString()),
             );
         }
         await Promise.all(tasks).catch((e) => console.log(`${pdoc.domainId}/${pdoc.docId}`, e));
     };
-    if (domainId) await iterateAllProblemInDomain(domainId, ['pid', 'title'], cb);
-    else await iterateAllProblem(['pid', 'title'], cb);
+    if (domainId) await iterateAllProblemInDomain(domainId, ['title', 'content'], cb);
+    else await iterateAllProblem(['title', 'content'], cb);
     return true;
 }
 
