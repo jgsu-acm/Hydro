@@ -1726,12 +1726,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hydrooj/customize@workspace:packages/customize":
-  version: 0.0.0-use.local
-  resolution: "@hydrooj/customize@workspace:packages/customize"
-  languageName: unknown
-  linkType: soft
-
 "@hydrooj/easy-locale@workspace:packages/easy-locale":
   version: 0.0.0-use.local
   resolution: "@hydrooj/easy-locale@workspace:packages/easy-locale"
@@ -1969,7 +1963,7 @@ __metadata:
     plugin-error: ^1.0.1
     postcss-loader: ^3.0.0
     prism-themes: ^1.9.0
-    prismjs: ^1.26.0
+    prismjs: ^1.27.0
     prop-types: ^15.8.1
     qrcode: ^1.5.0
     raw-loader: ^4.0.2
@@ -2019,7 +2013,7 @@ __metadata:
     moment: ^2.29.1
     moment-timezone: ^0.5.34
     mongodb: ^3.7.3
-    systeminformation: ^5.11.2
+    systeminformation: ^5.11.3
   languageName: unknown
   linkType: soft
 
@@ -14140,10 +14134,10 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"prismjs@npm:^1.26.0":
-  version: 1.26.0
-  resolution: "prismjs@npm:1.26.0"
-  checksum: 6de058930ce767d44d60322e625bbc255f5107c7bf82c441ade19a289358e01e35040cea0c17adf8f7b829f17aa48e2d84b40866b5b3f8c75a12c6b3f0ead231
+"prismjs@npm:^1.27.0":
+  version: 1.27.0
+  resolution: "prismjs@npm:1.27.0"
+  checksum: 85c7f4a3e999073502cc9e1882af01e3709706369ec254b60bff1149eda701f40d02512acab956012dc7e61cfd61743a3a34c1bd0737e8dbacd79141e5698bbc
   languageName: node
   linkType: hard
 
@@ -16683,12 +16677,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.11.2":
-  version: 5.11.2
-  resolution: "systeminformation@npm:5.11.2"
+"systeminformation@npm:^5.11.3":
+  version: 5.11.5
+  resolution: "systeminformation@npm:5.11.5"
   bin:
     systeminformation: lib/cli.js
-  checksum: faee59044c257f42a7d31eaf1e91aded767292d2de0db76426ecb31b8575376ec68ab7540d20dadecdfc82f6c52a035db7f677f13808ac3976b6c0906a19d760
+  checksum: a231fe910f20143a4129793c958f26d3f791dff272ad696ea23c929be2747038bc0254a54083e1c6e1e83f1c68abccb1a30e1f7d18cccdf5167851af4bc47a15
   languageName: node
   linkType: hard
 
