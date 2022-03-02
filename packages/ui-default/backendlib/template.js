@@ -3,7 +3,6 @@ const path = require('path');
 const yaml = require('js-yaml');
 const serialize = require('serialize-javascript');
 const nunjucks = require('nunjucks');
-const { filter } = require('lodash');
 const jsesc = require('jsesc');
 const argv = require('cac')().parse();
 const { findFileSync } = require('@hydrooj/utils/lib/utils');
@@ -140,9 +139,7 @@ env.addGlobal('set', (obj, key, val) => {
   else Object.assign(obj, key);
   return '';
 });
-env.addGlobal('findSubModule', (prefix) => {
-  filter(Object.keys(global.Hydro.ui.template), (n) => n.startsWith(prefix));
-});
+env.addGlobal('findSubModule', (prefix) => Object.keys(global.Hydro.ui.template).filter((n) => n.startsWith(prefix)));
 
 async function render(name, state) {
   // eslint-disable-next-line no-return-await
