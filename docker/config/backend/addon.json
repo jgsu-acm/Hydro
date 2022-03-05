@@ -1,5 +1,6 @@
 [
   "@hydrooj/ui-default",
   "@hydrooj/vjudge",
-  "@hydrooj/sonic"
+  "@hydrooj/sonic",
+  "hydro-elastic"
 ]

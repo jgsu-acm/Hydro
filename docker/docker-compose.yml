@@ -17,13 +17,15 @@ services:
       - ./data/mongo:/data/db
       - ./data/backup:/dump
 
-  # oj-sonic:
-  #   image: valeriansaliou/sonic:v1.3.2
-  #   container_name: oj-sonic
-  #   restart: always
-  #   volumes:
-  #     - ./data/sonic:/data/store
-  #     - ./config/sonic/sonic.cfg:/etc/sonic.cfg
+  oj-elastic:
+    image: elasticsearch:8.0.1
+    container_name: oj-elastic
+    restart: always
+    volumes:
+      - ./data/elastic:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - ES_SETTING_XPACK_SECURITY_ENABLED=false
 
   oj-backend:
     image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/backend
@@ -32,7 +34,7 @@ services:
     depends_on:
       - oj-minio
       - oj-mongo
-      # - oj-sonic
+      - oj-elastic
     volumes:
       - ./config/backend:/root/.hydro
     environment:

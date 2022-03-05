@@ -1,0 +1,5 @@
+host:
+  value: localhost
+port:
+  type: number
+  value: 9200

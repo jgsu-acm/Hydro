@@ -20,12 +20,14 @@ services:
     ports:
       - 27017:27017
 
-  # oj-sonic:
-  #   image: valeriansaliou/sonic:v1.3.2
-  #   container_name: oj-sonic-dev
-  #   restart: always
-  #   volumes:
-  #     - ./data/dev/sonic:/data/store
-  #     - ./config/sonic/sonic.cfg:/etc/sonic.cfg
-  #   ports:
-  #     - 1491:1491
+  oj-elastic:
+    image: elasticsearch:8.0.1
+    container_name: oj-elastic-dev
+    restart: always
+    volumes:
+      - ./data/dev/elastic:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - ES_SETTING_XPACK_SECURITY_ENABLED=false
+    ports:
+      - 9200:9200
