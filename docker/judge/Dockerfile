@@ -2,16 +2,13 @@ FROM node:lts-slim
 WORKDIR /root
 ADD packages packages
 ADD LICENSE-AGPL3.txt LICENSE
+ADD https://github.com/criyle/go-judge/releases/latest/download/executorserver-amd64 /usr/bin/sandbox
 
 # Environment
-RUN compiler="gcc g++ python python3 openjdk-11-jdk-headless" && \
-    build_deps="wget" && \
-    apt-get -qq update && \
-    apt-get install -y $compiler $build_deps && \
-    wget "https://github.com/criyle/go-judge/releases/latest/download/executorserver-amd64" -O /usr/bin/sandbox && \
-    chmod +x /usr/bin/sandbox && \
-    apt-get purge -y --auto-remove $build_deps && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt -qq update && \
+    apt install -y gcc g++ python3 openjdk-11-jdk-headless && \
+    apt clean && rm -rf /var/lib/apt/lists/* && \
+    chmod +x /usr/bin/sandbox
 
 # Hydro
 RUN prefix="file:/root/packages" && \
