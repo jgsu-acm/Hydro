@@ -1,7 +1,7 @@
 hydrooj cli system set file.endPoint http://oj-minio:9000/
 hydrooj cli system set file.accessKey "minioadmin"
 hydrooj cli system set file.secretKey "minioadmin"
-hydrooj cli system set elastic.host oj-elastic
+hydrooj cli system set hydro-elastic.host oj-elastic
 
 hydrooj cli user create systemadmin@systemjudge.local root rootroot 2
 hydrooj cli user setSuperAdmin 2
