@@ -21,7 +21,7 @@ services:
     container_name: oj-elastic-test
     restart: always
     volumes:
-      - ./data/test/elastic:/usr/share/elasticsearch/data
+      - esdata_test:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
       - ES_SETTING_XPACK_SECURITY_ENABLED=false
@@ -53,3 +53,6 @@ services:
     volumes:
       - ./config/judge:/root/.config/hydro
     shm_size: '1536mb'
+
+volumes:
+  esdata_test:

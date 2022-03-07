@@ -16,11 +16,12 @@ export async function run({ domainId }, report) {
                 domainId: pdoc.domainId,
                 pid: pdoc.pid || '',
                 title: pdoc.title,
+                tags: pdoc.tag,
             },
         }).catch((e) => console.log(`${pdoc.domainId}/${pdoc.docId}`, e));
     };
-    if (domainId) await iterateAllProblemInDomain(domainId, ['pid', 'title'], cb);
-    else await iterateAllProblem(['pid', 'title'], cb);
+    if (domainId) await iterateAllProblemInDomain(domainId, ['pid', 'title', 'tag'], cb);
+    else await iterateAllProblem(['pid', 'title', 'tag'], cb);
     return true;
 }
 
