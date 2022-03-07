@@ -42,6 +42,10 @@ class ElasticService implements BaseService {
         await this.client.index(params, options);
     }
 
+    async update(params: T.UpdateRequest<unknown, unknown> | TB.UpdateRequest<unknown, unknown>, options?: TransportRequestOptionsWithOutMeta) {
+        await this.client.update(params, options);
+    }
+
     async search(params: T.SearchRequest | TB.SearchRequest, options?: TransportRequestOptionsWithOutMeta) {
         return await this.client.search(params, options);
     }

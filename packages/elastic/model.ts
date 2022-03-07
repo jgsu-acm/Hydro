@@ -16,10 +16,10 @@ bus.on('problem/add', async (pdoc, pdocId) => {
 });
 
 bus.on('problem/edit', async (pdoc) => {
-    await elastic.index({
+    await elastic.update({
         index: 'problem',
         id: `${pdoc.domainId}/${pdoc.docId}`,
-        document: {
+        doc: {
             pid: pdoc.pid,
             title: pdoc.title,
             tags: pdoc.tag,
