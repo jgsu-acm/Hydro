@@ -5,9 +5,9 @@ import elastic from './service';
 bus.on('problem/add', async (pdoc, pdocId) => {
     await elastic.index({
         index: 'problem',
+        id: `${pdoc.domainId}/${pdocId}`,
         document: {
             domainId: pdoc.domainId,
-            docId: pdocId,
             pid: pdoc.pid || '',
             title: pdoc.title,
             tags: pdoc.tag,
