@@ -1,26 +1,9 @@
-# Background
-Special for beginners, ^_^
+# 题目描述
 
-# Description
-Given two integers x and y, print the sum.
+# 输入格式
 
-# Format
+# 输出格式
 
-## Input
-Two integers x and y, satisfying $0\leq x,y\leq 32767$ .
+# 输入输出样例
 
-## Output
-One integer, the sum of x and y.
-
-# Samples
-
-```input1
-123 500
-```
-
-```output1
-623
-```
-
-# Limitation
-1s, 1024KiB for each test case.
+# 说明/提示
