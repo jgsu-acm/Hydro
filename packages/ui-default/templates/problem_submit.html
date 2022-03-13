@@ -19,22 +19,13 @@
           </div>
           {% if pdoc.config.type != 'submit_answer' %}
             <div class="row nojs--hide">
-              <div class="medium-5 columns form__item end">
+              <div class="medium-5 columns form__item end" id="codelang-main-container">
                 <label>
                   {{ _('Code language') }}
                   <div name="form_item_lang" class="select-container">
                     <select id="codelang-main-select" class="select"></select>
                   </div>
                 </label>
-              </div>
-              <div class="medium-5 columns form__item end" style="display: none" id="codelang-sub-container">
-                <label>
-                  {{ _('Code language') }}
-                  <div name="form_item_lang" class="select-container">
-                    <select id="codelang-sub-select" class="select"></select>
-                  </div>
-                </label>
-              </div>
             </div>
           {% endif %}
           {% if pdoc.config.type == 'submit_answer' %}

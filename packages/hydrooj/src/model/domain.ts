@@ -93,9 +93,7 @@ class DomainModel {
     static async inc(domainId: string, field: NumberKeys<DomainDoc>, n: number): Promise<number | null> {
         const res = await coll.findOneAndUpdate(
             { _id: domainId },
-            // FIXME
-            // @ts-ignore
-            { $inc: { [field]: n } },
+            { $inc: { [field]: n } as any },
             { returnDocument: 'after' },
         );
         return res.value?.[field];
