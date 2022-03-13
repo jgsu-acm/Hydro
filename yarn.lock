@@ -1943,12 +1943,6 @@ __metadata:
     emojis-list: 2.1.0
     esbuild: 0.14.3
     esbuild-loader: ^2.18.0
-    eslint: ^8.11.0
-    eslint-config-airbnb: ^19.0.4
-    eslint-import-resolver-webpack: ^0.13.2
-    eslint-plugin-import: ^2.25.4
-    eslint-plugin-jsx-a11y: ^6.5.1
-    eslint-plugin-react: ^7.29.3
     fancy-log: ^2.0.0
     file-loader: ^6.2.0
     friendly-errors-webpack-plugin: ^1.7.0
@@ -3016,16 +3010,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.0.0":
-  version: 8.5.2
-  resolution: "@types/ws@npm:8.5.2"
-  dependencies:
-    "@types/node": "*"
-  checksum: 3182db3a84474636cd990482b451c1e247bb2c4524eb85f937e3734c9600af34dfc07f9a2d973d4a39dfe433339f9afd8c5824e32a597e7cffba475cbbd487c9
-  languageName: node
-  linkType: hard
-
-"@types/ws@npm:^8.5.3":
+"@types/ws@npm:^8.0.0, @types/ws@npm:^8.5.3":
   version: 8.5.3
   resolution: "@types/ws@npm:8.5.3"
   dependencies:
@@ -7568,7 +7553,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:2.25.4, eslint-plugin-import@npm:^2.25.4":
+"eslint-plugin-import@npm:2.25.4":
   version: 2.25.4
   resolution: "eslint-plugin-import@npm:2.25.4"
   dependencies:
@@ -9740,9 +9725,13 @@ fsevents@~2.3.2:
     cross-spawn: ^7.0.3
     esbuild: 0.14.3
     eslint: ^8.11.0
+    eslint-config-airbnb: ^19.0.4
     eslint-config-airbnb-typescript: 16.1.1
     eslint-import-resolver-typescript: 2.5.0
+    eslint-import-resolver-webpack: ^0.13.2
     eslint-plugin-import: 2.25.4
+    eslint-plugin-jsx-a11y: ^6.5.1
+    eslint-plugin-react: ^7.29.3
     eslint-plugin-simple-import-sort: 7.0.0
     fs-extra: ^10.0.1
     globby: 11.1.0
@@ -11556,7 +11545,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:7.4.4":
+"lru-cache@npm:7.4.4, lru-cache@npm:^7.4.0":
   version: 7.4.4
   resolution: "lru-cache@npm:7.4.4"
   checksum: c042ac73b48c1eddd22cc061eb41c4738c2eb71818ba503f625df4b3199d789281d7a2da18a017095a1304b5808f9d91fff7a77d69e3fefecef2b460460ed6d6
@@ -11578,13 +11567,6 @@ fsevents@~2.3.2:
   dependencies:
     yallist: ^4.0.0
   checksum: f97f499f898f23e4585742138a22f22526254fdba6d75d41a1c2526b3b6cc5747ef59c5612ba7375f42aca4f8461950e925ba08c991ead0651b4918b7c978297
-  languageName: node
-  linkType: hard
-
-"lru-cache@npm:^7.4.0":
-  version: 7.4.1
-  resolution: "lru-cache@npm:7.4.1"
-  checksum: de6d8aa83b0a304943a1e1ec2a982d9b44ef36963c20bd01950f13dcb3eb482c57bfa15ab49b1baa15c682d6d33a10842bb7b33d8a449845009ffab6a2faec3c
   languageName: node
   linkType: hard
 
@@ -16592,21 +16574,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.11.8":
+"systeminformation@npm:^5.11.8, systeminformation@npm:^5.7":
   version: 5.11.8
   resolution: "systeminformation@npm:5.11.8"
   bin:
     systeminformation: lib/cli.js
   checksum: f8bd66a07a60c814ed30d0c311af434d88510da714880e62c9c826fbcf36ef322ae2a0993d4a67446426670fa0ec2cbc2dc87224902373fa7ba958c3b80162b0
-  languageName: node
-  linkType: hard
-
-"systeminformation@npm:^5.7":
-  version: 5.11.6
-  resolution: "systeminformation@npm:5.11.6"
-  bin:
-    systeminformation: lib/cli.js
-  checksum: 46b0702f333cd3a2104b211265b62bcc3dbd5ddca1f294f6b5b032a2b04297a5e934b9c1e4eaf010fc496cd4e207a5496a09d425e3efdbc3b9539226f3493484
   languageName: node
   linkType: hard
 
