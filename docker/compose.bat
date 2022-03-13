@@ -1,1 +1,0 @@
-docker-compose -f .\docker-compose-%1.yml -p hydro-%1 up -d --build
