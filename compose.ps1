@@ -3,10 +3,10 @@ $type = $args[0]
 switch ($type) {
     "test" {
         yarn build:ui:production;
-        docker-compose -f .\docker\docker-compose-test.yml -p hydro-test up -d --build;
+        docker-compose -f ./docker/docker-compose-test.yml -p hydro-test up -d --build;
     }
     "dev" {
-        docker-compose -f .\docker\docker-compose-dev.yml -p hydro-dev up -d --build;
+        docker-compose -f ./docker/docker-compose-dev.yml -p hydro-dev up -d --build;
         $opt = $args[1]
         if ($opt -eq "--init") {
             npx hydrooj cli system set file.endPoint http://localhost:9000/;
