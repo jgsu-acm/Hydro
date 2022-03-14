@@ -35,7 +35,7 @@ export const RpTypes: Record<string, RpDef> = {
                     {
                         docId: pdoc.docId,
                         rid: { $ne: null },
-                        uid: { $ne: pdoc.owner },
+                        // uid: { $ne: pdoc.owner },
                         score: { $gt: 0 },
                     },
                 );
