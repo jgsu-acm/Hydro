@@ -1931,6 +1931,7 @@ __metadata:
     "@undefined-moe/monaco-yaml": ^2.5.1
     ansi_up: ^5.1.0
     autoprefixer: ^9.8.8
+    browser-update: ^3.3.38
     chalk: ^5.0.1
     classnames: ^2.3.1
     clean-webpack-plugin: ^4.0.0
@@ -1989,6 +1990,7 @@ __metadata:
     prismjs: ^1.27.0
     prop-types: ^15.8.1
     qrcode: ^1.5.0
+    queue-microtask: ^1.2.3
     raw-loader: ^4.0.2
     react: ^17.0.2
     react-dom: ^17.0.2
@@ -4578,6 +4580,13 @@ __metadata:
   version: 1.0.0
   resolution: "browser-process-hrtime@npm:1.0.0"
   checksum: e30f868cdb770b1201afb714ad1575dd86366b6e861900884665fb627109b3cc757c40067d3bfee1ff2a29c835257ea30725a8018a9afd02ac1c24b408b1e45f
+  languageName: node
+  linkType: hard
+
+"browser-update@npm:^3.3.38":
+  version: 3.3.38
+  resolution: "browser-update@npm:3.3.38"
+  checksum: 49ec71cbf93b0c7d21570d156ccb719f9c8a560ae692bc9c2e8ad60afdec1f3bfeec9c402ef02097bc6df771682366f6ea373bda3c3b145a5d34c93b8365ab7a
   languageName: node
   linkType: hard
 
@@ -14390,7 +14399,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"queue-microtask@npm:^1.2.2":
+"queue-microtask@npm:^1.2.2, queue-microtask@npm:^1.2.3":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: b676f8c040cdc5b12723ad2f91414d267605b26419d5c821ff03befa817ddd10e238d22b25d604920340fd73efd8ba795465a0377c4adf45a4a41e4234e42dc4
