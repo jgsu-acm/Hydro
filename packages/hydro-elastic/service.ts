@@ -9,8 +9,8 @@ const logger = new Logger('elastic');
 
 declare module 'hydrooj/src/interface' {
     interface SystemKeys {
-        'elastic.host': string;
-        'elastic.port': number;
+        'hydro-elastic.host': string;
+        'hydro-elastic.port': number;
     }
 }
 
@@ -21,8 +21,8 @@ class ElasticService implements BaseService {
     private client: Client;
 
     async start() {
-        const host = system.get('elastic.host') || 'localhost';
-        const port = system.get('elastic.port') || 9200;
+        const host = system.get('hydro-elastic.host') || 'localhost';
+        const port = system.get('hydro-elastic.port') || 9200;
         try {
             this.client = new Client({ node: `http://${host}:${port}` });
         } catch (e) {
