@@ -9720,9 +9720,9 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"hydro-elastic@workspace:packages/myelastic":
+"hydro-elastic@workspace:packages/hydro-elastic":
   version: 0.0.0-use.local
-  resolution: "hydro-elastic@workspace:packages/myelastic"
+  resolution: "hydro-elastic@workspace:packages/hydro-elastic"
   dependencies:
     "@elastic/elasticsearch": ^8.0.0
   languageName: unknown
