@@ -7,7 +7,7 @@ ADD LICENSE-AGPL3.txt LICENSE
 RUN prefix="file:/root/packages" && \
     yarn global add pm2 \
     $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    $prefix/elastic && \
+    $prefix/hydro-elastic && \
     rm -rf packages
 
 # Entrypoint

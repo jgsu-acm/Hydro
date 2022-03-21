@@ -1,4 +1,4 @@
 [
   "@hydrooj/ui-default",
-  "@hydrooj/elastic-search"
+  "hydro-elastic"
 ]
