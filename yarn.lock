@@ -1435,7 +1435,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@elastic/transport@npm:^8.0.1":
+"@elastic/elasticsearch@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "@elastic/elasticsearch@npm:8.1.0"
+  dependencies:
+    "@elastic/transport": ^8.0.2
+    tslib: ^2.3.0
+  checksum: 9c4b8970380c32b6578bb09bd7009366c625baf2c4d9908a404c836c7e6c654e1dc9101800e874ab11cf17932060bfbb7ec0bc14e318a8aa5ed2deecf686a0f8
+  languageName: node
+  linkType: hard
+
+"@elastic/transport@npm:^8.0.1, @elastic/transport@npm:^8.0.2":
   version: 8.0.2
   resolution: "@elastic/transport@npm:8.0.2"
   dependencies:
@@ -1762,6 +1772,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@hydrooj/elastic-search@workspace:packages/elastic":
+  version: 0.0.0-use.local
+  resolution: "@hydrooj/elastic-search@workspace:packages/elastic"
+  dependencies:
+    "@elastic/elasticsearch": ^8.1.0
+  languageName: unknown
+  linkType: soft
+
 "@hydrooj/fps-importer@workspace:packages/fps-importer":
   version: 0.0.0-use.local
   resolution: "@hydrooj/fps-importer@workspace:packages/fps-importer"
@@ -1838,17 +1856,6 @@ __metadata:
 "@hydrooj/login-with-google@workspace:packages/login-with-google":
   version: 0.0.0-use.local
   resolution: "@hydrooj/login-with-google@workspace:packages/login-with-google"
-  dependencies:
-    "@types/superagent": ^4.1.15
-    superagent: ^7.1.1
-  peerDependencies:
-    hydrooj: "*"
-  languageName: unknown
-  linkType: soft
-
-"@hydrooj/login-with-osu@workspace:packages/login-with-osu":
-  version: 0.0.0-use.local
-  resolution: "@hydrooj/login-with-osu@workspace:packages/login-with-osu"
   dependencies:
     "@types/superagent": ^4.1.15
     superagent: ^7.1.1
@@ -9713,9 +9720,9 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"hydro-elastic@workspace:packages/elastic":
+"hydro-elastic@workspace:packages/myelastic":
   version: 0.0.0-use.local
-  resolution: "hydro-elastic@workspace:packages/elastic"
+  resolution: "hydro-elastic@workspace:packages/myelastic"
   dependencies:
     "@elastic/elasticsearch": ^8.0.0
   languageName: unknown
