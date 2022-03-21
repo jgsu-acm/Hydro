@@ -6,8 +6,8 @@ import { join } from 'path';
 import { ObjectID } from 'mongodb';
 import * as bus from 'hydrooj/src/service/bus';
 import { Route, Handler } from 'hydrooj/src/service/server';
-import { PERM } from 'hydrooj/src/model/builtin';
 import { nanoid } from 'nanoid';
+import { PERM, PRIV } from 'hydrooj/src/model/builtin';
 import markdown from './backendlib/markdown';
 
 const {
@@ -91,6 +91,7 @@ class SetThemeHandler extends Handler {
   noCheckPermView = true;
 
   async get({ theme }) {
+    this.checkPriv(PRIV.PRIV_USER_PROFILE);
     await user.setById(this.user._id, { theme });
     this.back();
   }

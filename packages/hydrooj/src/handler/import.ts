@@ -18,7 +18,12 @@ function findOverrideContent(dir: string) {
     if (!files.length) return null;
     for (const file of files) {
         const lang = file.slice(8, -3);
-        languages[lang] = fs.readFileSync(path.join(dir, file), 'utf8');
+        let content: string | any[] = fs.readFileSync(path.join(dir, file), 'utf8');
+        try {
+            content = JSON.parse(content);
+            if (!(content instanceof Array)) content = JSON.stringify(content);
+        } catch (e) { }
+        languages[lang] = content;
     }
     return JSON.stringify(languages);
 }
@@ -46,8 +51,11 @@ class ProblemImportHydroHandler extends Handler {
                 if (!files.includes('problem.yaml')) continue;
                 const content = fs.readFileSync(path.join(tmpdir, i, 'problem.yaml'), 'utf-8');
                 const pdoc: ProblemDoc = yaml.load(content) as any;
-                const current = await problem.get(domainId, pdoc.pid);
-                const pid = current ? undefined : pdoc.pid;
+                let pid = pdoc?.pid;
+                if (pid) {
+                    const current = await problem.get(domainId, pid);
+                    if (current) pid = undefined;
+                }
                 const overrideContent = findOverrideContent(path.join(tmpdir, i));
                 const docId = await problem.add(
                     domainId, pid, pdoc.title, overrideContent || pdoc.content,
