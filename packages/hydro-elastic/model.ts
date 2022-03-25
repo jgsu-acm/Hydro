@@ -1,4 +1,6 @@
 import { ProblemSearchOptions } from 'hydrooj/src/interface';
+import DomainModel from 'hydrooj/src/model/domain';
+import * as system from 'hydrooj/src/model/system';
 import * as bus from 'hydrooj/src/service/bus';
 import elastic from './service';
 
@@ -34,22 +36,27 @@ bus.on('problem/del', async (domainId, pdocId) => {
     });
 });
 
-global.Hydro.lib.problemSearch = async (domainId: string, query: string, options: ProblemSearchOptions) => {
-    query = query.toLowerCase();
+global.Hydro.lib.problemSearch = async (domainId: string, q: string, opts: ProblemSearchOptions) => {
+    const size = opts?.limit || system.get('pagination.problem');
+    const from = opts?.skip || 0;
+    const union = await DomainModel.getUnion(domainId);
+    const domainIds = [domainId, ...(union?.union || [])];
+    q = q.toLowerCase();
     const res = await elastic.search({
         index: 'problem',
+        size,
+        from,
         query: {
             bool: {
-                must: [{ term: { domainId } }],
+                must: domainIds.map((i) => ({ term: { domainId: i } })),
                 should: [
-                    { prefix: { pid: query } },
-                    { match: { title: query } },
-                    { match: { tags: query } },
+                    { prefix: { pid: q } },
+                    { match: { title: q } },
+                    { match: { tags: q } },
                 ],
                 minimum_should_match: 1,
             },
         },
-        size: options.limit,
     });
     return {
         hits: res.hits.hits.map((i) => i._id),
