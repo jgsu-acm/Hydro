@@ -91,6 +91,25 @@ function judgeCase(c: Case, sid: string) {
             await runner(ctx, ctxSubtask);
             return;
         }
+        if ([STATUS.STATUS_WRONG_ANSWER, STATUS.STATUS_RUNTIME_ERROR].includes(status)) {
+            const langConfig = ctx.getLang(ctx.lang);
+            if (langConfig.analysis && !ctx.analysis) {
+                ctx.analysis = true;
+                run(langConfig.analysis, {
+                    copyIn: {
+                        input: { src: stdin },
+                        [langConfig.code_file || 'foo']: { content: ctx.code },
+                        compile: { content: langConfig.compile },
+                        execute: { content: langConfig.execute },
+                    },
+                    time: 5000,
+                    memory: 256,
+                }).then((r) => {
+                    ctx.next({ compiler_text: r.stdout.toString().substring(0, 1024) });
+                    if (process.env.DEV) console.log(r);
+                });
+            }
+        }
         ctxSubtask.score = Score[ctxSubtask.subtask.type](ctxSubtask.score, score);
         ctxSubtask.status = Math.max(ctxSubtask.status, status);
         if (ctxSubtask.status > STATUS.STATUS_ACCEPTED) ctx.failed[sid] = true;
