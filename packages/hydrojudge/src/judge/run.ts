@@ -86,15 +86,21 @@ export const judge = async (ctx: Context) => {
             ctx.analysis = true;
             run(langConfig.analysis, {
                 copyIn: {
+                    ...copyIn,
                     input: { src: stdin },
                     [langConfig.code_file || 'foo']: { content: ctx.code },
-                    compile: { content: langConfig.compile },
-                    execute: { content: langConfig.execute },
+                    compile: { content: langConfig.compile || '' },
+                    execute: { content: langConfig.execute || '' },
+                },
+                env: {
+                    ...ctx.env,
+                    HYDRO_PRETEST: 'true',
                 },
                 time: 5000,
                 memory: 256,
             }).then((r) => {
-                ctx.next({ compiler_text: r.stdout.toString().substring(0, 1024) });
+                const out = r.stdout.toString();
+                if (out.length) ctx.next({ compiler_text: out.substring(0, 1024) });
                 if (process.env.DEV) console.log(r);
             });
         }

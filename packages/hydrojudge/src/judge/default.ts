@@ -97,15 +97,18 @@ function judgeCase(c: Case, sid: string) {
                 ctx.analysis = true;
                 run(langConfig.analysis, {
                     copyIn: {
-                        input: { src: stdin },
+                        ...copyIn,
+                        input: stdin ? { src: stdin } : { content: '' },
                         [langConfig.code_file || 'foo']: { content: ctx.code },
-                        compile: { content: langConfig.compile },
-                        execute: { content: langConfig.execute },
+                        compile: { content: langConfig.compile || '' },
+                        execute: { content: langConfig.execute || '' },
                     },
                     time: 5000,
                     memory: 256,
+                    env: ctx.env,
                 }).then((r) => {
-                    ctx.next({ compiler_text: r.stdout.toString().substring(0, 1024) });
+                    const out = r.stdout.toString();
+                    if (out.length) ctx.next({ compiler_text: out.substring(0, 1024) });
                     if (process.env.DEV) console.log(r);
                 });
             }
