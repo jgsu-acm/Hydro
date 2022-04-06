@@ -13,11 +13,16 @@
           <h1 class="section__title">{{ _('Answer') }}</h1>
         {% else %}
           <h1 class="section__title">{{ _('Code') }}</h1>
+          <div class="section__tools">
+            <a class="primary rounded button" href="?download=true"><span class="icon icon-download"></span> {{ _('Download') }}</a>
+          </div>
         {% endif %}
       </div>
-      <div class="section__body">
-        <pre><code class="line-numbers language-{{ model.setting.langs[rdoc.lang].highlight }}">{{ rdoc['code'] }}</code></pre>
-      </div>
+      {% if not rdoc.code.startsWith('@@hydro_submission_file@@') %}
+        <div class="section__body">
+          <pre><code class="line-numbers language-{{ model.setting.langs[rdoc.lang].highlight }}">{{ rdoc['code'] }}</code></pre>
+        </div>
+      {% endif %}
     </div>
     {% endif %}
   </div>

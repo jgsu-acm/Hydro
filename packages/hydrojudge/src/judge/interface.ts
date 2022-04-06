@@ -1,6 +1,7 @@
 import PQueue from 'p-queue';
 import { LangConfig } from '@hydrooj/utils/lib/lang';
 import { Execute } from '../interface';
+import { CopyInFile } from '../sandbox/interface';
 
 export type Context = JudgeTaskInterface & RuntimeContext;
 
@@ -29,7 +30,7 @@ export interface JudgeTaskInterface {
 
     stat: Record<string, Date>;
     lang: string;
-    code: string;
+    code: CopyInFile;
     tmpdir: string;
     input?: string;
     clean: Function[];
@@ -58,6 +59,8 @@ export interface RuntimeContext {
 type ExtraFile = string[];
 
 export interface Config {
+    type: string;
+    subType?: string;
     time: string;
     memory: string;
 

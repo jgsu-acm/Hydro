@@ -71,6 +71,7 @@ class WikiHelpHandler extends Handler {
     const languages = {};
     for (const key in LANGS) {
       if (LANGS[key].domain && !LANGS[key].domain.includes(domainId)) continue;
+      if (LANGS[key].hidden) continue;
       languages[`${LANGS[key].display}`] = LANGS[key].compile || LANGS[key].execute;
     }
     this.response.body = { languages };
