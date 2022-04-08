@@ -37,10 +37,6 @@ jobs:
           node-version: 16
           cache: 'yarn'
 
-      - name: Modify Package
-        run: |
-          node docker/modify.js hydrooj hydrojudge vjudge
-
       - name: Build Hydro
         run: |
           yarn install

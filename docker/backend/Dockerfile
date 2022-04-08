@@ -1,17 +1,11 @@
-FROM node:lts-slim
+FROM node:lts-alpine
 WORKDIR /root
 ADD packages packages
+ADD docker/modify.js modify.js
 ADD LICENSE-AGPL3.txt LICENSE
-
-# Hydro
-RUN prefix="file:/root/packages" && \
-    yarn global add pm2 \
-    $prefix/utils $prefix/hydrooj $prefix/ui-default \
-    $prefix/hydro-elastic && \
-    rm -rf packages
-
-# Entrypoint
-ENTRYPOINT (test -e /root/.hydro/init.sh && \
-    sh /root/.hydro/init.sh && \
-    mv /root/.hydro/init.sh /root/.hydro/init.sh.used); \
+RUN node modify.js hydrooj && \
+    prefix="file:/root/packages" && \
+    yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/ui-default $prefix/hydro-elastic && \
+    rm -rf packages modify.js
+ENTRYPOINT (test -e .hydro/init.sh && sh .hydro/init.sh && mv .hydro/init.sh .hydro/init.sh.used); \
     pm2-runtime start hydrooj

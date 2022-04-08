@@ -31,7 +31,7 @@ services:
   oj-backend:
     build:
       context: ..
-      dockerfile: docker/backend/Dockerfile-test
+      dockerfile: docker/backend/Dockerfile
     container_name: oj-backend-test
     restart: always
     depends_on:
@@ -46,7 +46,7 @@ services:
   oj-judge:
     build:
       context: ..
-      dockerfile: docker/judge/Dockerfile-test
+      dockerfile: docker/judge/Dockerfile
     container_name: oj-judge-test
     restart: always
     privileged: true
