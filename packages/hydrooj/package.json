@@ -79,7 +79,7 @@
         "@types/sockjs": "^0.3.33",
         "@types/source-map-support": "^0.5.4",
         "@types/superagent": "^4.1.15",
-        "moment": "^2.29.1",
+        "moment": "^2.29.2",
         "pm2": "^5.2.0",
         "ts-jest": "^27.0.7"
     },

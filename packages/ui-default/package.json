@@ -60,7 +60,7 @@
     "jquery.easing": "^1.4.1",
     "jquery.transit": "^0.9.12",
     "mini-css-extract-plugin": "^1.6.2",
-    "moment": "^2.29.1",
+    "moment": "^2.29.2",
     "monaco-editor": "^0.31.1",
     "monaco-editor-nls": "^2.0.0",
     "monaco-editor-webpack-plugin": "^7.0.1",
