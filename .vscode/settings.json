@@ -13,5 +13,8 @@
     "search.exclude": {
         "**/.yarn": true,
         "**/.pnp.*": true
-    }
+    },
+    "files.associations": {
+        "*.html": "nunjucks"
+    },
 }

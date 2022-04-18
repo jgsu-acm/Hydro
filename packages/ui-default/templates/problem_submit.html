@@ -17,7 +17,7 @@
                 value:handler.user.codeLang
               }) }}
           </div>
-          {% if pdoc.config.type != 'submit_answer' %}
+          {% if pdoc.config.type != 'objective' %}
           <div class="row nojs--hide">
             <div class="medium-5 columns form__item end" id="codelang-main-container">
               <label>
@@ -37,7 +37,7 @@
             </div>
           </div>
           {% endif %}
-          {% if pdoc.config.type == 'submit_answer' %}
+          {% if pdoc.config.type == 'objective' %}
             {{ form.form_textarea({label:'Answer', columns:5, name:'code', extra_class:'monospace', autofocus:true, extra_style:'height: 30px'}) }}
           {% else %}
             {{ form.form_textarea({label:'Code', columns:12, name:'code', extra_class:'monospace', autofocus:true}) }}

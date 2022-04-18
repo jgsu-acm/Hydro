@@ -9,7 +9,7 @@
     {% if rdoc['code'] %}
     <div class="section">
       <div class="section__header">
-        {% if pdoc.config.type == 'submit_answer' %}
+        {% if pdoc.config.type == 'objective' %}
           <h1 class="section__title">{{ _('Answer') }}</h1>
         {% else %}
           <h1 class="section__title">{{ _('Code') }}</h1>
@@ -71,8 +71,10 @@
               <a href="{{ url('homework_detail' if tdoc.rule == 'homework' else 'contest_detail', tid=tdoc.docId) }}">{{ tdoc.title }}</a>
             </dd>
           {% endif %}
-          <dt>{{ _('Language') }}</dt>
-          <dd>{{ model.setting.langs[rdoc.lang].display }}</dd>
+          {% if pdoc.config.type != 'objective' %}
+            <dt>{{ _('Language') }}</dt>
+            <dd>{{ model.setting.langs[rdoc.lang].display }}</dd>
+          {% endif %}
           <dt>{{ _('Submit At') }}</dt>
           <dd>{{ datetimeSpan(rdoc._id)|safe }}</dd>
           {% if rdoc.judgeAt %}
