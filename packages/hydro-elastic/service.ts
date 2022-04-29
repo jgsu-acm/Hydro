@@ -29,6 +29,7 @@ class ElasticService implements BaseService {
             logger.warn('Elastic init fail. Will retry later.');
             this.error = e.toString();
             setTimeout(() => this.start(), 10000);
+            return;
         }
         logger.info('Elastic initialized.');
         this.started = true;
