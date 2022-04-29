@@ -80,6 +80,7 @@ bus.on('record/judge', async (rdoc, updated) => {
     if (accept) {
         const { pid, uid, domainId } = rdoc;
         const pdoc = await ProblemModel.get(domainId, pid);
+        if (pdoc.hidden) return;
         // @ts-ignore
         const dudoc = await DomainModel.getDomainUser(domainId, { _id: uid });
         const udoc = await UserModel.getById(domainId, uid);
