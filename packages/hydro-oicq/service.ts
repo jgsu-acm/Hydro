@@ -118,6 +118,6 @@ bus.on('discussion/add', async (ddoc) => {
     const messages: string[] = [];
     const name = await getName(ddoc.domainId, ddoc.owner);
     messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
-    messages.push(`${prefix}/dicuss/${ddoc.docId}`);
+    messages.push(`${prefix}/dicuss/${ddoc.docId}#${ddoc.updateAt.getTime()}`);
     await service.sendMsg(messages);
 });
