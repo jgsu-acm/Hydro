@@ -1,6 +1,6 @@
 {
     "name": "hydro-oicq",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "OICQ QQ bot service",
     "main": "service.js",
     "typings": "service.d.ts",

@@ -81,10 +81,11 @@ bus.on('record/judge', async (rdoc, updated) => {
     const { pid, uid, domainId } = rdoc;
     const pdoc = await ProblemModel.get(domainId, pid);
     if (pdoc.hidden) return;
-    const dudoc = await DomainModel.getDomainUser(domainId, { _id: uid });
-    const udoc = await UserModel.getById(domainId, uid);
-    const userName = dudoc.displayName || udoc.uname;
-    const url = `${system.get('server.url')}/p/${pdoc.pid || pdoc.docId}`;
-    const message = `${userName} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}！\n${url}\n${emojis[Math.floor(emojis.length * Math.random())]}`;
-    await service.group.sendMsg(message);
+    const name = (await DomainModel.getDomainUser(domainId, { _id: uid })).displayName || (await UserModel.getById(domainId, uid)).uname;
+    const prefix = system.get('server.url');
+    const messages: string[] = [];
+    messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}！`);
+    if (prefix) messages.push(`${prefix.endsWith('/') ? prefix.slice(0, -1) : prefix}/p/${pdoc.pid || pdoc.docId}`);
+    messages.push(emojis[Math.floor(emojis.length * Math.random())]);
+    await service.group.sendMsg(messages.join('\n'));
 });
