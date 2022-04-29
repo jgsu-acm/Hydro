@@ -62,6 +62,10 @@ class OICQService implements BaseService {
         logger.info('OICQ initialized.');
         this.started = true;
     }
+
+    async sendMsg(messages: string[]) {
+        await this.group.sendMsg(messages.join('\n'));
+    }
 }
 
 const service = new OICQService();
@@ -73,19 +77,41 @@ declare module 'hydrooj/src/interface' {
 }
 
 const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ∀ﾟ)σ..:*☆', '┗( ▔, ▔ )┛', '(*/ω＼*)', '（づ￣3￣）づ╭❤～'];
+const url = system.get('server.url');
+const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
 
 bus.on('record/judge', async (rdoc, updated) => {
-    if (!updated) return;
-    const accept = rdoc.status === builtin.STATUS.STATUS_ACCEPTED;
-    if (!accept) return;
+    if (!updated || rdoc.status !== builtin.STATUS.STATUS_ACCEPTED) return;
+    const messages: string[] = [];
     const { pid, uid, domainId } = rdoc;
     const pdoc = await ProblemModel.get(domainId, pid);
     if (pdoc.hidden) return;
     const name = (await DomainModel.getDomainUser(domainId, { _id: uid })).displayName || (await UserModel.getById(domainId, uid)).uname;
-    const prefix = system.get('server.url');
-    const messages: string[] = [];
-    messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}！`);
-    if (prefix) messages.push(`${prefix.endsWith('/') ? prefix.slice(0, -1) : prefix}/p/${pdoc.pid || pdoc.docId}`);
+    messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
+    if (prefix) messages.push(`${prefix}/p/${pdoc.pid || pdoc.docId}`);
     messages.push(emojis[Math.floor(emojis.length * Math.random())]);
-    await service.group.sendMsg(messages.join('\n'));
+    await service.sendMsg(messages);
+});
+
+bus.on('contest/add', async (tdoc, docId) => {
+    const messages: string[] = [];
+    if (tdoc.rule === 'homework') {
+        messages.push(`${tdoc.owner} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
+        messages.push(`${prefix}/homework/${docId}`);
+        messages.push(`结束时间：${tdoc.endAt}`);
+    } else {
+        messages.push(`${tdoc.owner} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
+        messages.push(`${prefix}/contest/${docId}`);
+        messages.push(`开始时间：${tdoc.beginAt}`);
+        messages.push(`结束时间：${tdoc.endAt}`);
+        messages.push(`赛制：${tdoc.rule}`);
+    }
+    await service.sendMsg(messages);
+});
+
+bus.on('discussion/add', async (ddoc) => {
+    const messages:string[] = [];
+    messages.push(`${ddoc.owner} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
+    messages.push(`${prefix}/dicuss/${ddoc._id}`);
+    await service.sendMsg(messages);
 });
