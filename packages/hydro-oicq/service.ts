@@ -80,13 +80,17 @@ const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ�
 const url = system.get('server.url');
 const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
 
+async function getName(domainId: string, uid: number) {
+    return (await DomainModel.getDomainUser(domainId, { _id: uid })).displayName || (await UserModel.getById(domainId, uid)).uname;
+}
+
 bus.on('record/judge', async (rdoc, updated) => {
     if (!updated || rdoc.status !== builtin.STATUS.STATUS_ACCEPTED) return;
     const messages: string[] = [];
     const { pid, uid, domainId } = rdoc;
     const pdoc = await ProblemModel.get(domainId, pid);
     if (pdoc.hidden) return;
-    const name = (await DomainModel.getDomainUser(domainId, { _id: uid })).displayName || (await UserModel.getById(domainId, uid)).uname;
+    const name = await getName(domainId, uid);
     messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
     if (prefix) messages.push(`${prefix}/p/${pdoc.pid || pdoc.docId}`);
     messages.push(emojis[Math.floor(emojis.length * Math.random())]);
@@ -95,12 +99,13 @@ bus.on('record/judge', async (rdoc, updated) => {
 
 bus.on('contest/add', async (tdoc, docId) => {
     const messages: string[] = [];
+    const name = await getName(tdoc.domainId, tdoc.owner);
     if (tdoc.rule === 'homework') {
-        messages.push(`${tdoc.owner} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
+        messages.push(`${name} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
         messages.push(`${prefix}/homework/${docId}`);
         messages.push(`结束时间：${tdoc.endAt}`);
     } else {
-        messages.push(`${tdoc.owner} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
+        messages.push(`${name} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
         messages.push(`${prefix}/contest/${docId}`);
         messages.push(`开始时间：${tdoc.beginAt}`);
         messages.push(`结束时间：${tdoc.endAt}`);
@@ -110,8 +115,9 @@ bus.on('contest/add', async (tdoc, docId) => {
 });
 
 bus.on('discussion/add', async (ddoc) => {
-    const messages:string[] = [];
-    messages.push(`${ddoc.owner} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
-    messages.push(`${prefix}/dicuss/${ddoc._id}`);
+    const messages: string[] = [];
+    const name = await getName(ddoc.domainId, ddoc.owner);
+    messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
+    messages.push(`${prefix}/dicuss/${ddoc.docId}`);
     await service.sendMsg(messages);
 });
