@@ -1,0 +1,8 @@
+account:
+  type: number
+  value:
+groupId:
+  type: number
+  value: 
+datadir:
+  value: ~/.hydro/oicq
