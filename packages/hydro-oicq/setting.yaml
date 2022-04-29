@@ -3,6 +3,6 @@ account:
   value:
 groupId:
   type: number
-  value: 
+  value:
 datadir:
-  value: ~/.hydro/oicq
+  value:
