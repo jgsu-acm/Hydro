@@ -77,15 +77,14 @@ const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ�
 bus.on('record/judge', async (rdoc, updated) => {
     if (!updated) return;
     const accept = rdoc.status === builtin.STATUS.STATUS_ACCEPTED;
-    if (accept) {
-        const { pid, uid, domainId } = rdoc;
-        const pdoc = await ProblemModel.get(domainId, pid);
-        if (pdoc.hidden) return;
-        // @ts-ignore
-        const dudoc = await DomainModel.getDomainUser(domainId, { _id: uid });
-        const udoc = await UserModel.getById(domainId, uid);
-        const userName = dudoc.displayName || udoc.uname;
-        const message = `${userName} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}！\n${emojis[Math.floor(emojis.length * Math.random())]}`;
-        await service.group.sendMsg(message);
-    }
+    if (!accept) return;
+    const { pid, uid, domainId } = rdoc;
+    const pdoc = await ProblemModel.get(domainId, pid);
+    if (pdoc.hidden) return;
+    const dudoc = await DomainModel.getDomainUser(domainId, { _id: uid });
+    const udoc = await UserModel.getById(domainId, uid);
+    const userName = dudoc.displayName || udoc.uname;
+    const url = `${system.get('server.url')}/p/${pdoc.pid || pdoc.docId}`;
+    const message = `${userName} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}！\n${url}\n${emojis[Math.floor(emojis.length * Math.random())]}`;
+    await service.group.sendMsg(message);
 });

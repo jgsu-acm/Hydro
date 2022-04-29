@@ -16,7 +16,7 @@ const collUnion = db.collection('domain.union');
 
 interface DomainUserArg {
     _id: number,
-    priv: number,
+    priv?: number,
 }
 
 class DomainModel {
