@@ -45,7 +45,6 @@ class OICQService implements BaseService {
             this.client.on('system.online', () => {
                 logger.info('Logged in!');
                 this.group = this.client.pickGroup(groupId, true);
-                console.log(this.client.sl);
             });
 
             this.client.on('system.offline.kickoff', () => {
