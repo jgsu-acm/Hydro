@@ -80,8 +80,8 @@ const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ�
 const url = system.get('server.url');
 const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
 
-async function getName(domainId: string, uid: number) {
-    return (await DomainModel.getDomainUser(domainId, { _id: uid })).displayName || (await UserModel.getById(domainId, uid)).uname;
+async function getName(uid: number) {
+    return (await DomainModel.getDomainUser('system', { _id: uid })).displayName || (await UserModel.getById('system', uid)).uname;
 }
 
 bus.on('record/judge', async (rdoc, updated) => {
@@ -90,7 +90,7 @@ bus.on('record/judge', async (rdoc, updated) => {
     const { pid, uid, domainId } = rdoc;
     const pdoc = await ProblemModel.get(domainId, pid);
     if (pdoc.hidden) return;
-    const name = await getName(domainId, uid);
+    const name = await getName(uid);
     messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
     if (prefix) messages.push(`${prefix}/p/${pdoc.pid || pdoc.docId}`);
     messages.push(emojis[Math.floor(emojis.length * Math.random())]);
@@ -99,7 +99,7 @@ bus.on('record/judge', async (rdoc, updated) => {
 
 bus.on('contest/add', async (tdoc, docId) => {
     const messages: string[] = [];
-    const name = await getName(tdoc.domainId, tdoc.owner);
+    const name = await getName(tdoc.owner);
     if (tdoc.rule === 'homework') {
         messages.push(`${name} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
         messages.push(`${prefix}/homework/${docId}`);
@@ -116,7 +116,7 @@ bus.on('contest/add', async (tdoc, docId) => {
 
 bus.on('discussion/add', async (ddoc) => {
     const messages: string[] = [];
-    const name = await getName(ddoc.domainId, ddoc.owner);
+    const name = await getName(ddoc.owner);
     messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
     messages.push(`${prefix}/discuss/${ddoc.docId}#${ddoc.updateAt.getTime()}`);
     await service.sendMsg(messages);
