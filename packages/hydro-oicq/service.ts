@@ -19,6 +19,8 @@ declare module 'hydrooj/src/interface' {
     }
 }
 
+const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ∀ﾟ)σ..:*☆', '┗( ▔, ▔ )┛', '(*/ω＼*)', '（づ￣3￣）づ╭❤～'];
+
 class OICQService implements BaseService {
     public started = false;
     public error = '';
@@ -64,7 +66,7 @@ class OICQService implements BaseService {
     }
 
     async sendMsg(messages: string[]) {
-        await this.group.sendMsg(messages.join('\n'));
+        await this.group.sendMsg(messages.join('\n') + emojis[Math.floor(emojis.length * Math.random())]);
     }
 }
 
@@ -76,7 +78,6 @@ declare module 'hydrooj/src/interface' {
     }
 }
 
-const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ∀ﾟ)σ..:*☆', '┗( ▔, ▔ )┛', '(*/ω＼*)', '（づ￣3￣）づ╭❤～'];
 const url = system.get('server.url');
 const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
 
@@ -93,7 +94,6 @@ bus.on('record/judge', async (rdoc, updated) => {
     const name = await getName(uid);
     messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
     if (prefix) messages.push(`${prefix}/p/${pdoc.pid || pdoc.docId}`);
-    messages.push(emojis[Math.floor(emojis.length * Math.random())]);
     await service.sendMsg(messages);
 });
 
