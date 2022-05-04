@@ -10,7 +10,7 @@ RUN chmod +x /usr/bin/sandbox && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash && \
     apt-get install -qq -y nodejs && \
     apt-get autoremove -qq -y --purge curl && \
-    apt clean && rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     npm install -g yarn
 RUN node modify.js hydrooj hydrojudge && \
     prefix="file:/root/packages" && \
