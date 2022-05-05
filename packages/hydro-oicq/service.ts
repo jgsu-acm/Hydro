@@ -65,8 +65,8 @@ class OICQService implements BaseService {
         this.started = true;
     }
 
-    async sendMsg(messages: string[]) {
-        await this.group.sendMsg(messages.join('\n') + emojis[Math.floor(emojis.length * Math.random())]);
+    async sendMsg(messages: string[], url?: string) {
+        await this.group.sendMsg([...messages, emojis[Math.floor(emojis.length * Math.random())], url].join('\n'));
     }
 }
 
@@ -93,31 +93,30 @@ bus.on('record/judge', async (rdoc, updated) => {
     if (pdoc.hidden) return;
     const name = await getName(uid);
     messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
-    if (prefix) messages.push(`${prefix}/p/${pdoc.pid || pdoc.docId}`);
-    await service.sendMsg(messages);
+    await service.sendMsg(messages, prefix ? `${prefix}/p/${pdoc.pid || pdoc.docId}` : null);
 });
 
 bus.on('contest/add', async (tdoc, docId) => {
     const messages: string[] = [];
     const name = await getName(tdoc.owner);
+    let _url: string;
     if (tdoc.rule === 'homework') {
         messages.push(`${name} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
-        messages.push(`${prefix}/homework/${docId}`);
         messages.push(`结束时间：${tdoc.endAt}`);
+        _url = prefix ? `${prefix}/homework/${docId}` : null;
     } else {
         messages.push(`${name} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
-        messages.push(`${prefix}/contest/${docId}`);
         messages.push(`开始时间：${tdoc.beginAt}`);
         messages.push(`结束时间：${tdoc.endAt}`);
         messages.push(`赛制：${tdoc.rule}`);
+        _url = prefix ? `${prefix}/contest/${docId}` : null;
     }
-    await service.sendMsg(messages);
+    await service.sendMsg(messages, _url);
 });
 
 bus.on('discussion/add', async (ddoc) => {
     const messages: string[] = [];
     const name = await getName(ddoc.owner);
     messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
-    messages.push(`${prefix}/discuss/${ddoc.docId}#${ddoc.updateAt.getTime()}`);
-    await service.sendMsg(messages);
+    await service.sendMsg(messages, prefix ? `${prefix}/discuss/${ddoc.docId}#${ddoc.updateAt.getTime()}` : null);
 });
