@@ -6,7 +6,7 @@ ADD LICENSE-AGPL3.txt LICENSE
 ADD https://github.com/criyle/go-judge/releases/latest/download/executorserver-amd64 /usr/bin/sandbox
 RUN chmod +x /usr/bin/sandbox && \
     apt-get -qq update && \
-    apt-get install -qq -y gcc g++ python3 openjdk-11-jdk-headless curl && \
+    apt-get install -qq -y gcc g++ python3 pypy3 openjdk-11-jdk-headless curl && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash && \
     apt-get install -qq -y nodejs && \
     apt-get autoremove -qq -y --purge curl && \
