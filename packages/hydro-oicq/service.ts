@@ -81,8 +81,11 @@ class OICQService implements BaseService {
         this.started = true;
     }
 
-    async sendMsg(messages: string[], url?: string) {
-        await this.group.sendMsg([...messages, emojis[Math.floor(emojis.length * Math.random())], url].join('\n'));
+    async sendMsg(messages: string[], url?: string, emoji = true) {
+        const tail = [];
+        if (emoji) tail.push(emojis[Math.floor(emojis.length * Math.random())]);
+        if (url) tail.push(url);
+        await this.group.sendMsg([...messages, ...tail].join('\n'));
     }
 }
 
