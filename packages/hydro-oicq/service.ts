@@ -1,4 +1,5 @@
 import os from 'os';
+import { getContestInfo } from 'lscontests';
 import { Client, createClient, Group } from 'oicq';
 import { BaseService } from 'hydrooj';
 import { Logger } from 'hydrooj/src/logger';
@@ -28,7 +29,7 @@ class OICQService implements BaseService {
     private client: Client;
     public group: Group;
 
-    async start() {
+    start() {
         try {
             const account = system.get('hydro-oicq.account');
             if (!account) throw Error('no account');
@@ -55,6 +56,21 @@ class OICQService implements BaseService {
 
             this.client.on('system.offline.network', () => {
                 logger.warn('Network error causes offline!');
+            });
+
+            this.client.on('message.group', (event) => {
+                switch (event.raw_message) {
+                    case '/help':
+                        this.sendMsg([
+                            '/contest: 查看最近 3 天各大 OJ 上的比赛信息',
+                            '/help: 查看此条帮助信息',
+                        ]);
+                        break;
+                    case '/contest':
+                        getContestInfo().then(this.group.sendMsg);
+                        break;
+                    default: break;
+                }
             });
         } catch (e) {
             logger.error('OICQ init fail.');
