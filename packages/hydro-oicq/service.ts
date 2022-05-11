@@ -29,7 +29,7 @@ class OICQService implements BaseService {
     private client: Client;
     public group: Group;
 
-    start() {
+    async start() {
         try {
             const account = system.get('hydro-oicq.account');
             if (!account) throw Error('no account');
@@ -67,7 +67,7 @@ class OICQService implements BaseService {
                         ], null, false);
                         break;
                     case '/contest':
-                        getContestInfo().then(this.group.sendMsg);
+                        getContestInfo().then((s) => this.group.sendMsg(s));
                         break;
                     default: break;
                 }
@@ -85,7 +85,7 @@ class OICQService implements BaseService {
         const tail = [];
         if (emoji) tail.push(emojis[Math.floor(emojis.length * Math.random())]);
         if (url) tail.push(url);
-        await this.group.sendMsg([...messages, ...tail].join('\n'));
+        this.group.sendMsg([...messages, ...tail].join('\n'));
     }
 }
 
