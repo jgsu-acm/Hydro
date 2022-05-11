@@ -64,7 +64,7 @@ class OICQService implements BaseService {
                         this.sendMsg([
                             '/contest: 查看最近 3 天各大 OJ 上的比赛信息',
                             '/help: 查看此条帮助信息',
-                        ]);
+                        ], null, false);
                         break;
                     case '/contest':
                         getContestInfo().then(this.group.sendMsg);
