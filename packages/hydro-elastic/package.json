@@ -1,6 +1,5 @@
 {
     "name": "hydro-elastic",
-    "version": "1.0.0",
     "description": "Elastic search service",
     "main": "service.js",
     "typings": "service.d.ts",

@@ -1,6 +1,5 @@
 {
     "name": "hydro-oicq",
-    "version": "1.0.2",
     "description": "OICQ QQ bot service",
     "main": "service.js",
     "typings": "service.d.ts",
@@ -9,7 +8,7 @@
     "license": "AGPL-3.0-or-later",
     "preferUnplugged": true,
     "dependencies": {
-        "lscontests": "^1.7.2",
+        "lscontests": "^1.7.3",
         "oicq": "^2.2.2"
     }
 }

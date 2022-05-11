@@ -9967,7 +9967,7 @@ fsevents@~2.3.2:
   version: 0.0.0-use.local
   resolution: "hydro-oicq@workspace:packages/hydro-oicq"
   dependencies:
-    lscontests: ^1.7.2
+    lscontests: ^1.7.3
     oicq: ^2.2.2
   languageName: unknown
   linkType: soft
@@ -11891,16 +11891,16 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"lscontests@npm:^1.7.2":
-  version: 1.7.2
-  resolution: "lscontests@npm:1.7.2"
+"lscontests@npm:^1.7.3":
+  version: 1.7.3
+  resolution: "lscontests@npm:1.7.3"
   dependencies:
     axios: ^0.27.2
     cheerio: ^1.0.0-rc.10
     commander: ^9.2.0
   bin:
     lsct: dist/cli.js
-  checksum: 36fceb803ea4b83da9f8e42d3b5b6999fad1f73dcedaa029636d41860c09480d2e159fce9edc0a266aea2ab05563f1c91c0e7b1672bf617b65afa6ba5e9356e5
+  checksum: 094628705ae86de719b458a8c4fc674850e08751d47a41425cf244d9909d790f17cb0e620571303b8fc1356d188ac7848d109ac41f5735b1d9b30c78ec0053aa
   languageName: node
   linkType: hard
 
