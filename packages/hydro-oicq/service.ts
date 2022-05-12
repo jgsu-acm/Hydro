@@ -40,9 +40,7 @@ class OICQService implements BaseService {
             this.client = createClient(account, { data_dir: datadir });
             this.client.on('system.login.qrcode', function cb() {
                 logger.info('Please scan this qrcode and press enter.');
-                process.stdin.once('data', () => {
-                    this.login();
-                });
+                process.stdin.once('data', () => this.login());
             }).login();
 
             this.client.on('system.online', () => {
@@ -50,25 +48,21 @@ class OICQService implements BaseService {
                 this.group = this.client.pickGroup(groupId, true);
             });
 
-            this.client.on('system.offline.kickoff', () => {
-                logger.warn('Kicked offline!');
-            });
+            this.client.on('system.offline.kickoff', () => logger.warn('Kicked offline!'));
 
-            this.client.on('system.offline.network', () => {
-                logger.warn('Network error causes offline!');
-            });
+            this.client.on('system.offline.network', () => logger.warn('Network error causes offline!'));
 
             this.client.on('message.group', async (event) => {
                 const msgList = event.raw_message.split(' ');
                 const command = msgList[0];
-                if (command === '/help') {
-                    this.sendMsg([
-                        '/contest: 查看最近 3 天各大 OJ 上的比赛信息，使用 /contest -h 查看关于此命令的更多信息',
-                        '/help: 查看此条帮助信息',
-                    ], null, true);
-                } else if (command === '/contest') {
+                if (command === '/help') this.help();
+                else if (command === '/contest') {
                     cli(msgList.slice(1).join(' '), '/contest').then((s) => this.group.sendMsg(s));
                 }
+            });
+
+            this.client.on('notice.group.poke', (event) => {
+                if (event.group_id === groupId) this.help();
             });
         } catch (e) {
             logger.error('OICQ init fail.');
@@ -77,6 +71,13 @@ class OICQService implements BaseService {
         }
         logger.info('OICQ initialized.');
         this.started = true;
+    }
+
+    async help() {
+        this.sendMsg([
+            '/contest: 查看最近 3 天各大 OJ 上的比赛信息，使用 /contest -h 查看关于此命令的更多信息',
+            '/help: 查看此条帮助信息',
+        ].map((s) => `${s}\n`), null, true);
     }
 
     async sendMsg(messages: string[], url?: string, emoji = true) {
