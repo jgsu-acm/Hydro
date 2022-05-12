@@ -1,5 +1,5 @@
 import os from 'os';
-import { getContestInfo } from 'lscontests';
+import { cli } from 'lscontests';
 import { Client, createClient, Group } from 'oicq';
 import { BaseService } from 'hydrooj';
 import { Logger } from 'hydrooj/src/logger';
@@ -58,18 +58,16 @@ class OICQService implements BaseService {
                 logger.warn('Network error causes offline!');
             });
 
-            this.client.on('message.group', (event) => {
-                switch (event.raw_message) {
-                    case '/help':
-                        this.sendMsg([
-                            '/contest: 查看最近 3 天各大 OJ 上的比赛信息',
-                            '/help: 查看此条帮助信息',
-                        ], null, false);
-                        break;
-                    case '/contest':
-                        getContestInfo().then((s) => this.group.sendMsg(s));
-                        break;
-                    default: break;
+            this.client.on('message.group', async (event) => {
+                const msgList = event.raw_message.split(' ');
+                const command = msgList[0];
+                if (command === '/help') {
+                    this.sendMsg([
+                        '/contest: 查看最近 3 天各大 OJ 上的比赛信息，使用 /contest -h 查看关于此命令的更多信息',
+                        '/help: 查看此条帮助信息',
+                    ], null, true);
+                } else if (command === '/contest') {
+                    cli(msgList.slice(1).join(' '), '/contest').then((s) => this.group.sendMsg(s));
                 }
             });
         } catch (e) {
