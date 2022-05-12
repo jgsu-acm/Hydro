@@ -64,11 +64,11 @@ export default async function readCases(folder: string, cfg: Record<string, any>
     result.count = result.outputs?.length || Math.sum((result.subtasks || []).map((s) => s.cases.length));
     if (!result.count) {
         try {
-            result.subtasks = readSubtasksFromFiles(await collectFiles(folder), checkFile, cfg);
+            result.subtasks = readSubtasksFromFiles(await collectFiles(folder), cfg);
             result.count = Math.sum(result.subtasks.map((i) => i.cases.length));
             if (cfg.isSelfSubmission) args.next?.({ message: { message: 'Found {0} testcases.', params: [result.count] } });
         } catch (e) {
-            throw new SystemError('Cannot parse testdata.', [e.message, ...e.params]);
+            throw new SystemError('Cannot parse testdata.', [e.message, ...(e.params || [])]);
         }
     }
     result.subtasks = normalizeSubtasks(result.subtasks || [], checkFile, config.time, config.memory);
