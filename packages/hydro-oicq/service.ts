@@ -53,6 +53,7 @@ class OICQService implements BaseService {
             this.client.on('system.offline.network', () => logger.warn('Network error causes offline!'));
 
             this.client.on('message.group', async (event) => {
+                if (event.group_id !== groupId) return;
                 const msgList = event.raw_message.split(' ');
                 const command = msgList[0];
                 if (command === '/help') this.help();
@@ -62,7 +63,8 @@ class OICQService implements BaseService {
             });
 
             this.client.on('notice.group.poke', (event) => {
-                if (event.group_id === groupId) this.help();
+                if (event.group_id !== groupId) return;
+                this.help();
             });
         } catch (e) {
             logger.error('OICQ init fail.');
