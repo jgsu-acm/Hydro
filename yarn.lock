@@ -9369,7 +9369,7 @@ fsevents@~2.3.2:
   version: 0.0.0-use.local
   resolution: "hydro-oicq@workspace:packages/hydro-oicq"
   dependencies:
-    lscontests: ^1.8.10
+    lscontests: ^1.10.1
     oicq: ^2.2.2
   languageName: unknown
   linkType: soft
@@ -11257,17 +11257,18 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"lscontests@npm:^1.8.10":
-  version: 1.8.10
-  resolution: "lscontests@npm:1.8.10"
+"lscontests@npm:^1.10.1":
+  version: 1.10.1
+  resolution: "lscontests@npm:1.10.1"
   dependencies:
     axios: ^0.27.2
     cheerio: ^1.0.0-rc.10
     commander: ^9.2.0
     lodash: ^4.17.21
+    pangu: ^4.0.7
   bin:
     lsct: dist/cli.js
-  checksum: 02c104cd5a67b117ab4f56f4e4fd624d3510268f0c813f2e4d5b5459a5706325d1a442a0a8ed002a1ecc8c4230ff15ae421860f7a0780d197518d6485e0b9fb0
+  checksum: 26964413f77f25a078ea3b7569eb8027a927375a73db5aeb9bbc7ea300d3646924ba73fe7007d1cdda203053c829d92f0ad845cf9dfd2194a9d3a0e8c46ebc4f
   languageName: node
   linkType: hard
 
@@ -13251,6 +13252,15 @@ fsevents@~2.3.2:
   version: 1.0.11
   resolution: "pako@npm:1.0.11"
   checksum: 1be2bfa1f807608c7538afa15d6f25baa523c30ec870a3228a89579e474a4d992f4293859524e46d5d87fd30fa17c5edf34dbef0671251d9749820b488660b16
+  languageName: node
+  linkType: hard
+
+"pangu@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "pangu@npm:4.0.7"
+  bin:
+    pangu: ./dist/node/cli.js
+  checksum: e6d2278b68c9eac3c29ef90ab6fa4ef2f1f32a066406597cc562f9b7f7d16a30debb0771cb811240d0585206baf5ee05c15504dd830f4854cb539bef1956dfc0
   languageName: node
   linkType: hard
 
