@@ -173,7 +173,7 @@ interface MatchRule {
 
 const SubtaskMatcher: MatchRule[] = [
     {
-        regex: /^([^\d]*)(\d+).(in|txt)$/,
+        regex: /^([^\d]*(?:\d+[a-zA-Z]+)*)(\d+).(in|txt)$/,
         output: [
             (a) => `${a[1] + a[2]}.out`,
             (a) => `${a[1] + a[2]}.ans`,
@@ -260,9 +260,14 @@ export function readSubtasksFromFiles(files: string[], config) {
     return Object.values(subtask);
 }
 
-type NormalizedCase = Required<ParsedCase>;
-interface NormalizedSubtask extends Required<ParsedSubtask> {
+export interface NormalizedCase extends Required<ParsedCase> {
+    time: number;
+    memory: number;
+}
+export interface NormalizedSubtask extends Required<ParsedSubtask> {
     cases: NormalizedCase[];
+    time: number;
+    memory: number;
 }
 
 export function normalizeSubtasks(
@@ -279,25 +284,25 @@ export function normalizeSubtasks(
     return subtasks.map((s) => {
         id++;
         s.cases.sort((a, b) => (a.id - b.id));
-        const score = subtaskScore.next().value as number;
+        const score = s.score || subtaskScore.next().value as number;
         const caseScore = getScore(
             Math.max(score - Math.sum(s.cases.map((i) => i.score || 0)), 0),
             s.cases.filter((i) => !i.score).length,
         );
         return {
             id,
-            score,
             type: 'min',
             if: [],
             ...s,
+            score,
             time: parseTimeMS(s.time || time, !ignoreParseError),
             memory: parseMemoryMB(s.memory || memory, !ignoreParseError),
             cases: s.cases.map((c) => {
                 count++;
                 return {
                     id: count,
-                    score: s.type === 'sum' ? caseScore.next().value as number : score,
                     ...c,
+                    score: c.score || (s.type === 'sum' ? caseScore.next().value as number : score),
                     time: parseTimeMS(c.time || s.time || time, !ignoreParseError),
                     memory: parseMemoryMB(c.memory || s.memory || memory, !ignoreParseError),
                     input: c.input ? checkFile(c.input, 'Cannot find input file {0}.') : '/dev/null',
