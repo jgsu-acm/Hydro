@@ -1,4 +1,5 @@
 FROM node:lts-alpine
+ENV LANG zh_CN.utf8
 WORKDIR /root
 ADD packages packages
 ADD docker/modify.js modify.js
