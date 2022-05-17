@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies & Build Hydro
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable --immutable-cache
           yarn build:ui:production
 
       - name: Extract metadata (tags, labels) for Backend Image
