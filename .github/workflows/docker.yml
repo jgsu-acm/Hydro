@@ -39,7 +39,7 @@ jobs:
 
       - name: Install dependencies & Build Hydro
         run: |
-          yarn install --immutable --immutable-cache
+          yarn install
           yarn build:ui:production
 
       - name: Extract metadata (tags, labels) for Backend Image
