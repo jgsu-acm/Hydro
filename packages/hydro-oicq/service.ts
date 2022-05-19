@@ -106,6 +106,7 @@ async function getName(uid: number) {
 }
 
 bus.on('record/judge', async (rdoc, updated) => {
+    if (rdoc.domainId !== 'system') return;
     if (!updated || rdoc.status !== builtin.STATUS.STATUS_ACCEPTED) return;
     const messages: string[] = [];
     const { pid, uid, domainId } = rdoc;
@@ -117,6 +118,7 @@ bus.on('record/judge', async (rdoc, updated) => {
 });
 
 bus.on('contest/add', async (tdoc, docId) => {
+    if (tdoc.domainId !== 'system') return;
     const messages: string[] = [];
     const name = await getName(tdoc.owner);
     let _url: string;
@@ -135,6 +137,7 @@ bus.on('contest/add', async (tdoc, docId) => {
 });
 
 bus.on('discussion/add', async (ddoc) => {
+    if (ddoc.domainId !== 'system') return;
     const messages: string[] = [];
     const name = await getName(ddoc.owner);
     messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
