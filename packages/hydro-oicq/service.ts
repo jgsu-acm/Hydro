@@ -52,6 +52,8 @@ class OICQService implements BaseService {
 
             this.client.on('system.offline.network', () => logger.warn('Network error causes offline!'));
 
+            logger.info(`Using lsct v${cli('--version')}`);
+
             this.client.on('message.group', async (event) => {
                 if (event.group_id !== groupId) return;
                 const msgList = event.raw_message.split(' ');

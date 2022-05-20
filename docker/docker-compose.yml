@@ -39,6 +39,7 @@ services:
       - ./config/backend:/root/.hydro
     environment:
       - TZ=Asia/Shanghai
+      - LANG=zh_CN.utf8
     ports:
       - "0.0.0.0:80:8888"
 
