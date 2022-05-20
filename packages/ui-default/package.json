@@ -104,7 +104,7 @@
     "vditor": "^3.8.14",
     "vinyl-buffer": "^1.0.1",
     "web-streams-polyfill": "^3.2.1",
-    "webpack": "^4.46.0",
+    "webpack": "^5.72.1",
     "webpack-bundle-analyzer": "^4.5.0",
     "webpack-dev-server": "^3.11.3",
     "webpackbar": "^5.0.2"
