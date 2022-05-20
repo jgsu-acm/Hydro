@@ -2,6 +2,7 @@
     "name": "hydro-elastic",
     "version": "1.0.0",
     "description": "Elastic search service",
+    "private": true,
     "main": "service.js",
     "typings": "service.d.ts",
     "repository": "https://github.com/jgsu-acm/Hydro.git",

@@ -2,6 +2,7 @@
     "name": "hydro-oicq",
     "version": "1.0.0",
     "description": "OICQ QQ bot service",
+    "private": true,
     "main": "service.js",
     "typings": "service.d.ts",
     "repository": "https://github.com/jgsu-acm/Hydro.git",
@@ -9,7 +10,7 @@
     "license": "AGPL-3.0-or-later",
     "preferUnplugged": true,
     "dependencies": {
-        "lscontests": "^1.10.1",
+        "lscontests": "^1.11.2",
         "oicq": "^2.2.2"
     }
 }
