@@ -28,7 +28,7 @@
     "@types/react-dom": "^18.0.4",
     "@types/redux-logger": "^3.0.9",
     "ansi_up": "^5.1.0",
-    "autoprefixer": "^9.8.8",
+    "autoprefixer": "^10.4.7",
     "browser-update": "^3.3.38",
     "chalk": "^5.0.1",
     "chunk-progress-webpack-plugin": "^2.0.1",
