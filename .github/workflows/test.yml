@@ -1,0 +1,30 @@
+name: Test
+
+on:
+  pull_request:
+    branches: ["master"]
+
+env:
+  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build:ui:production
