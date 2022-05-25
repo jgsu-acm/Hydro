@@ -10,7 +10,7 @@
     "license": "AGPL-3.0-or-later",
     "preferUnplugged": true,
     "dependencies": {
-        "lscontests": "^1.11.2",
+        "lscontests": "^2.1.5",
         "oicq": "^2.2.2"
     }
 }
