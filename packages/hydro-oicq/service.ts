@@ -111,7 +111,7 @@ bus.on('record/judge', async (rdoc, updated) => {
     const messages: string[] = [];
     const { pid, uid, domainId } = rdoc;
     const pdoc = await ProblemModel.get(domainId, pid);
-    if (pdoc.hidden) return;
+    if (pdoc.hidden || pdoc.owner === rdoc.uid) return;
     const name = await getName(uid);
     messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
     await service.sendMsg(messages, prefix ? `${prefix}/p/${pdoc.pid || pdoc.docId}` : null);
