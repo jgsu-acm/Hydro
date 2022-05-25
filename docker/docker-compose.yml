@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.9"
 
 services:
   oj-minio:
@@ -18,7 +18,7 @@ services:
       - ./data/backup:/dump
 
   oj-elastic:
-    image: elasticsearch:8.0.1
+    image: elasticsearch:8.2.0
     container_name: oj-elastic
     restart: always
     volumes:
@@ -47,11 +47,9 @@ services:
     container_name: oj-judge
     restart: always
     privileged: true
-    depends_on:
-      - oj-backend
+    shm_size: 1536mb
     volumes:
       - ./config/judge:/root/.config/hydro
-    shm_size: '1536mb'
 
 volumes:
   esdata:
