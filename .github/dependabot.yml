@@ -1,7 +1,11 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /
+    directory: /packages/hydro-elastic
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: /packages/hydro-oicq
     schedule:
       interval: daily
   - package-ecosystem: gitsubmodule
