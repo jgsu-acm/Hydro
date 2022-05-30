@@ -49,7 +49,7 @@
                   {% endif %}
                 {% endfor %}
                 <td class="col--ac">{{ handler.user.nAccept|default(0) }}</td>
-                <td class="col--bio">{{ handler.user.bio|default('')|truncate(64, true)|markdownInline|safe }}</td>
+                <td class="col--bio">{{ handler.user.bio|default('', true)|markdownInline|safe }}</td>
               </tr>
               {% endif %}
               {%- for udoc in udocs -%}
