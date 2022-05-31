@@ -57,9 +57,7 @@ class OICQService implements BaseService {
                 const msgList = event.raw_message.split(' ');
                 const command = msgList[0];
                 if (command === '/help') this.help();
-                else if (command === '/contest') {
-                    cli(msgList.slice(1).join(' '), '/contest').then((s) => this.group.sendMsg(s));
-                }
+                else if (command === '/contest') cli(msgList.slice(1).join(' '), '/contest', (s) => this.group.sendMsg(s));
             });
 
             this.client.on('notice.group.poke', (event) => {
