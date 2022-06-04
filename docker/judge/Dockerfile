@@ -1,20 +1,14 @@
-FROM ubuntu
+FROM alpine
 WORKDIR /root
 ADD packages packages
 ADD docker/modify.js modify.js
 ADD LICENSE-AGPL3.txt LICENSE
-ADD https://github.com/criyle/go-judge/releases/download/v1.4.7/executorserver_1.4.7_linux_amd64 /usr/bin/sandbox
-RUN chmod +x /usr/bin/sandbox && \
-    apt-get -qq update && \
-    apt-get install -qq -y gcc g++ python3 pypy3 openjdk-11-jdk-headless curl && \
-    curl -sL https://deb.nodesource.com/setup_16.x | bash && \
-    curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get -qq -y update && apt-get install nodejs yarn && \
+ADD https://github.com/criyle/go-judge/releases/download/v1.4.7/executorserver_1.4.7_linux_amd64.apk sandbox.apk
+RUN apk add --no-cache sandbox.apk --allow-untrusted && \
+    apk add --no-cache gcc g++ openjdk11-jdk python3 nodejs yarn && \
     node modify.js hydrooj hydrojudge && \
     prefix="file:/root/packages" && \
     yarn global add pm2 $prefix/utils $prefix/hydrooj $prefix/hydrojudge && \
-    yarn cache clean && npm uninstall -g yarn && \
-    apt-get autoremove -qq -y --purge curl yarn && apt-get clean && rm -rf /var/lib/apt/lists/* && rm -rf packages modify.js
-ENTRYPOINT pm2 start "ulimit -s unlimited && sandbox" --name hydro-sandbox -- -mount-conf /root/.config/hydro/mount.yaml && \
+    yarn cache clean && apk del yarn && rm -rf packages modify.js sandbox.apk
+ENTRYPOINT pm2 start "ulimit -s unlimited && executorserver" --name hydro-sandbox -- -mount-conf /root/.config/hydro/mount.yaml && \
     pm2-runtime start hydrojudge
