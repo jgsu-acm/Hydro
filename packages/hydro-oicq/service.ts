@@ -24,7 +24,6 @@ const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ�
 
 class OICQService implements BaseService {
     public started = false;
-    public error = '';
 
     private client: Client;
     public group: Group;
@@ -37,21 +36,23 @@ class OICQService implements BaseService {
             if (!groupId) throw Error('no groupId');
             const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
-            this.client = createClient(account, { data_dir: datadir });
-            this.client.on('system.login.qrcode', function cb() {
-                logger.info('Please scan this qrcode and press enter.');
-                process.stdin.once('data', () => this.login());
-            }).login();
-
+            this.client = createClient(account, { data_dir: datadir, platform: 4 });
+            this.client.on('system.login.slider', function f() {
+                logger.info('Please input ticket:');
+                process.stdin.once('data', (ticket) => this.submitSlider(String(ticket).trim()));
+            });
+            this.client.on('system.login.device', (event) => {
+                logger.info('Device verification required');
+                logger.info(`Secure Phone: ${event.phone}`);
+                logger.info(event.url);
+                logger.info('Please verify the device in the URL and press enter');
+            });
             this.client.on('system.online', () => {
                 logger.info('Logged in!');
                 this.group = this.client.pickGroup(groupId, true);
             });
-
             this.client.on('system.offline.kickoff', () => logger.warn('Kicked offline!'));
-
             this.client.on('system.offline.network', () => logger.warn('Network error causes offline!'));
-
             this.client.on('message.group', async (event) => {
                 if (event.group_id !== groupId) return;
                 const msgList = event.raw_message.split(' ');
@@ -59,11 +60,12 @@ class OICQService implements BaseService {
                 if (command === '/help') this.help();
                 else if (command === '/contest') cli(msgList.slice(1).join(' '), '/contest', (s) => this.group.sendMsg(s));
             });
-
             this.client.on('notice.group.poke', (event) => {
                 if (event.group_id !== groupId) return;
                 this.help();
             });
+
+            this.login();
         } catch (e) {
             logger.error('OICQ init fail.');
             logger.error(e.toString());
@@ -71,6 +73,11 @@ class OICQService implements BaseService {
         }
         logger.info('OICQ initialized.');
         this.started = true;
+    }
+
+    async login() {
+        logger.info('Please input password:');
+        process.stdin.once('data', (password) => this.client.login(String(password).trim()));
     }
 
     async help() {

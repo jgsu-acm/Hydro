@@ -11,6 +11,6 @@
     "preferUnplugged": true,
     "dependencies": {
         "lscontests": "^2.3.0",
-        "oicq": "^2.2.2"
+        "oicq": "^2.3.1"
     }
 }
