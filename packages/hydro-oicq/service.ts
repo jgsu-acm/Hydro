@@ -1,6 +1,6 @@
 import os from 'os';
 import { cli } from 'lscontests';
-import { Client, createClient, Group } from 'oicq';
+import * as oicq from 'oicq';
 import { BaseService } from 'hydrooj';
 import { Logger } from 'hydrooj/src/logger';
 import * as builtin from 'hydrooj/src/model/builtin';
@@ -25,8 +25,8 @@ const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ�
 class OICQService implements BaseService {
     public started = false;
 
-    private client: Client;
-    public group: Group;
+    private client: oicq.Client;
+    public group: oicq.Group;
 
     async start() {
         try {
@@ -36,7 +36,7 @@ class OICQService implements BaseService {
             if (!groupId) throw Error('no groupId');
             const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
-            this.client = createClient(account, { data_dir: datadir, platform: 4 });
+            this.client = oicq.createClient(account, { data_dir: datadir, platform: 4 });
             this.client.on('system.login.slider', function f() {
                 logger.info('Please input ticket:');
                 process.stdin.once('data', (ticket) => this.submitSlider(String(ticket).trim()));
@@ -46,6 +46,16 @@ class OICQService implements BaseService {
                 logger.info(`Secure Phone: ${event.phone}`);
                 logger.info(event.url);
                 logger.info('Please verify the device in the URL and press enter');
+            });
+            this.client.on('system.login.error', (event) => {
+                switch (event.code) {
+                    case oicq.LoginErrorCode.WrongPassword:
+                        logger.info('Wrong account or password, please re-enter');
+                        this.login();
+                        break;
+                    default:
+                        break;
+                }
             });
             this.client.on('system.online', () => {
                 logger.info('Logged in!');
