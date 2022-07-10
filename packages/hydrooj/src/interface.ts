@@ -170,7 +170,7 @@ export interface ProblemConfigFile {
     user_extra_files?: string[];
     judge_extra_files?: string[];
     detail?: boolean;
-    outputs?: [string, number][];
+    answers?: Record<string, [string | string[], number]>;
     redirect?: string;
     cases?: TestCaseConfig[];
     subtasks?: SubtaskConfig[];
@@ -338,6 +338,7 @@ export interface Tdoc<docType = document['TYPE_CONTEST'] | document['TYPE_TRAINI
     rated?: boolean;
     _code?: string;
     assign?: string[];
+    files?: FileInfo[];
 
     // For contest
     lockAt?: Date;
@@ -481,6 +482,7 @@ export interface ContestStat extends Record<string, any> {
 export interface ContestRule<T = any> {
     _originalRule?: Partial<ContestRule<T>>;
     TEXT: string;
+    hidden?: boolean;
     check: (args: any) => any;
     statusSort: any;
     submitAfterAccept: boolean;
