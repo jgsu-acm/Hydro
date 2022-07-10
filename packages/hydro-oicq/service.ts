@@ -76,6 +76,7 @@ class OICQService implements BaseService {
             });
 
             this.login();
+            this.client.login();
         } catch (e) {
             logger.error('OICQ init fail.');
             logger.error(e.toString());
