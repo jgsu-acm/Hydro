@@ -1331,12 +1331,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blueprintjs/core@npm:^4.5.1":
-  version: 4.6.0
-  resolution: "@blueprintjs/core@npm:4.6.0"
+"@blueprintjs/core@npm:^4.6.0":
+  version: 4.6.1
+  resolution: "@blueprintjs/core@npm:4.6.1"
   dependencies:
     "@blueprintjs/colors": ^4.1.4
-    "@blueprintjs/icons": ^4.3.1
+    "@blueprintjs/icons": ^4.4.0
     "@juggle/resize-observer": ^3.3.1
     "@types/dom4": ^2.0.1
     classnames: ^2.2
@@ -1352,18 +1352,18 @@ __metadata:
   bin:
     upgrade-blueprint-2.0.0-rename: scripts/upgrade-blueprint-2.0.0-rename.sh
     upgrade-blueprint-3.0.0-rename: scripts/upgrade-blueprint-3.0.0-rename.sh
-  checksum: 1a471553e8f6d34fa959c12da0f23d95cb38fae637ab45afb1198af014a896cb51fe4710b0e9c0721fdeed2c13eb7e7adb69fa2d4f5b00dcfea4564997a64503
+  checksum: 1bd2a770821c485c86cfa823c142e753d628257106f8d380dab020e8718cfed7d9ff828b729fed5e8ae97dd0aac7135095c286b3393d7e962a09517d682c7f41
   languageName: node
   linkType: hard
 
-"@blueprintjs/icons@npm:^4.3.1":
-  version: 4.3.1
-  resolution: "@blueprintjs/icons@npm:4.3.1"
+"@blueprintjs/icons@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@blueprintjs/icons@npm:4.4.0"
   dependencies:
     change-case: ^4.1.2
     classnames: ^2.2
     tslib: ~2.3.1
-  checksum: 7f28f5c55529964d0584ec3f10f9960001fdb17e401c217b80d08e00c2ebddb4880a8a3cc9a5c793b8eaf6a48b2b9585c8cb50e0e89093d944c3a1cab0a27ff8
+  checksum: 6f3878047b8856d9020fb3598b83bf944ebe4fe972fadc58f58c90d7300116ad30d287984c3f0e94dcc508cf9f1d847586a577281f7af073cdc87764683611f1
   languageName: node
   linkType: hard
 
@@ -1524,7 +1524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/schema@npm:^8.4.0":
+"@graphql-tools/schema@npm:^8.5.0":
   version: 8.5.0
   resolution: "@graphql-tools/schema@npm:8.5.0"
   dependencies:
@@ -1711,7 +1711,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hydrooj/ui-default@workspace:packages/ui-default"
   dependencies:
-    "@blueprintjs/core": ^4.5.1
+    "@blueprintjs/core": ^4.6.0
     "@fontsource/dm-mono": ^4.5.8
     "@fontsource/fira-code": ^4.5.10
     "@fontsource/inconsolata": ^4.5.6
@@ -1728,7 +1728,7 @@ __metadata:
     "@types/markdown-it": ^12.2.3
     "@types/pickadate": ^3.5.32
     "@types/qrcode": ^1.4.2
-    "@types/react-dom": ^18.0.5
+    "@types/react-dom": ^18.0.6
     "@types/redux-logger": ^3.0.9
     ansi_up: ^5.1.0
     autoprefixer: ^9.8.8
@@ -1777,7 +1777,7 @@ __metadata:
     markdown-it-table-of-contents: ^0.6.0
     matchmedia-polyfill: ^0.3.2
     mini-css-extract-plugin: ^1.6.2
-    moment: ^2.29.3
+    moment: ^2.29.4
     monaco-editor: ^0.33.0
     monaco-editor-nls: ^2.0.0
     monaco-editor-webpack-plugin: ^7.0.1
@@ -1843,7 +1843,7 @@ __metadata:
     js-yaml: ^4.1.0
     moment-timezone: ^0.5.34
     mongodb: ^3.7.3
-    systeminformation: ^5.11.22
+    systeminformation: ^5.11.24
   languageName: unknown
   linkType: soft
 
@@ -1859,10 +1859,10 @@ __metadata:
     chrome-finder: ^1.0.7
     jsdom: ^19.0.0
     lodash: ^4.17.21
-    puppeteer-core: ^15.1.1
+    puppeteer-core: ^15.3.2
     puppeteer-extra: 3.3.0
-    puppeteer-extra-plugin-portal: ^3.1.0
-    puppeteer-extra-plugin-stealth: ^2.10.1
+    puppeteer-extra-plugin-portal: 3.1.0
+    puppeteer-extra-plugin-stealth: 2.10.1
     superagent: ^7.1.5
     superagent-proxy: ^3.0.0
   languageName: unknown
@@ -2557,12 +2557,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lru-cache@npm:^7.6.1":
-  version: 7.10.9
-  resolution: "@types/lru-cache@npm:7.10.9"
+"@types/lru-cache@npm:^7.10.10":
+  version: 7.10.10
+  resolution: "@types/lru-cache@npm:7.10.10"
   dependencies:
     lru-cache: "*"
-  checksum: 480fe7e96f515c252df70f8297e45e9afef49f7dc44d7dd2ee3518d2e6d8145a22668b4d9e63a66f5e1aa1671583bc5fd3140ce1d60a06172e3136cecb824a5a
+  checksum: bf0c9a99b3b954adfd1a63621aeea2c7f9412340ac43fad82f2b1ec257df09efa454e6cc7943518659e112b9d650de0e64c5252de9e449576eeb28449e068a1e
   languageName: node
   linkType: hard
 
@@ -2653,10 +2653,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.0.0":
-  version: 18.0.3
-  resolution: "@types/node@npm:18.0.3"
-  checksum: 5dec59fbbc1186c808b53df1ca717dad034dbd6a901c75f5b052c845618b531b05f27217122c6254db99529a68618e4cfc534ae3dbf4e88754e9e572df80defa
+"@types/node@npm:^18.0.3":
+  version: 18.0.6
+  resolution: "@types/node@npm:18.0.6"
+  checksum: 780f8885a6b6eb12f4c0246617747fdc37a451931b3c01ce8148d356c0903b705dcb16cc6a914de63d48b0dc1b002c7a3dfae681f580e1761aa551d3cd996813
   languageName: node
   linkType: hard
 
@@ -2740,7 +2740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.5":
+"@types/react-dom@npm:^18.0.6":
   version: 18.0.6
   resolution: "@types/react-dom@npm:18.0.6"
   dependencies:
@@ -8877,7 +8877,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"glob@npm:^8.0.1, glob@npm:^8.0.3":
+"glob@npm:^8.0.1":
   version: 8.0.3
   resolution: "glob@npm:8.0.3"
   dependencies:
@@ -9789,7 +9789,7 @@ fsevents@~2.3.2:
     "@types/autocannon": ^7.6.1
     "@types/cross-spawn": ^6.0.2
     "@types/mocha": ^9.1.1
-    "@types/node": ^18.0.0
+    "@types/node": ^18.0.3
     "@types/semver": ^7.3.10
     "@types/supertest": ^2.0.12
     "@typescript-eslint/eslint-plugin": ^5.29.0
@@ -9813,11 +9813,11 @@ fsevents@~2.3.2:
     latest-version: 6.0.0
     mocha: ^10.0.0
     mongodb: ^3.7.3
-    mongodb-memory-server: ^8.7.1
+    mongodb-memory-server: ^8.7.2
     ora: 5.4.1
     semver: ^7.3.7
-    supertest: ^6.2.3
-    typedoc: ^0.22.18
+    supertest: ^6.2.4
+    typedoc: ^0.23.7
     typescript: 4.6.4
   languageName: unknown
   linkType: soft
@@ -9831,7 +9831,7 @@ fsevents@~2.3.2:
     "@babel/preset-env": ^7.16.0
     "@babel/preset-typescript": ^7.16.0
     "@babel/runtime": ^7.16.3
-    "@graphql-tools/schema": ^8.4.0
+    "@graphql-tools/schema": ^8.5.0
     "@hydrooj/utils": "workspace:*"
     "@types/adm-zip": ^0.4.34
     "@types/fs-extra": ^9.0.13
@@ -9842,7 +9842,7 @@ fsevents@~2.3.2:
     "@types/koa-router": ^7.4.4
     "@types/koa-static-cache": ^5.1.1
     "@types/lodash": ^4.14.182
-    "@types/lru-cache": ^7.6.1
+    "@types/lru-cache": ^7.10.10
     "@types/mime-types": ^2.1.1
     "@types/minio": ^7.0.13
     "@types/mongodb": ^3.6.20
@@ -9854,7 +9854,6 @@ fsevents@~2.3.2:
     "@types/superagent": ^4.1.15
     adm-zip: 0.5.5
     ajv: ^8.11.0
-    ansi_up: ^5.1.0
     cac: ^6.7.12
     cookies: ^0.8.0
     detect-browser: ^5.3.0
@@ -9873,14 +9872,14 @@ fsevents@~2.3.2:
     koa-router: ^10.1.1
     koa-static-cache: ^5.1.4
     lodash: ^4.17.21
-    lru-cache: 7.9.0
+    lru-cache: 7.12.0
     mime-types: ^2.1.35
     minio: 7.0.25
-    moment: ^2.29.3
+    moment: ^2.29.4
     moment-timezone: ^0.5.34
     mongodb: ^3.7.3
     nanoid: ^3.3.4
-    nodemailer: ^6.7.5
+    nodemailer: ^6.7.7
     notp: ^2.0.3
     p-queue: ^7.2.0
     path-to-regexp: ^6.2.1
@@ -11735,10 +11734,10 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:7.9.0":
-  version: 7.9.0
-  resolution: "lru-cache@npm:7.9.0"
-  checksum: c91a293a103d11ea4f07de4122ba4f73d8203d0de51852fb612b1764296aebf623a3e11dddef1b3aefdc8d71af97d52b222dad5459dcb967713bbab9a19fed7d
+"lru-cache@npm:7.12.0":
+  version: 7.12.0
+  resolution: "lru-cache@npm:7.12.0"
+  checksum: fdb62262978393df7a4bd46a072bc5c3808c50ca5a347a82bb9459410efd841b7bae50655c3cf9004c70d12c756cf6d018f6bff155a16cdde9eba9a82899b5eb
   languageName: node
   linkType: hard
 
@@ -12194,7 +12193,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"mime@npm:^2.4.4, mime@npm:^2.5.0":
+"mime@npm:2.6.0, mime@npm:^2.4.4, mime@npm:^2.5.0":
   version: 2.6.0
   resolution: "mime@npm:2.6.0"
   bin:
@@ -12500,10 +12499,17 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"moment@npm:>= 2.9.0, moment@npm:^2.29.3":
+"moment@npm:>= 2.9.0":
   version: 2.29.3
   resolution: "moment@npm:2.29.3"
   checksum: 2e780e36d9a1823c08a1b6313cbb08bd01ecbb2a9062095820a34f42c878991ccba53abaa6abb103fd5c01e763724f295162a8c50b7e95b4f1c992ef0772d3f0
+  languageName: node
+  linkType: hard
+
+"moment@npm:^2.29.4":
+  version: 2.29.4
+  resolution: "moment@npm:2.29.4"
+  checksum: 0ec3f9c2bcba38dc2451b1daed5daded747f17610b92427bebe1d08d48d8b7bdd8d9197500b072d14e326dd0ccf3e326b9e3d07c5895d3d49e39b6803b76e80e
   languageName: node
   linkType: hard
 
@@ -12614,7 +12620,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"mongodb-memory-server@npm:^8.7.1":
+"mongodb-memory-server@npm:^8.7.2":
   version: 8.7.2
   resolution: "mongodb-memory-server@npm:8.7.2"
   dependencies:
@@ -13015,10 +13021,10 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^6.7.5":
-  version: 6.7.5
-  resolution: "nodemailer@npm:6.7.5"
-  checksum: d361a107b9eb264856852e32d3deb9bda1f69fdef6087ba20aaf58f98aacf4cd16c3633583ddbc1f23df25ad87c86bcca98511aaadfb447fe35a1e0eca6a7796
+"nodemailer@npm:^6.7.7":
+  version: 6.7.7
+  resolution: "nodemailer@npm:6.7.7"
+  checksum: 337cee85bd040ced14b09700032b8dcbb74266a4201a4ab55683412a008cc8d8f3a13e8eef37ebee93aa11bb07f6cd02de650025211a0c0884be3d1ca839f869
   languageName: node
   linkType: hard
 
@@ -14686,9 +14692,9 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"puppeteer-core@npm:^15.1.1":
-  version: 15.3.2
-  resolution: "puppeteer-core@npm:15.3.2"
+"puppeteer-core@npm:^15.3.2":
+  version: 15.4.1
+  resolution: "puppeteer-core@npm:15.4.1"
   dependencies:
     cross-fetch: 3.1.5
     debug: 4.3.4
@@ -14702,11 +14708,11 @@ fsevents@~2.3.2:
     tar-fs: 2.1.1
     unbzip2-stream: 1.4.3
     ws: 8.8.0
-  checksum: fddf4877f41093461b69c89db94c14c21aaf079bee1b377df66480cb8c84e6ef568280a8855860a688786eb3a2446077190aae94833711882acb26fc9d828015
+  checksum: 456c909d53fcdace9cffcb6f7c347c202e11f35ba87fe8d33a9fe9d86eb3798968de57586bd6b81c05d77c8703c67c9ff1498b91edb8607148da35f1c1643674
   languageName: node
   linkType: hard
 
-"puppeteer-extra-plugin-portal@npm:^3.1.0":
+"puppeteer-extra-plugin-portal@npm:3.1.0":
   version: 3.1.0
   resolution: "puppeteer-extra-plugin-portal@npm:3.1.0"
   dependencies:
@@ -14721,22 +14727,14 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"puppeteer-extra-plugin-stealth@npm:^2.10.1":
-  version: 2.11.0
-  resolution: "puppeteer-extra-plugin-stealth@npm:2.11.0"
+"puppeteer-extra-plugin-stealth@npm:2.10.1":
+  version: 2.10.1
+  resolution: "puppeteer-extra-plugin-stealth@npm:2.10.1"
   dependencies:
     debug: ^4.1.1
-    puppeteer-extra-plugin: ^3.2.2
-    puppeteer-extra-plugin-user-preferences: ^2.4.0
-  peerDependencies:
-    playwright-extra: "*"
-    puppeteer-extra: "*"
-  peerDependenciesMeta:
-    playwright-extra:
-      optional: true
-    puppeteer-extra:
-      optional: true
-  checksum: 8ec95274e568281630990e23e2058a95f289330d890833e22e32ebe6a6b6db7426a07780ded9e1c38128a8c3dddcf8011167c3bf4c6046345332a4c78ffc685f
+    puppeteer-extra-plugin: ^3.2.0
+    puppeteer-extra-plugin-user-preferences: ^2.3.1
+  checksum: b8870006db5e0d0c26765a656d7a38534367a1340971fae3fe8b26116d4b7f2a67f20eb17ea9206c5240800b89db58dd6965a827e910fcb6e45c4b29b7cb385a
   languageName: node
   linkType: hard
 
@@ -14760,7 +14758,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"puppeteer-extra-plugin-user-preferences@npm:^2.4.0":
+"puppeteer-extra-plugin-user-preferences@npm:^2.3.1":
   version: 2.4.0
   resolution: "puppeteer-extra-plugin-user-preferences@npm:2.4.0"
   dependencies:
@@ -16968,25 +16966,6 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"superagent@npm:^7.1.3":
-  version: 7.1.3
-  resolution: "superagent@npm:7.1.3"
-  dependencies:
-    component-emitter: ^1.3.0
-    cookiejar: ^2.1.3
-    debug: ^4.3.4
-    fast-safe-stringify: ^2.1.1
-    form-data: ^4.0.0
-    formidable: ^2.0.1
-    methods: ^1.1.2
-    mime: ^2.5.0
-    qs: ^6.10.3
-    readable-stream: ^3.6.0
-    semver: ^7.3.7
-  checksum: 436045d555d35c282de7bcba85102b1421470bdc80781c9a0b7ab7c639675b4eca026a71301974935f3de0d33782a0392274e24f3915335b81a78a04b48eeee5
-  languageName: node
-  linkType: hard
-
 "superagent@npm:^7.1.5":
   version: 7.1.5
   resolution: "superagent@npm:7.1.5"
@@ -17006,13 +16985,32 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"supertest@npm:^6.2.3":
-  version: 6.2.3
-  resolution: "supertest@npm:6.2.3"
+"superagent@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "superagent@npm:8.0.0"
+  dependencies:
+    component-emitter: ^1.3.0
+    cookiejar: ^2.1.3
+    debug: ^4.3.4
+    fast-safe-stringify: ^2.1.1
+    form-data: ^4.0.0
+    formidable: ^2.0.1
+    methods: ^1.1.2
+    mime: 2.6.0
+    qs: ^6.10.3
+    readable-stream: ^3.6.0
+    semver: ^7.3.7
+  checksum: 14343e59327eafd85fa230acb876017079d5efcecc72a56566abc0f965220bb460af2e070dddecd9e2856410b2d2b318d81d9cc1d342aa5922da93c29a295dd7
+  languageName: node
+  linkType: hard
+
+"supertest@npm:^6.2.4":
+  version: 6.2.4
+  resolution: "supertest@npm:6.2.4"
   dependencies:
     methods: ^1.1.2
-    superagent: ^7.1.3
-  checksum: c1bed86c31723a4bc461153a58176fd80d675deb7d23ab7bd170213040673b35c38e3cbeab9a4eb8a325cf736176c08c6f6522e42f0293314f183e192a6681fa
+    superagent: ^8.0.0
+  checksum: f2ddc4f3ba467a5c4036dd4aad41351e4b60eb13c39ecf5233ccd2ebb425504073b2b7036c973a70c7047f5c6bc1b9fef096b7bbff114d357cbe80654441db23
   languageName: node
   linkType: hard
 
@@ -17166,12 +17164,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.11.22":
-  version: 5.11.24
-  resolution: "systeminformation@npm:5.11.24"
+"systeminformation@npm:^5.11.24":
+  version: 5.12.1
+  resolution: "systeminformation@npm:5.12.1"
   bin:
     systeminformation: lib/cli.js
-  checksum: 197063bc8d51cdce8511e1c7f52e028ec97586bc5b1fd2fce907c08cc23487d03d5b45c4383ae998e586aa5d0278d09199099bed54baf3baf8a327a37a0f36b0
+  checksum: 2ccffa0c11e623b0233465204685a7ed59b22bd47a6dd5ed20b0c32e83a27074fcd7b4b00f17b9a1b88477c799edec31d8b4a64dd0c78649185ca252e8df234f
   languageName: node
   linkType: hard
 
@@ -17804,20 +17802,19 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"typedoc@npm:^0.22.18":
-  version: 0.22.18
-  resolution: "typedoc@npm:0.22.18"
+"typedoc@npm:^0.23.7":
+  version: 0.23.8
+  resolution: "typedoc@npm:0.23.8"
   dependencies:
-    glob: ^8.0.3
     lunr: ^2.3.9
     marked: ^4.0.16
     minimatch: ^5.1.0
     shiki: ^0.10.1
   peerDependencies:
-    typescript: 4.0.x || 4.1.x || 4.2.x || 4.3.x || 4.4.x || 4.5.x || 4.6.x || 4.7.x
+    typescript: 4.6.x || 4.7.x
   bin:
     typedoc: bin/typedoc
-  checksum: b813d8129682f6ed5a4e96bacaf019e4da1d2744ca89fef850d6bb4c034616567ce67e6a7f5cfc5f00aac573f0b45d44b1427aafa262ab88dce6b460cb9e744c
+  checksum: 99568e5df15781def0761d9876a86883bb58cb5318c258be965628626cc33737cd605640de2a9397f6722bccaed70aeb1e68c5f390b03ac7e8a17da9f091f906
   languageName: node
   linkType: hard
 
