@@ -38,8 +38,10 @@
           </div>
           {% endif %}
           {% if pdoc.config.type == 'objective' %}
+            <div class="row nojs--hide" id="codelang-selector"></div>
             {{ form.form_textarea({label:'Answer', columns:5, name:'code', extra_class:'monospace', autofocus:true, extra_style:'height: 30px'}) }}
           {% else %}
+            <div class="row nojs--hide" id="codelang-selector"></div>
             {{ form.form_textarea({label:'Code', columns:12, name:'code', extra_class:'monospace', autofocus:true}) }}
             <div class="row">
               <div class="medium-12 columns">
