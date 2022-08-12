@@ -1,7 +1,8 @@
-import React, { forwardRef } from 'react';
-import PropTypes from 'prop-types';
-import request from 'vj/utils/request';
 import type { ProblemDoc } from 'hydrooj/src/interface';
+import PropTypes from 'prop-types';
+import React, { forwardRef } from 'react';
+import api, { gql } from 'vj/utils/api';
+import request from 'vj/utils/request';
 import AutoComplete, { AutoCompleteHandle, AutoCompleteProps } from './AutoComplete';
 
 const ProblemSelectAutoComplete = forwardRef<AutoCompleteHandle<ProblemDoc>, AutoCompleteProps<ProblemDoc>>((props, ref) => (
@@ -9,8 +10,13 @@ const ProblemSelectAutoComplete = forwardRef<AutoCompleteHandle<ProblemDoc>, Aut
     ref={ref as any}
     cacheKey={`problem-${UiContext.domainId}`}
     queryItems={(query) => request.get(`/d/${UiContext.domainId}/problem/list`, { prefix: query })}
-    // FIXME fetch items
-    fetchItems={(ids) => ids.map((id) => ({ docId: id, pid: id, title: id }) as any)}
+    fetchItems={(ids) => api(gql`
+      problems(ids: ${ids.map((i) => +i)}) {
+        docId
+        pid
+        title
+      }
+    `, ['data', 'problems'])}
     itemText={(pdoc) => `${`${pdoc.docId} ${pdoc.title}`}`}
     itemKey={(pdoc) => `${pdoc.docId || pdoc}`}
     renderItem={(pdoc) => (
