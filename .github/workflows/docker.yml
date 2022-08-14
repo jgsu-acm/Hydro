@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: "recursive"
-          
+
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v2
 
@@ -35,9 +35,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'yarn'
+          cache: "yarn"
 
       - name: Install dependencies & Build Hydro
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
         run: |
           yarn install
           yarn build:ui:production
