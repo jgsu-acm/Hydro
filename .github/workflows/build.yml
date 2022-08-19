@@ -46,7 +46,7 @@ jobs:
         yarn
     - name: Get specific changed files
       id: ui-changed-files
-      uses: tj-actions/changed-files@v23.1
+      uses: tj-actions/changed-files@v27
       with:
         files: |
           /package.json
