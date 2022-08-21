@@ -4,7 +4,7 @@ WORKDIR /root
 ADD packages packages
 ADD docker/modify.js modify.js
 ADD LICENSE-AGPL3.txt LICENSE
-ADD https://github.com/criyle/go-judge/releases/download/v1.4.7/executorserver_1.4.7_linux_amd64 /usr/bin/sandbox
+ADD https://github.com/criyle/go-judge/releases/download/v1.5.1/executorserver_1.5.1_linux_amd64 /usr/bin/sandbox
 RUN chmod +x /usr/bin/sandbox && \
     apt-get -qq update && \
     apt-get install -qq -y gcc g++ python3 pypy3 openjdk-11-jdk-headless curl && \
