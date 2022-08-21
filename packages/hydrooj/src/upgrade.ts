@@ -12,7 +12,7 @@ import { convertIniConfig } from '@hydrooj/utils/lib/cases';
 import { size } from '@hydrooj/utils/lib/utils';
 import { buildContent } from './lib/content';
 import { Logger } from './logger';
-import { PRIV, STATUS } from './model/builtin';
+import { PERM, PRIV, STATUS } from './model/builtin';
 import * as contest from './model/contest';
 import * as discussion from './model/discussion';
 import * as document from './model/document';
@@ -29,7 +29,6 @@ import {
 } from './pipelineUtils';
 import db from './service/db';
 import storage from './service/storage';
-import { Progress } from './ui';
 import { streamToBuffer } from './utils';
 import welcome from './welcome';
 
@@ -88,10 +87,9 @@ const scripts: UpgradeScript[] = [
             const ddoc = ddocs[i];
             logger.info('Domain %s (%d/%d)', ddoc._id, i + 1, ddocs.length);
             const pdocs = await problem.getMulti(ddoc._id, { data: { $ne: null } }, ['domainId', 'docId', 'data', 'title']).toArray();
-            const domainProgress = Progress.create({ items: pdocs.length, title: 'Problems', inline: true });
             for (let j = 0; j < pdocs.length; j++) {
                 const pdoc = pdocs[j];
-                domainProgress.startItem(`${pdoc.docId}: ${pdoc.title}`);
+                console.log(`${pdoc.docId}: ${pdoc.title}`);
                 if (!savedProgress.pdocs.includes(`${pdoc.domainId}/${pdoc.docId}`) && pdoc.data instanceof ObjectID) {
                     try {
                         const [file, current] = await Promise.all([
@@ -115,9 +113,8 @@ const scripts: UpgradeScript[] = [
                     savedProgress.pdocs.push(`${pdoc.domainId}/${pdoc.docId}`);
                 }
                 system.set('upgrade.file.progress.domain', JSON.stringify(savedProgress));
-                domainProgress.itemDone(`${pdoc.docId}: ${pdoc.title}`);
+                console.log(`${pdoc.docId}: ${pdoc.title} done`);
             }
-            domainProgress.stop();
         }
         logger.success('Files copied successfully. You can now remove collection `file` `fs.files` `fs.chunks` in the database.');
         return true;
@@ -793,6 +790,16 @@ const scripts: UpgradeScript[] = [
     },
     async function _64_65() {
         await system.set('server.center', 'https://hydro.ac/center');
+        return true;
+    },
+    async function _65_66() {
+        await iterateAllDomain(async (ddoc) => {
+            Object.keys(ddoc.roles).forEach((role) => {
+                if (['guest', 'root'].includes(role)) return;
+                ddoc.roles[role] = (BigInt(ddoc.roles[role]) | PERM.PREM_VIEW_DISPLAYNAME).toString();
+            });
+            await domain.setRoles(ddoc._id, ddoc.roles);
+        });
         return true;
     },
 ];
