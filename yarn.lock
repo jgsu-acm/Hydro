@@ -12,6 +12,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@alloc/quick-lru@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@alloc/quick-lru@npm:5.2.0"
+  checksum: bdc35758b552bcf045733ac047fb7f9a07c4678b944c641adfbd41f798b4b91fffd0fdc0df2578d9b0afc7b4d636aa6e110ead5d6281a2adc1ab90efd7f057f8
+  languageName: node
+  linkType: hard
+
 "@ampproject/remapping@npm:^2.1.0":
   version: 2.2.0
   resolution: "@ampproject/remapping@npm:2.2.0"
@@ -1789,6 +1796,8 @@ __metadata:
     "@types/mongodb": ^3.6.20
     "@types/mysql": ^2.15.21
     "@types/turndown": ^5.0.1
+    js-yaml: ^4.1.0
+    mariadb: ^3.0.0
     mongodb: ^3.7.3
     mysql: ^2.18.1
     turndown: ^7.1.1
@@ -1798,6 +1807,14 @@ __metadata:
 "@hydrooj/onlyoffice@workspace:packages/onlyoffice":
   version: 0.0.0-use.local
   resolution: "@hydrooj/onlyoffice@workspace:packages/onlyoffice"
+  languageName: unknown
+  linkType: soft
+
+"@hydrooj/prom-client@workspace:packages/prom-client":
+  version: 0.0.0-use.local
+  resolution: "@hydrooj/prom-client@workspace:packages/prom-client"
+  dependencies:
+    prom-client: ^14.0.1
   languageName: unknown
   linkType: soft
 
@@ -2693,6 +2710,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:^7946.0.8":
+  version: 7946.0.10
+  resolution: "@types/geojson@npm:7946.0.10"
+  checksum: 12c407c2dc93ecb26c08af533ee732f1506a9b29456616ba7ba1d525df96206c28ddf44a528f6a5415d7d22893e9d967420940a9c095ee5e539c1eba5fefc1f4
+  languageName: node
+  linkType: hard
+
 "@types/glob@npm:^7.1.1":
   version: 7.2.0
   resolution: "@types/glob@npm:7.2.0"
@@ -2894,10 +2918,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:^4.14.175, @types/lodash@npm:^4.14.182":
-  version: 4.14.182
-  resolution: "@types/lodash@npm:4.14.182"
-  checksum: 7dd137aa9dbabd632408bd37009d984655164fa1ecc3f2b6eb94afe35bf0a5852cbab6183148d883e9c73a958b7fec9a9bcf7c8e45d41195add6a18c34958209
+"@types/lodash@npm:^4.14.175, @types/lodash@npm:^4.14.182, @types/lodash@npm:^4.14.184":
+  version: 4.14.184
+  resolution: "@types/lodash@npm:4.14.184"
+  checksum: 6d9a4d67f7f9d0ec3fd21174f3dd3d00629dc1227eb469450eace53adbc1f7e2330699c28d0fe093e5f0fef0f0e763098be1f779268857213224af082b62be21
   languageName: node
   linkType: hard
 
@@ -2994,6 +3018,13 @@ __metadata:
   version: 18.7.3
   resolution: "@types/node@npm:18.7.3"
   checksum: f51ed436a112235ac068d739b4823090a37b869cc186b64dd5c250dd285139c286990fcbeff2fb3ecba5d605fa885de4275247d332e5b96eafdfbb1da62e3ced
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^17.0.10":
+  version: 17.0.45
+  resolution: "@types/node@npm:17.0.45"
+  checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
   languageName: node
   linkType: hard
 
@@ -4617,6 +4648,13 @@ __metadata:
   dependencies:
     file-uri-to-path: 1.0.0
   checksum: 65b6b48095717c2e6105a021a7da4ea435aa8d3d3cd085cb9e85bcb6e5773cf318c4745c3f7c504412855940b585bdf9b918236612a1c7a7942491de176f1ae7
+  languageName: node
+  linkType: hard
+
+"bintrees@npm:1.0.2":
+  version: 1.0.2
+  resolution: "bintrees@npm:1.0.2"
+  checksum: 56a52b7d3634e30002b1eda740d2517a22fa8e9e2eb088e919f37c030a0ed86e364ab59e472fc770fc8751308054bb1c892979d150e11d9e11ac33bcc1b5d16e
   languageName: node
   linkType: hard
 
@@ -10126,7 +10164,7 @@ fsevents@~2.3.2:
     "@types/koa-compress": ^4.0.3
     "@types/koa-router": ^7.4.4
     "@types/koa-static-cache": ^5.1.1
-    "@types/lodash": ^4.14.182
+    "@types/lodash": ^4.14.184
     "@types/lru-cache": ^7.10.10
     "@types/mime-types": ^2.1.1
     "@types/minio": ^7.0.13
@@ -10168,7 +10206,7 @@ fsevents@~2.3.2:
     path-to-regexp: ^6.2.1
     pm2: ^5.2.0
     require-resolve-hook: ^1.1.0
-    schemastery: ^3.5.1
+    schemastery: ^3.5.3
     semver: ^7.3.7
     serialize-javascript: ^6.0.0
     superagent: ^8.0.0
@@ -10200,7 +10238,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6.2":
+"iconv-lite@npm:0.6.3, iconv-lite@npm:^0.6.2, iconv-lite@npm:^0.6.3":
   version: 0.6.3
   resolution: "iconv-lite@npm:0.6.3"
   dependencies:
@@ -12023,6 +12061,21 @@ fsevents@~2.3.2:
   dependencies:
     object-visit: ^1.0.0
   checksum: c27045a5021c344fc19b9132eb30313e441863b2951029f8f8b66f79d3d8c1e7e5091578075a996f74e417479506fe9ede28c44ca7bc351a61c9d8073daec36a
+  languageName: node
+  linkType: hard
+
+"mariadb@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "mariadb@npm:3.0.1"
+  dependencies:
+    "@alloc/quick-lru": ^5.2.0
+    "@types/geojson": ^7946.0.8
+    "@types/node": ^17.0.10
+    denque: ^2.0.1
+    iconv-lite: ^0.6.3
+    moment-timezone: ^0.5.34
+    please-upgrade-node: ^3.2.0
+  checksum: e6db454b0b6da9cf184e0483c94ec9aa1ca80481c6afd26666ed89a1bc48904bb8c4fd52295e23b054279f9c04bc75f2298c64a2837f7c43bb2bd4114366e092
   languageName: node
   linkType: hard
 
@@ -14136,6 +14189,15 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
+"please-upgrade-node@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "please-upgrade-node@npm:3.2.0"
+  dependencies:
+    semver-compare: ^1.0.0
+  checksum: d87c41581a2a022fbe25965a97006238cd9b8cbbf49b39f78d262548149a9d30bd2bdf35fec3d810e0001e630cd46ef13c7e19c389dea8de7e64db271a2381bb
+  languageName: node
+  linkType: hard
+
 "plexer@npm:^2.0.0":
   version: 2.0.0
   resolution: "plexer@npm:2.0.0"
@@ -14484,6 +14546,15 @@ fsevents@~2.3.2:
   version: 2.0.3
   resolution: "progress@npm:2.0.3"
   checksum: f67403fe7b34912148d9252cb7481266a354bd99ce82c835f79070643bb3c6583d10dbcfda4d41e04bbc1d8437e9af0fb1e1f2135727878f5308682a579429b7
+  languageName: node
+  linkType: hard
+
+"prom-client@npm:^14.0.1":
+  version: 14.0.1
+  resolution: "prom-client@npm:14.0.1"
+  dependencies:
+    tdigest: ^0.1.1
+  checksum: 864c19b7086eda8fae652385bc8b8aeb155f85922e58672d07a64918a603341e120e65e08f9d77ccab546518dc18930284da8743c2aac3c968f626d7063d6bba
   languageName: node
   linkType: hard
 
@@ -15716,12 +15787,12 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"schemastery@npm:^3.5.1":
-  version: 3.5.1
-  resolution: "schemastery@npm:3.5.1"
+"schemastery@npm:^3.5.3":
+  version: 3.5.3
+  resolution: "schemastery@npm:3.5.3"
   dependencies:
     cosmokit: ^1.2.1
-  checksum: 47ea3c283befd63e40f5b314e306e3ed59a23559645f15a8a4e79835361c8c3dd1fc4c2ec82245f3abd9ca9942a24a72676f542513c045ab250c534cb5a25c55
+  checksum: e16c729fe385970ce81ac6811d0f3520edb5edcc0cd435c9c12157023c445e09abd2f3324db9bf3f9f6830cc08fcc703a877ff6c5b1008dfa81ff4927f61a825
   languageName: node
   linkType: hard
 
@@ -15752,6 +15823,13 @@ resolve@^2.0.0-next.3:
   dependencies:
     node-forge: ^1
   checksum: 864e65c2f31ca877bce3ccdaa3bdef5e1e992b63b2a03641e00c24cd305bf2acce093431d1fed2e5ae9f526558db4be5e90baa2b3474c0428fcf7e25cc86ac93
+  languageName: node
+  linkType: hard
+
+"semver-compare@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "semver-compare@npm:1.0.0"
+  checksum: dd1d7e2909744cf2cf71864ac718efc990297f9de2913b68e41a214319e70174b1d1793ac16e31183b128c2b9812541300cb324db8168e6cf6b570703b171c68
   languageName: node
   linkType: hard
 
@@ -16948,6 +17026,15 @@ resolve@^2.0.0-next.3:
     mkdirp: ^1.0.3
     yallist: ^4.0.0
   checksum: a04c07bb9e2d8f46776517d4618f2406fb977a74d914ad98b264fc3db0fe8224da5bec11e5f8902c5b9bcb8ace22d95fbe3c7b36b8593b7dfc8391a25898f32f
+  languageName: node
+  linkType: hard
+
+"tdigest@npm:^0.1.1":
+  version: 0.1.2
+  resolution: "tdigest@npm:0.1.2"
+  dependencies:
+    bintrees: 1.0.2
+  checksum: 44de8246752b6f8c2924685f969fd3d94c36949f22b0907e99bef2b2220726dd8467f4730ea96b06040b9aa2587c0866049640039d1b956952dfa962bc2075a3
   languageName: node
   linkType: hard
 
