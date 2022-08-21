@@ -3,7 +3,7 @@ version: "3.9"
 services:
   oj-minio:
     image: minio/minio
-    container_name: oj-minio
+    container_name: oj-minio-test
     command: server /data
     restart: always
     volumes:
@@ -11,14 +11,14 @@ services:
 
   oj-mongo:
     image: mongo:4-focal
-    container_name: oj-mongo
+    container_name: oj-mongo-test
     restart: always
     volumes:
       - ./data/test/mongo:/data/db
 
   oj-elastic:
     image: elasticsearch:8.2.0
-    container_name: oj-elastic
+    container_name: oj-elastic-test
     restart: always
     volumes:
       - esdata_test:/usr/share/elasticsearch/data
@@ -30,7 +30,7 @@ services:
     build:
       context: ..
       dockerfile: docker/backend/Dockerfile
-    container_name: oj-backend
+    container_name: oj-backend-test
     restart: always
     depends_on:
       - oj-minio
@@ -48,7 +48,7 @@ services:
     build:
       context: ..
       dockerfile: docker/judge/Dockerfile
-    container_name: oj-judge
+    container_name: oj-judge-test
     restart: always
     privileged: true
     shm_size: 1536mb
