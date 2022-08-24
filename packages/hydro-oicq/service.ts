@@ -16,6 +16,7 @@ declare module 'hydrooj/src/interface' {
     interface SystemKeys {
         'hydro-oicq.account': number;
         'hydro-oicq.groupId': number;
+        'hydro-oicq.platform': number;
         'hydro-oicq.datadir': string;
     }
 }
@@ -34,9 +35,10 @@ class OICQService implements BaseService {
             if (!account) throw Error('no account');
             const groupId = system.get('hydro-oicq.groupId');
             if (!groupId) throw Error('no groupId');
+            const platform = system.get('hydro-oicq.platform') || 1;
             const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
-            this.client = oicq.createClient(account, { data_dir: datadir, platform: 4 });
+            this.client = oicq.createClient(account, { data_dir: datadir, platform });
             this.client.on('system.login.slider', function f() {
                 logger.info('Please input ticket:');
                 process.stdin.once('data', (ticket) => this.submitSlider(String(ticket).trim()));
