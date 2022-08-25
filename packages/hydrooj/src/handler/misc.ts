@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { statSync } from 'fs';
 import { pick } from 'lodash';
+import { lookup } from 'mime-types';
 import {
     BadRequestError, ForbiddenError, ValidationError,
 } from '../error';
@@ -12,7 +13,9 @@ import user from '../model/user';
 import {
     Handler, param, post, Route, Types,
 } from '../service/server';
-import { sortFiles } from '../utils';
+import { encodeRFC5987ValueChars } from '../service/storage';
+import { builtinConfig } from '../settings';
+import { md5, sortFiles } from '../utils';
 
 class SwitchLanguageHandler extends Handler {
     @param('lang', Types.Name)
@@ -101,6 +104,23 @@ export class FSDownloadHandler extends Handler {
     }
 }
 
+export class StorageHandler extends Handler {
+    @param('target', Types.Name)
+    @param('filename', Types.Name, true)
+    @param('expire', Types.UnsignedInt)
+    @param('secret', Types.String)
+    async get(domainId: string, target: string, filename = '', expire: number, secret: string) {
+        const expected = md5(`${target}/${expire}/${builtinConfig.file.secret}`);
+        if (expire < Date.now()) throw new ForbiddenError('Link expired');
+        if (secret !== expected) throw new ForbiddenError('Invalid secret');
+        this.response.body = await storage.get(target);
+        this.response.type = (target.endsWith('.out') || target.endsWith('.ans'))
+            ? 'text/plain'
+            : lookup(target) || 'application/octet-stream';
+        if (filename) this.response.disposition = `attachment; filename="${encodeRFC5987ValueChars(filename)}"`;
+    }
+}
+
 export class SwitchAccountHandler extends Handler {
     @param('uid', Types.Int)
     async get(domainId: string, uid: number) {
@@ -113,6 +133,7 @@ export async function apply() {
     Route('switch_language', '/language/:lang', SwitchLanguageHandler);
     Route('home_files', '/file', FilesHandler);
     Route('fs_download', '/file/:uid/:filename', FSDownloadHandler);
+    Route('storage', '/storage', StorageHandler);
     Route('switch_account', '/account', SwitchAccountHandler, PRIV.PRIV_EDIT_SYSTEM);
 }
 

@@ -20,7 +20,6 @@ const locales = {
         'error.nodeVersionPraseFail': '无法解析 Node 版本号，请尝试手动安装。',
         'install.pm2': '正在安装 PM2...',
         'install.createDatabaseUser': '正在创建数据库用户...',
-        'install.minio': '正在安装 MinIO...',
         'install.compiler': '正在安装编译器...',
         'install.hydro': '正在安装 Hydro...',
         'install.done': 'Hydro 安装成功！',
@@ -45,7 +44,6 @@ const locales = {
         'error.nodeVersionPraseFail': 'Unable to parse Node version, please try to install manually.',
         'install.pm2': 'Installing PM2...',
         'install.createDatabaseUser': 'Creating database user...',
-        'install.minio': 'Installing MinIO...',
         'install.compiler': 'Installing compiler...',
         'install.hydro': 'Installing Hydro...',
         'install.done': 'Hydro installation completed!',
@@ -63,6 +61,7 @@ log.fatal = ((orig) => (str, ...args) => orig(locales[locale][str] || str, ...ar
 
 if (__user !== 'root') log.fatal('error.rootRequired');
 if (__arch !== 'amd64') log.fatal('error.unsupportedArch', __arch);
+if (__os !== 'linux') log.fatal('error.unsupportedOS', __os);
 if (!__env.HOME) log.fatal('$HOME not found');
 if (!fs.exist('/etc/os-release')) log.fatal('error.osreleaseNotFound');
 const osinfoFile = fs.readfile('/etc/os-release');
@@ -83,8 +82,6 @@ if (!cpuInfoFile.includes('avx2')) {
 let migration;
 let retry = 0;
 log.info('install.start');
-const MINIO_ACCESS_KEY = randomstring(32);
-const MINIO_SECRET_KEY = randomstring(32);
 let DATABASE_PASSWORD = randomstring(32);
 // TODO read from args
 const CN = true;
@@ -123,6 +120,22 @@ domainName: executor_server
 uid: 1536
 gid: 1536
 `;
+
+function removeOptionalEsbuildDeps() {
+    const yarnGlobalPath = exec('yarn global dir').output?.trim() || '';
+    if (!yarnGlobalPath) return false;
+    const file = fs.readfile(`${yarnGlobalPath}/package.json`);
+    const data = JSON.parse(file);
+    data.resolutions = data.resolutions || {};
+    Object.assign(data.resolutions, Object.fromEntries([
+        '@esbuild/linux-loong64',
+        ...['android', 'windows', 'darwin', 'freebsd'].flatMap((i) => [`${i}-64`, `${i}-arm64`, `${i}-32`]),
+        ...['32', 'arm', 'arm64', 'mips64', 'ppc64', 'riscv64', 's390x'].map((i) => `esbuild-linux-${i}`),
+        ...['netbsd', 'openbsd', 'sunos'].map((i) => `esbuild-${i}-64`),
+    ].map((i) => [i, 'link:/dev/null'])));
+    fs.writefile(`${yarnGlobalPath}/package.json`, JSON.stringify(data, null, 2));
+    return true;
+}
 
 const steps = [
     {
@@ -168,6 +181,13 @@ To disable this feature, checkout our sourcecode.`);
         ],
     },
     {
+        init: 'install.mongodb-tools',
+        skip: () => !exec('mongoexport --version').code,
+        operations: [
+            'nix-env -iA nixpkgs.mongodb-tools',
+        ],
+    },
+    {
         init: 'install.mongo',
         skip: () => !exec('mongo --version').code,
         operations: [
@@ -178,25 +198,20 @@ To disable this feature, checkout our sourcecode.`);
         init: 'install.nodejs',
         skip: () => !exec('node -v').code && !exec('yarn -v').code,
         operations: [
-            'nix-env -iA nixpkgs.nodejs nixpkgs.yarn',
+            'nix-env -iA nixpkgs.nodejs nixpkgs.yarn nixpkgs.esbuild',
         ],
     },
     {
         init: 'install.pm2',
         skip: () => !exec('pm2 -v').code,
-        operations: ['yarn global add pm2'],
-    },
-    {
-        init: 'install.minio',
-        skip: () => !exec('minio -v').code,
         operations: [
-            'nix-env -iA nixpkgs.minio',
+            ['yarn global add pm2', { retry: true }],
         ],
     },
     {
         init: 'install.compiler',
         operations: [
-            'nix-env -iA nixpkgs.gcc nixpkgs.fpc',
+            'nix-env -iA nixpkgs.gcc nixpkgs.fpc nixpkgs.python3',
         ],
     },
     {
@@ -209,6 +224,7 @@ To disable this feature, checkout our sourcecode.`);
     {
         init: 'install.hydro',
         operations: [
+            () => removeOptionalEsbuildDeps(),
             ['yarn global add hydrooj @hydrooj/ui-default @hydrooj/hydrojudge', { retry: true }],
             () => fs.writefile(`${__env.HOME}/.hydro/addon.json`, '["@hydrooj/ui-default","@hydrooj/hydrojudge"]'),
         ],
@@ -242,8 +258,6 @@ To disable this feature, checkout our sourcecode.`);
         operations: [
             ['pm2 stop all', { ignore: true }],
             () => fs.writefile(`${__env.HOME}/.hydro/mount.yaml`, mount),
-            `echo "MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}\nMINIO_SECRET_KEY=${MINIO_SECRET_KEY}" >/root/.hydro/env`,
-            `pm2 start "MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY} MINIO_SECRET_KEY=${MINIO_SECRET_KEY} minio server /data/file" --name minio`,
             'pm2 start mongod --name mongodb -- --auth --bind_ip 0.0.0.0',
             () => sleep(1000),
             `pm2 start bash --name hydro-sandbox -- -c "ulimit -s unlimited && hydro-sandbox -mount-conf ${__env.HOME}/.hydro/mount.yaml"`,
@@ -284,8 +298,6 @@ To disable this feature, checkout our sourcecode.`);
             () => log.info('extra.restartTerm'),
             () => log.info('extra.dbUser'),
             () => log.info('extra.dbPassword', DATABASE_PASSWORD),
-            () => log.info('MINIO_ACCESS_KEY=%s', MINIO_ACCESS_KEY),
-            () => log.info('MINIO_SECRET_KEY=%s', MINIO_SECRET_KEY),
         ],
     },
 ];

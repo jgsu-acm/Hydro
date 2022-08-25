@@ -1,11 +1,10 @@
 import $ from 'jquery';
 import _ from 'lodash';
-import {
-  ActionDialog, ConfirmDialog, Dialog,
-  InfoDialog,
-} from 'vj/components/dialog/index';
+import { ConfirmDialog } from 'vj/components/dialog/index';
 import createHint from 'vj/components/hint';
 import Notification from 'vj/components/notification';
+import { previewFile } from 'vj/components/preview/preview.page';
+import uploadFiles from 'vj/components/upload';
 import download from 'vj/components/zipDownloader';
 import { NamedPage } from 'vj/misc/Page';
 import i18n from 'vj/utils/i18n';
@@ -18,10 +17,6 @@ async function downloadProblemFilesAsArchive(type, files) {
   const targets = [];
   for (const filename of Object.keys(links)) targets.push({ filename, url: links[filename] });
   await download(`${pdoc.docId} ${pdoc.title}.zip`, targets);
-}
-
-function onBeforeUnload(e) {
-  e.returnValue = '';
 }
 
 const page = new NamedPage('problem_files', () => {
@@ -50,64 +45,7 @@ const page = new NamedPage('problem_files', () => {
       Notification.warn(i18n('No file selected.'));
       return;
     }
-    const dialog = new Dialog({
-      $body: `
-        <div class="file-label" style="text-align: center; margin-bottom: 5px; color: gray; font-size: small;"></div>
-        <div class="bp4-progress-bar bp4-intent-primary bp4-no-stripes">
-          <div class="file-progress bp4-progress-meter" style="width: 0"></div>
-        </div>
-        <div class="upload-label" style="text-align: center; margin: 5px 0; color: gray; font-size: small;"></div>
-        <div class="bp4-progress-bar bp4-intent-primary bp4-no-stripes">
-          <div class="upload-progress bp4-progress-meter" style="width: 0"></div>
-        </div>`,
-    });
-    try {
-      Notification.info(i18n('Uploading files...'));
-      window.addEventListener('beforeunload', onBeforeUnload);
-      dialog.open();
-      const $uploadLabel = dialog.$dom.find('.dialog__body .upload-label');
-      const $uploadProgress = dialog.$dom.find('.dialog__body .upload-progress');
-      const $fileLabel = dialog.$dom.find('.dialog__body .file-label');
-      const $fileProgress = dialog.$dom.find('.dialog__body .file-progress');
-      for (const i in files) {
-        if (Number.isNaN(+i)) continue;
-        const file = files[i];
-        const data = new FormData();
-        data.append('filename', file.name);
-        data.append('file', file);
-        data.append('type', type);
-        data.append('operation', 'upload_file');
-        await request.postFile('', data, {
-          xhr() {
-            const xhr = new XMLHttpRequest();
-            xhr.upload.addEventListener('loadstart', () => {
-              $fileLabel.text(`[${+i + 1}/${files.length}] ${file.name}`);
-              $fileProgress.width(`${Math.round((+i + 1) / files.length * 100)}%`);
-              $uploadLabel.text(i18n('Uploading... ({0}%)', 0));
-              $uploadProgress.width(0);
-            });
-            xhr.upload.addEventListener('progress', (e) => {
-              if (e.lengthComputable) {
-                const percentComplete = Math.round((e.loaded / e.total) * 100);
-                if (percentComplete === 100) $uploadLabel.text(i18n('Processing...'));
-                else $uploadLabel.text(i18n('Uploading... ({0}%)', percentComplete));
-                $uploadProgress.width(`${percentComplete}%`);
-              }
-            }, false);
-            return xhr;
-          },
-        });
-      }
-      window.removeEventListener('beforeunload', onBeforeUnload);
-      Notification.success(i18n('File uploaded successfully.'));
-      await pjax.request({ push: false });
-    } catch (e) {
-      window.captureException?.(e);
-      console.error(e);
-      Notification.error(i18n('File upload failed: {0}', e.toString()));
-    } finally {
-      dialog.close();
-    }
+    await uploadFiles('', files, { type, pjax: true });
   }
 
   async function handleClickDownloadSelected(type) {
@@ -172,100 +110,11 @@ const page = new NamedPage('problem_files', () => {
     handleClickUpload(type, files);
   }
 
-  async function startEdit(filename, value) {
-    const { default: Editor } = await import('vj/components/editor/index');
-    const promise = new ActionDialog({
-      $body: tpl`
-        <div class="typo" style="width: 100%; height: 100%">
-          <textarea name="fileContent" style="width: 100%; height: 100%"></textarea>
-        </div>`,
-      width: `${window.innerWidth - 200}px`,
-      height: `${window.innerHeight - 100}px`,
-      cancelByEsc: false,
-    }).open();
-    const languages = [
-      ['yaml', ['yaml', 'yml']],
-      ['cpp', ['c', 'cc', 'cpp', 'h', 'hpp']],
-      ['json', ['json']],
-      ['plain', ['in', 'out', 'ans']],
-    ];
-    const language = languages.filter((i) => i[1].includes(filename.split('.').pop()))[0]?.[0] || 'auto';
-    const editor = new Editor($('[name="fileContent"]'), {
-      value,
-      autoResize: false,
-      autoLayout: false,
-      language,
-      model: `hydro://problem/file/${filename}`,
-    });
-    const action = await promise;
-    value = editor.value().replace(/\r\n/g, '\n');
-    editor.destory();
-    if (action !== 'ok') return null;
-    return value;
-  }
-  /**
-   * @param {string} type
-   * @param {JQuery.ClickEvent<HTMLElement, undefined, HTMLElement, HTMLElement>} ev
-   */
-  async function handleEdit(type, ev) {
-    if (ev?.metaKey || ev?.ctrlKey || ev?.shiftKey) return;
-    if (ev) ev.preventDefault();
-    const filename = ev
-      ? ev.currentTarget.closest('[data-filename]').getAttribute('data-filename')
-      // eslint-disable-next-line no-alert
-      : prompt('Filename');
-    if (!filename) return;
-    const filesize = ev
-      ? +ev.currentTarget.closest('[data-size]').getAttribute('data-size')
-      : 0;
-    let content = '';
-    if (ev) {
-      const link = $(ev.currentTarget).find('a').attr('href');
-      if (!link) return;
-      const ext = filename.split('.').pop();
-      if (['png', 'jpeg', 'jpg', 'gif', 'webp', 'bmp'].includes(ext)) {
-        await new InfoDialog({
-          $body: tpl`<div class="typo"><img src="${link}"></img></div>`,
-        }).open();
-        return;
-      }
-      if (['zip', 'rar', '7z'].includes(ext) || filesize > 8 * 1024 * 1024) {
-        const action = await new ActionDialog({
-          $body: tpl.typoMsg(i18n('Cannot preview this file. Download now?')),
-        }).open();
-        if (action === 'ok') window.open(link);
-        return;
-      }
-      Notification.info(i18n('Loading file...'));
-      try {
-        const res = await request.get(link);
-        content = await request.get(res.url, undefined, { dataType: 'text' });
-      } catch (e) {
-        window.captureException?.(e);
-        Notification.error(i18n('Failed to load file: {0}', e.message));
-        throw e;
-      }
-    } else Notification.info(i18n('Loading editor...'));
-    const val = await startEdit(filename, content);
-    if (typeof val !== 'string') return;
-    Notification.info(i18n('Saving file...'));
-    const data = new FormData();
-    data.append('filename', filename);
-    data.append('file', new Blob([val], { type: 'text/plain' }));
-    data.append('type', type);
-    data.append('operation', 'upload_file');
-    await request.postFile('', data);
-    Notification.success(i18n('File saved.'));
-    await pjax.request({ push: false });
-  }
-
   if ($('[name="upload_testdata"]').length) {
-    $(document).on('click', '.problem-files-testdata .col--name', (ev) => handleEdit('testdata', ev));
-    $(document).on('click', '.problem-files-additional_file .col--name', (ev) => handleEdit('additional_file', ev));
     $(document).on('click', '[name="upload_testdata"]', () => handleClickUpload('testdata'));
     $(document).on('click', '[name="upload_file"]', () => handleClickUpload('additional_file'));
-    $(document).on('click', '[name="create_testdata"]', () => handleEdit('testdata'));
-    $(document).on('click', '[name="create_file"]', () => handleEdit('additional_file'));
+    $(document).on('click', '[name="create_testdata"]', () => previewFile(undefined, 'testdata'));
+    $(document).on('click', '[name="create_file"]', () => previewFile(undefined, 'additional_file'));
     $(document).on('click', '[name="remove_selected_testdata"]', () => handleClickRemoveSelected('testdata'));
     $(document).on('click', '[name="remove_selected_file"]', () => handleClickRemoveSelected('additional_file'));
   }
