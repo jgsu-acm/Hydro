@@ -6,3 +6,6 @@ groupId:
   value:
 datadir:
   value:
+platform:
+  type: number
+  value: 1
