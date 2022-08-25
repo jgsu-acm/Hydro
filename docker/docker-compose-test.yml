@@ -1,14 +1,6 @@
 version: "3.9"
 
 services:
-  oj-minio:
-    image: minio/minio
-    container_name: oj-minio-test
-    command: server /data
-    restart: always
-    volumes:
-      - ./data/test/minio:/data
-
   oj-mongo:
     image: mongo:4-focal
     container_name: oj-mongo-test
@@ -33,11 +25,11 @@ services:
     container_name: oj-backend-test
     restart: always
     depends_on:
-      - oj-minio
       - oj-mongo
       - oj-elastic
     volumes:
       - ./config/backend:/root/.hydro
+      - ./data/file:/data/file
     environment:
       - TZ=Asia/Shanghai
       - LANG=zh_CN.utf8
