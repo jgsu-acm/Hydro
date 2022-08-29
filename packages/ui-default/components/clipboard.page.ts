@@ -1,12 +1,11 @@
 import Clipboard from 'clipboard';
-import $ from 'jquery';
 import Notification from 'vj/components/notification';
-import { NamedPage } from 'vj/misc/Page';
+import { AutoloadPage } from 'vj/misc/Page';
 import base64 from 'vj/utils/base64';
 import i18n from 'vj/utils/i18n';
 import substitute from 'vj/utils/substitute';
 
-const page = new NamedPage('user_detail', () => {
+export default new AutoloadPage('clipboard', () => {
   $('[data-copy]').get().forEach((el) => {
     const data = $(el).attr('data-copy');
     const decoded = base64.decode(data);
@@ -18,6 +17,9 @@ const page = new NamedPage('user_detail', () => {
       Notification.error(substitute(i18n('Copy "{data}" failed :('), { data: decoded }));
     });
   });
+  $('[data-copylink]').each(function () {
+    const clip = new Clipboard(this, { text: () => new URL(this.dataset.copylink, document.location.href).toString() });
+    clip.on('success', () => Notification.success(i18n('Link copied to clipboard!')));
+    clip.on('error', () => Notification.error(i18n('Copy failed :(')));
+  });
 });
-
-export default page;
