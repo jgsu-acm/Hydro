@@ -5,7 +5,8 @@ import * as bus from 'hydrooj/src/service/bus';
 import { Logger } from './logger';
 import { NestKeys } from './typeutils';
 
-const defaultPath = process.env.CI ? '/tmp/file' : '/data/file/hydro';
+const defaultPath = process.env.CI ? '/tmp/file'
+    : process.env.DEFAULT_STORE_PATH || '/data/file/hydro';
 const FileSetting = Schema.intersect([
     Schema.object({
         type: Schema.union([
@@ -67,6 +68,7 @@ export async function saveConfig(config: any) {
 }
 export async function setConfig(key: string, value: any) {
     const path = key.split('.');
+    if (path.filter((i) => ['__proto__', 'prototype'].includes(i)).length) throw new Error('Invalid key');
     const t = path.pop();
     let cursor = systemConfig;
     for (const p of path) {
