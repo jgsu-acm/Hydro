@@ -7,7 +7,7 @@ on:
 env:
   YARN_ENABLE_IMMUTABLE_INSTALLS: false
   ALI_REGISTRY: registry.cn-hangzhou.aliyuncs.com
-  TENCENT_REGISTRY: mirror.ccs.tencentyun.com
+  TENCENT_REGISTRY: ccr.ccs.tencentyun.com
 
 jobs:
   build-and-push-image:
