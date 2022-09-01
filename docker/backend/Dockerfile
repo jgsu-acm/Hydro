@@ -1,8 +1,8 @@
 FROM alpine
 WORKDIR /root
-ADD packages packages
 ADD docker/modify.js modify.js
 ADD LICENSE-AGPL3.txt LICENSE
+ADD packages packages
 RUN apk add --no-cache tzdata nodejs yarn && \
     node modify.js hydrooj && \
     prefix="file:/root/packages" && \
