@@ -1,4 +1,4 @@
-FROM ghcr.io/jgsu-acm/oj-compiler:main
+FROM ghcr.io/jgsu-acm/oj-judger-base:main
 WORKDIR /root
 ADD docker/modify.js modify.js
 ADD LICENSE-AGPL3.txt LICENSE
