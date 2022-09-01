@@ -44,17 +44,7 @@ const endpoint = url.toString().replace('http', 'ws');
 
 const initWorkerMode = () => {
   console.log('Messages: using SharedWorker');
-
-  const workerUrl = new URL('./worker', import.meta.url);
-
-  // request url sync
-  const xhr = new XMLHttpRequest();
-  xhr.open('GET', workerUrl.toString(), false);
-  xhr.send(null);
-  const js = xhr.responseText;
-  const jsUrl = URL.createObjectURL(new Blob([js], { type: 'application/javascript' }));
-
-  const worker = new SharedWorker(jsUrl, { name: 'Hydro Messages Worker' });
+  const worker = new SharedWorker(new URL('./worker', import.meta.url), { name: 'Hydro Messages Worker' });
   worker.port.start();
   window.addEventListener('beforeunload', () => {
     worker.port.postMessage({ type: 'unload' });
