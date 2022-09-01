@@ -20,7 +20,7 @@ services:
       - ES_SETTING_XPACK_SECURITY_ENABLED=false
 
   oj-backend:
-    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/backend
+    image: hkccr.ccs.tencentyun.com/hydro/backend
     container_name: oj-backend
     restart: always
     depends_on:
@@ -36,7 +36,7 @@ services:
       - "0.0.0.0:80:8888"
 
   oj-judge:
-    image: registry.cn-hangzhou.aliyuncs.com/jgsu-acm/judge
+    image: hkccr.ccs.tencentyun.com/hydro/judge
     container_name: oj-judge
     restart: always
     privileged: true
