@@ -394,6 +394,7 @@ homework_status: 作业成绩表
 Homework: 作业
 Host: 主持人
 hour(s): 小时
+How To Use @jgsu.edu.cn email: 如何使用 @jgsu.edu.cn 邮箱
 If enabled, source code will be emailed to you after the submission is accepted.: 如果启用，在您通过题目后，源代码会以 Email 的形式发送给您。
 If left blank, the built-in template of the corresponding language will be used.: 若留空，则将使用对应语言的内置代码模板。
 Ignore trailing space and enter.: 忽略行末空格与文件尾回车。

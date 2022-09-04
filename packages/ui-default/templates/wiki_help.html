@@ -1,17 +1,6 @@
 {% extends "layout/wiki_base.html" %}
 {% block wiki_content %}
 {% set name = handler.domain.ui.name|default(model.system.get('server.name')) %}
-{# <div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="domain" data-heading>{{ _('Domain') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>每个用户可以创建自己的域。比如，老师可以为课程创建一个域，然后把题目和学生加入到此域中。再如，可以把域作为团队功能。</p>
-    <p>通过合理的设置角色及其权限，可以把域设为公开或私有。</p>
-    <p>默认域为 system，用户直接访问 {{ name }} 域名就会访问此域，点击 Hydro Logo 会从任意域跳转回 system 域。</p>
-    <p>每个域的题库、讨论、训练以及比赛是独立且自治的。</p>
-  </div>
-</div> #}
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
     <h1 class="section__title" id="compiler" data-heading>{{ _("Compilers' Version and Parameters") }}</h1>
@@ -32,7 +21,7 @@
     <h1 class="section__title" id="limits" data-heading>{{ _('Limitations') }}</h1>
   </div>
   <div class="section__body typo">
-    <p>{{ name }} 评测机使用进程的CPU时间计算时间消耗，时间的限定为题目中评测点所指定的时间。</p>
+    <p>{{ name }} 评测机使用进程的 CPU 时间计算时间消耗，时间的限定为题目中评测点所指定的时间。</p>
     <p>{{ name }} 评测机使用进程虚拟内存与物理内存总和计算内存空间消耗。内存空间默认限定为 256 MB，题目中特别指明的，限定为题目中评测点所指定的内存空间。</p>
   </div>
 </div>
@@ -116,50 +105,22 @@
 </div>
 <div class="section" data-heading-extract-to="#menu-item-wiki_help">
   <div class="section__header">
-    <h1 class="section__title" id="acratio" data-heading>{{ _('Accepted Ratio') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>通过率的影响极其恶劣，{{ name }} 不提供也不承认通过率。</p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="rp" data-heading>{{ _('RP Algorithm') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>RP 可由题目，活动，比赛等获得。</p>
-  </div>
-</div>
-{# <div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="pbmdiff" data-heading>{{ _('Difficulty Algorithm') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>{{ name }} 中题目的难度，根据递交数、通过率以及每个递交的递交时间和评测结果，通过算法计算得出。</p>
-    <p>因此，请注意以下几点：</p>
-    <ul>
-    <li>0. 一般地，难度的数值越大，该题目越难。</li>
-    <li>1. 新题目的难度可能不准确；在题目获得大量递交之后，难度才会变得较为准确。</li>
-    <li>2. 越早递交评测的用户代码的评测结果对题目难度影响越大。</li>
-    <li>3. 题目的难度由算法计算得出，有可能出现不准确的结果。</li>
-    </ul>
-  </div>
-</div> #}
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
-    <h1 class="section__title" id="upload" data-heading>{{ _('Dataset Format') }}</h1>
-  </div>
-  <div class="section__body typo">
-    <p>详见<a href="https://hydro.js.org/docs/user/testdata/">配置文档</a></p>
-  </div>
-</div>
-<div class="section" data-heading-extract-to="#menu-item-wiki_help">
-  <div class="section__header">
     <h1 class="section__title" id="lostpass" data-heading>{{ _('Forgot Password and/or Username') }}</h1>
   </div>
   <div class="section__body typo">
     <p>如果您无法登录，请仔细想想，是不是用户名记错了。比如，自己原本想要注册的用户名已经被注册，所以使用了一个带有前和/或后缀的用户名。</p>
     <p>如果您确信您的账号被盗或者忘记了账号和/或密码，请及时<a href="{{ url('user_lostpass') }}">{{ _('Reset Password or Find Username') }}</a>。</p>
+  </div>
+</div>
+<div class="section" data-heading-extract-to="#menu-item-wiki_help">
+  <div class="section__header">
+    <h1 class="section__title" id="email" data-heading>{{ _('How To Use @jgsu.edu.cn email') }}</h1>
+  </div>
+  <div class="section__body typo">
+    <p>当您入学时，学校已经为您开通了学校邮箱，登录地址为 <a href="https://mail.jgsu.edu.cn/" target="_blank">https://mail.jgsu.edu.cn</a></p>
+    <p>当您通过学校的新生企业微信身份认证后，您可以使用企业微信或微信扫码登录。</p>
+    <p>若您选择使用账号密码登录，默认账号为：您的学号@jgsu.edu.cn。</p>
+    <p>或者您也可以在企业微信中点击下方“邮件”查看邮箱。</p>
   </div>
 </div>
 {% endblock %}
