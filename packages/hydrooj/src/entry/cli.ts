@@ -4,7 +4,6 @@ import cac from 'cac';
 import { ObjectID } from 'mongodb';
 import { validate } from '../lib/validator';
 import options from '../options';
-import * as bus from '../service/bus';
 import db from '../service/db';
 import {
     lib, model, script, service,
@@ -106,6 +105,5 @@ export async function load() {
     await model(pending, fail);
     require('../script/index');
     await script(pending, fail, []);
-    await bus.parallel('app/started');
     await cli();
 }
