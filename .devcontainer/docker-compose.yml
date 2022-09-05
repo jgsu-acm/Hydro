@@ -8,7 +8,9 @@ services:
     privileged: true
     volumes:
       - ..:/workspace:cached
+      - .hydro:/root/.hydro
       - testdata:/data/file
+      - ~/.ssh:/root/.ssh
 
   mongo:
     image: mongo:latest
