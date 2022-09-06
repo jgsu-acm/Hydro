@@ -1,86 +1,53 @@
-import Queue from 'p-queue';
+import { basename } from 'path';
 import { STATUS } from '@hydrooj/utils/lib/status';
-import { check, compileChecker } from '../check';
-import compile from '../compile';
-import { getConfig } from '../config';
-import { CompileError, FormatError } from '../error';
+import checkers from '../checkers';
+import compile, { compileChecker } from '../compile';
+import { runFlow } from '../flow';
+import { Execute } from '../interface';
 import { Logger } from '../log';
 import { del, run } from '../sandbox';
-import { CmdFile } from '../sandbox/interface';
 import signals from '../signals';
-import { NormalizedCase, NormalizedSubtask, parseFilename } from '../utils';
+import { NormalizedCase } from '../utils';
 import { Context, ContextSubTask } from './interface';
-
-const Score = {
-    sum: (a: number, b: number) => (a + b),
-    max: Math.max,
-    min: Math.min,
-};
 
 const logger = new Logger('judge/default');
 
-function judgeCase(c: NormalizedCase, sid: string) {
+function judgeCase(c: NormalizedCase) {
     return async (ctx: Context, ctxSubtask: ContextSubTask, runner?: Function) => {
-        if (ctx.errored
-            || (ctxSubtask.subtask.type === 'min' && ctxSubtask.score === 0)
-            || (ctxSubtask.subtask.type === 'max' && ctxSubtask.score === ctxSubtask.subtask.score)
-            || ((ctxSubtask.subtask.if || []).filter((i) => ctx.failed[i]).length)
-        ) {
-            ctx.next({
-                case: {
-                    id: c.id,
-                    status: STATUS.STATUS_CANCELED,
-                    subtaskId: ctxSubtask.subtask.id,
-                    score: 0,
-                    time: 0,
-                    memory: 0,
-                    message: '',
-                },
-                addProgress: 100 / ctx.config.count,
-            });
-            return;
-        }
-        const { filename } = ctx.config;
-        const copyIn = { ...ctx.execute.copyIn };
-        if (filename) copyIn[`${filename}.in`] = c.input ? { src: c.input } : { content: '' };
-        const copyOutCached = filename ? [`${filename}.out?`] : [];
-        const stdin = filename ? null : c.input;
         const res = await run(
             ctx.execute.execute,
             {
-                stdin,
-                copyIn,
-                copyOutCached,
+                stdin: { src: c.input },
+                copyIn: ctx.execute.copyIn,
+                filename: ctx.config.filename,
                 time: c.time * ctx.execute.time,
                 memory: c.memory,
                 cacheStdoutAndStderr: true,
             },
         );
-        const { code, time_usage_ms, memory_usage_kb } = res;
+        const {
+            code, time, memory, fileIds,
+        } = res;
         let { status } = res;
-        let stdout: CmdFile = { fileId: res.fileIds[filename ? `${filename}.out` : 'stdout'] };
-        const stderr = { fileId: res.fileIds['stderr'] };
-        if (!stdout.fileId) stdout = { content: '' };
         let message: any = '';
         let score = 0;
         if (status === STATUS.STATUS_ACCEPTED) {
-            if (time_usage_ms > c.time * ctx.execute.time) {
+            if (time > c.time * ctx.execute.time) {
                 status = STATUS.STATUS_TIME_LIMIT_EXCEEDED;
-            } else if (memory_usage_kb > c.memory * 1024) {
+            } else if (memory > c.memory * 1024) {
                 status = STATUS.STATUS_MEMORY_LIMIT_EXCEEDED;
             } else {
-                [status, score, message] = await check({
+                ({ status, score, message } = await checkers[ctx.config.checker_type]({
                     execute: ctx.checker.execute,
                     copyIn: ctx.checker.copyIn || {},
                     input: { src: c.input },
                     output: { src: c.output },
-                    user_stdout: stdout,
-                    user_stderr: stderr,
-                    checker_type: ctx.config.checker_type,
+                    user_stdout: fileIds.stdout ? { fileId: fileIds.stdout } : { content: '' },
+                    user_stderr: fileIds.stderr ? { fileId: fileIds.stderr } : { content: '' },
                     score: c.score,
                     detail: ctx.config.detail ?? true,
                     env: { ...ctx.env, HYDRO_TESTCASE: c.id.toString() },
-                });
+                }));
             }
         } else if (status === STATUS.STATUS_RUNTIME_ERROR && code) {
             if (code < 32) message = signals[code];
@@ -91,36 +58,17 @@ function judgeCase(c: NormalizedCase, sid: string) {
         ).catch(() => { /* Ignore file doesn't exist */ });
         if (runner && ctx.rerun && c.time <= 5000 && status === STATUS.STATUS_TIME_LIMIT_EXCEEDED) {
             ctx.rerun--;
-            await runner(ctx, ctxSubtask);
-            return;
+            return await runner(ctx, ctxSubtask);
         }
-        ctxSubtask.score = Score[ctxSubtask.subtask.type](ctxSubtask.score, score);
-        ctxSubtask.status = Math.max(ctxSubtask.status, status);
-        if (ctxSubtask.status > STATUS.STATUS_ACCEPTED) ctx.failed[sid] = true;
-        ctx.total_time_usage_ms += time_usage_ms;
-        ctx.total_memory_usage_kb = Math.max(ctx.total_memory_usage_kb, memory_usage_kb);
-        ctx.next({
-            case: {
-                id: c.id,
-                subtaskId: ctxSubtask.subtask.id,
-                status,
-                score,
-                time: time_usage_ms,
-                memory: memory_usage_kb,
-                message,
-            },
-            addProgress: 100 / ctx.config.count,
-        });
-        if (ctx.request.rejudged) return; // Skip analysis for rejudged submissions
-        if ([STATUS.STATUS_WRONG_ANSWER, STATUS.STATUS_RUNTIME_ERROR].includes(status)) {
-            const langConfig = ctx.getLang(ctx.lang);
+        if (!ctx.request.rejudged && [STATUS.STATUS_WRONG_ANSWER, STATUS.STATUS_RUNTIME_ERROR].includes(status)) {
+            const langConfig = ctx.session.getLang(ctx.lang);
             if (langConfig.analysis && !ctx.analysis) {
                 ctx.analysis = true;
                 try {
                     const r = await run(langConfig.analysis, {
                         copyIn: {
-                            ...copyIn,
-                            input: stdin ? { src: stdin } : { content: '' },
+                            ...ctx.execute.copyIn,
+                            input: { src: c.input },
                             [langConfig.code_file || 'foo']: ctx.code,
                             compile: { content: langConfig.compile || '' },
                             execute: { content: langConfig.execute || '' },
@@ -138,88 +86,44 @@ function judgeCase(c: NormalizedCase, sid: string) {
                 }
             }
         }
-    };
-}
-
-function judgeSubtask(subtask: NormalizedSubtask, sid: string) {
-    return async (ctx: Context) => {
-        subtask.type = subtask.type || 'min';
-        const ctxSubtask = {
-            subtask,
-            status: 0,
-            score: subtask.type === 'min'
-                ? subtask.score
-                : 0,
+        return {
+            id: c.id,
+            subtaskId: ctxSubtask.subtask.id,
+            status,
+            score,
+            time,
+            memory,
+            message,
         };
-        const cases = [];
-        for (const cid in subtask.cases) {
-            const runner = judgeCase(subtask.cases[cid], subtask.id.toString() ?? sid);
-            cases.push(ctx.queue.add(() => runner(ctx, ctxSubtask, runner)));
-        }
-        await Promise.all(cases).catch((e) => {
-            ctx.errored = true;
-            throw e;
-        });
-        ctx.total_status = Math.max(ctx.total_status, ctxSubtask.status);
-        return ctxSubtask.score;
     };
 }
 
-export const judge = async (ctx: Context, startPromise = Promise.resolve()) => {
-    if (!ctx.config.subtasks.length) throw new FormatError('Problem data not found.');
-    startPromise.then(() => ctx.next({ status: STATUS.STATUS_COMPILING }));
-    if (ctx.config.template && 'content' in ctx.code) {
-        if (ctx.config.template[ctx.lang]) {
-            const tpl = ctx.config.template[ctx.lang];
-            ctx.code.content = tpl[0] + ctx.code.content + tpl[1];
-        } else throw new CompileError('Language not supported by provided templates');
-    }
-    [ctx.execute, ctx.checker] = await Promise.all([
-        compile(
-            ctx.getLang(ctx.lang), ctx.code,
-            Object.fromEntries(
-                (ctx.config.user_extra_files || []).map((i) => [i.split('/').pop(), { src: i }]),
-            ),
-            ctx.next,
-        ),
-        compileChecker(
-            ctx.getLang,
-            ctx.config.checker_type,
-            ctx.config.checker,
-            {
-                user_code: ctx.code,
-                ...Object.fromEntries(
-                    (ctx.config.judge_extra_files || []).map((i) => [parseFilename(i), { src: i }]),
+export const judge = async (ctx: Context) => await runFlow(ctx, {
+    compile: async () => {
+        const markCleanup = (i: Execute) => {
+            ctx.clean.push(i.clean);
+            return i;
+        };
+        [ctx.execute, ctx.checker] = await Promise.all([
+            compile(
+                ctx.session.getLang(ctx.lang), ctx.code,
+                Object.fromEntries(
+                    (ctx.config.user_extra_files || []).map((i) => [i.split('/').pop(), { src: i }]),
                 ),
-            },
-        ),
-    ]);
-    ctx.clean.push(ctx.execute.clean, ctx.checker.clean);
-    await startPromise;
-    ctx.next({ status: STATUS.STATUS_JUDGING, progress: 0 });
-    const tasks = [];
-    ctx.total_status = 0;
-    ctx.total_score = 0;
-    ctx.total_memory_usage_kb = 0;
-    ctx.total_time_usage_ms = 0;
-    ctx.rerun = getConfig('rerun') || 0;
-    ctx.queue = new Queue({ concurrency: getConfig('singleTaskParallelism') });
-    ctx.failed = {};
-    for (const sid in ctx.config.subtasks) tasks.push(judgeSubtask(ctx.config.subtasks[sid], sid)(ctx));
-    const scores = await Promise.all(tasks);
-    for (const sid in ctx.config.subtasks) {
-        let effective = true;
-        for (const required of ctx.config.subtasks[sid].if || []) {
-            if (ctx.failed[required.toString()]) effective = false;
-        }
-        if (effective) ctx.total_score += scores[sid];
-    }
-    ctx.stat.done = new Date();
-    if (process.env.DEV) ctx.next({ message: JSON.stringify(ctx.stat) });
-    ctx.end({
-        status: ctx.total_status,
-        score: ctx.total_score,
-        time: Math.floor(ctx.total_time_usage_ms * 1000000) / 1000000,
-        memory: ctx.total_memory_usage_kb,
-    });
-};
+                ctx.next,
+            ).then(markCleanup),
+            compileChecker(
+                ctx.session.getLang,
+                ctx.config.checker_type,
+                ctx.config.checker,
+                {
+                    user_code: ctx.code,
+                    ...Object.fromEntries(
+                        (ctx.config.judge_extra_files || []).map((i) => [basename(i), { src: i }]),
+                    ),
+                },
+            ).then(markCleanup),
+        ]);
+    },
+    judgeCase,
+});

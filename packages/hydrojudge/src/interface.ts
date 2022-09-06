@@ -1,34 +1,19 @@
-import { CopyInFile } from './sandbox/interface';
+import { NormalizedSubtask } from '@hydrooj/utils/lib/utils';
+import { JudgeResultBody, ProblemConfigFile } from 'hydrooj';
+import { CopyInFile } from './sandbox';
 
 export interface Execute {
-    execute: string,
-    clean: Function,
-    copyIn: Record<string, CopyInFile>,
-    time?: number,
-}
-
-export interface CompileErrorInfo {
-    stdout?: string,
-    stderr?: string,
-    status?: number
-}
-
-export interface CheckConfig {
     execute: string;
-    checker_type: string;
-    input: CopyInFile;
-    output: CopyInFile;
-    user_stdout: CopyInFile;
-    user_stderr: CopyInFile;
+    clean: () => Promise<any>;
     copyIn: Record<string, CopyInFile>;
-    score: number;
-    detail: boolean;
-    env?: Record<string, string>;
+    time?: number;
 }
 
-export interface CheckResult {
-    status: number,
-    score: number,
-    message: string,
-    code?: number,
+export type NextFunction = (body: Partial<JudgeResultBody>) => Promise<void> | void;
+
+export interface ParsedConfig extends Omit<ProblemConfigFile, 'time' | 'memory' | 'subtasks'> {
+    count: number;
+    time: number;
+    memory: number;
+    subtasks: NormalizedSubtask[];
 }

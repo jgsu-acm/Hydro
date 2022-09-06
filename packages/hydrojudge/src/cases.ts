@@ -6,8 +6,10 @@ import { max, sum } from 'lodash';
 import readYamlCases, { convertIniConfig } from '@hydrooj/utils/lib/cases';
 import { normalizeSubtasks, readSubtasksFromFiles } from '@hydrooj/utils/lib/common';
 import { changeErrorType } from '@hydrooj/utils/lib/utils';
+import { ProblemConfigFile } from 'hydrooj';
 import { getConfig } from './config';
 import { FormatError, SystemError } from './error';
+import { NextFunction, ParsedConfig } from './interface';
 import { ensureFile, parseMemoryMB } from './utils';
 
 function isValidConfig(config) {
@@ -47,7 +49,7 @@ export async function processTestdata(folder: string) {
     }
     const ini = files.filter((i) => i.toLowerCase() === 'config.ini')[0];
     if (!ini) return;
-    const t = fs.readFileSync(path.resolve(folder, ini), 'utf8');
+    const t = await fs.readFile(path.resolve(folder, ini), 'utf8');
     await fs.writeFile(path.resolve(folder, 'config.ini'), t.toLowerCase());
     for (const i of files) {
         if (i.toLowerCase() === 'input') await fs.rename(`${folder}/${i}`, `${folder}/input`);
@@ -62,7 +64,13 @@ export async function processTestdata(folder: string) {
     }));
 }
 
-export default async function readCases(folder: string, cfg: Record<string, any> = {}, args) {
+interface Args {
+    next: NextFunction;
+    key: string;
+    isSelfSubmission: boolean;
+}
+
+export default async function readCases(folder: string, cfg: ProblemConfigFile = {}, args: Args): Promise<ParsedConfig> {
     const iniConfig = path.resolve(folder, 'config.ini');
     const yamlConfig = path.resolve(folder, 'config.yaml');
     const ymlConfig = path.resolve(folder, 'config.yml');
@@ -76,11 +84,11 @@ export default async function readCases(folder: string, cfg: Record<string, any>
     };
     try {
         if (fs.existsSync(yamlConfig)) {
-            Object.assign(config, yaml.load(fs.readFileSync(yamlConfig).toString()));
+            Object.assign(config, yaml.load(await fs.readFile(yamlConfig, 'utf-8')));
         } else if (fs.existsSync(ymlConfig)) {
-            Object.assign(config, yaml.load(fs.readFileSync(ymlConfig).toString()));
+            Object.assign(config, yaml.load(await fs.readFile(ymlConfig, 'utf-8')));
         } else if (fs.existsSync(iniConfig)) {
-            Object.assign(config, convertIniConfig(fs.readFileSync(iniConfig).toString()));
+            Object.assign(config, convertIniConfig(await fs.readFile(iniConfig, 'utf-8')));
         }
     } catch (e) {
         throw changeErrorType(e, FormatError);
@@ -93,7 +101,7 @@ export default async function readCases(folder: string, cfg: Record<string, any>
         try {
             result.subtasks = readSubtasksFromFiles(await collectFiles(folder), cfg);
             result.count = Math.sum(result.subtasks.map((i) => i.cases.length));
-            if (cfg.isSelfSubmission) args.next?.({ message: { message: 'Found {0} testcases.', params: [result.count] } });
+            if (args.isSelfSubmission) args.next?.({ message: { message: 'Found {0} testcases.', params: [result.count] } });
         } catch (e) {
             throw new SystemError('Cannot parse testdata.', [e.message, ...(e.params || [])]);
         }

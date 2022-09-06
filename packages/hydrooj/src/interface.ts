@@ -167,6 +167,7 @@ export interface ProblemConfigFile {
     cases?: TestCaseConfig[];
     subtasks?: SubtaskConfig[];
     langs?: string[];
+    validator?: string;
 }
 
 export interface ProblemConfig {
@@ -180,6 +181,7 @@ export interface ProblemConfig {
     type: string;
     subType?: string;
     target?: string;
+    hackable?: boolean;
 }
 
 export interface PlainContentNode {
@@ -292,10 +294,27 @@ export interface RecordDoc {
     judgeAt: Date;
     status: number;
     progress?: number;
-    /** pretest */
+    /** pretest & hack */
     input?: string;
     /** 0 if pretest&script */
     contest?: ObjectID;
+
+    files?: Record<string, string>
+}
+
+export interface JudgeMeta {
+    problemOwner: number;
+    hackRejudge?: string;
+}
+
+export interface JudgeRequest extends Omit<RecordDoc, '_id' | 'testCases'> {
+    priority: number;
+    type: 'judge';
+    rid: ObjectID;
+    config: ProblemConfigFile;
+    meta: JudgeMeta;
+    data: FileInfo[];
+    source: string;
 }
 
 export interface ScoreboardNode {
@@ -514,10 +533,13 @@ export interface JudgeResultBody {
     case?: TestCase,
     status?: number;
     score?: number;
+    /** in miliseconds */
     time?: number;
+    /** in kilobytes */
     memory?: number;
     message?: string | JudgeMessage;
     compilerText?: string;
+    nop?: boolean;
 }
 
 export interface Task {

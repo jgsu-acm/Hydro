@@ -1,13 +1,28 @@
 /* eslint-disable no-template-curly-in-string */
 import { STATUS } from '@hydrooj/utils/lib/status';
-import { SystemError } from './error';
-import { CheckConfig, CheckResult } from './interface';
-import { run } from './sandbox';
+import { FormatError, SystemError } from './error';
+import { CopyInFile, run } from './sandbox';
 import { parse } from './testlib';
 
-type Checker = (config: CheckConfig) => Promise<CheckResult>;
+export interface CheckConfig {
+    execute: string;
+    input: CopyInFile;
+    output: CopyInFile;
+    user_stdout: CopyInFile;
+    user_stderr: CopyInFile;
+    copyIn: Record<string, CopyInFile>;
+    score: number;
+    detail: boolean;
+    env?: Record<string, string>;
+}
 
-const checkers: Record<string, Checker> = {
+type Checker = (config: CheckConfig) => Promise<{
+    status: number,
+    score: number,
+    message: string,
+}>;
+
+const checkers: Record<string, Checker> = new Proxy({
     async default(config) {
         const { stdout } = await run('/usr/bin/diff -BZ usrout answer', {
             copyIn: {
@@ -191,6 +206,11 @@ const checkers: Record<string, Checker> = {
         }
         return parse(stderr, config.score);
     },
-};
+}, {
+    get(self, key) {
+        if (!self[key]) throw new FormatError('Unknown checker type {0}', [key]);
+        return self[key];
+    },
+});
 
-export = checkers;
+export default checkers;

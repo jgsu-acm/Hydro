@@ -1,5 +1,3 @@
-import path from 'path';
-import fs from 'fs-extra';
 import { STATUS } from '@hydrooj/utils/lib/status';
 import compile from '../compile';
 import { CompileError } from '../error';
@@ -24,7 +22,7 @@ export const judge = async (ctx: Context) => {
     ctx.next({ status: STATUS.STATUS_COMPILING });
     try {
         ctx.execute = await compile(
-            ctx.getLang(ctx.lang), ctx.code,
+            ctx.session.getLang(ctx.lang), ctx.code,
             Object.fromEntries(
                 (ctx.config.user_extra_files || []).map((i) => [i.split('/').pop(), { src: i }]),
             ),
@@ -48,63 +46,49 @@ export const judge = async (ctx: Context) => {
     }
     ctx.clean.push(ctx.execute.clean);
     ctx.next({ status: STATUS.STATUS_JUDGING, progress: 0 });
-    const copyIn = { ...ctx.execute.copyIn };
-    const { filename } = ctx.config;
-    if (filename) copyIn[`${filename}.in`] = { content: ctx.input };
-    const copyOut = filename ? [`${filename}.out?`] : [];
-    const stdin = path.resolve(ctx.tmpdir, '0.in');
-    await fs.writeFile(stdin, ctx.input || '');
-    const stdout = path.resolve(ctx.tmpdir, '0.out');
-    const stderr = path.resolve(ctx.tmpdir, '0.err');
     const res = await run(
         ctx.execute.execute,
         {
-            stdin: filename ? null : stdin,
-            stdout: filename ? null : stdout,
-            stderr,
-            copyIn,
-            copyOut,
-            time: parseTimeMS(ctx.config.time || '1s') * ctx.execute.time,
+            stdin: { content: ctx.input },
+            copyIn: ctx.execute.copyIn,
+            // Allow 2x limits for better debugging
+            time: parseTimeMS(ctx.config.time || '1s') * ctx.execute.time * 2,
             memory: parseMemoryMB(ctx.config.memory || '128m'),
         },
     );
-    const { code, time_usage_ms, memory_usage_kb } = res;
+    const { code, time, memory } = res;
     let { status } = res;
-    if (!fs.existsSync(stdout)) fs.writeFileSync(stdout, '');
     const message: string[] = [];
-    if (status === STATUS.STATUS_ACCEPTED) {
-        if (time_usage_ms > parseTimeMS(ctx.config.time || '1s') * ctx.execute.time) {
-            status = STATUS.STATUS_TIME_LIMIT_EXCEEDED;
-        } else if (memory_usage_kb > parseMemoryMB(ctx.config.memory || '128m') * 1024) {
-            status = STATUS.STATUS_MEMORY_LIMIT_EXCEEDED;
-        }
+    if (time > parseTimeMS(ctx.config.time || '1s') * ctx.execute.time) {
+        status = STATUS.STATUS_TIME_LIMIT_EXCEEDED;
+    } else if (memory > parseMemoryMB(ctx.config.memory || '128m') * 1024) {
+        status = STATUS.STATUS_MEMORY_LIMIT_EXCEEDED;
     } else if (code) {
         status = STATUS.STATUS_RUNTIME_ERROR;
         if (code < 32) message.push(`ExitCode: ${code} (${signals[code]})`);
         else message.push(`ExitCode: ${code}`);
     }
-    message.push(fs.readFileSync(stdout).toString());
-    message.push(fs.readFileSync(stderr).toString());
+    message.push(res.stdout, res.stderr);
     ctx.next({
         status,
         case: {
             subtaskId: 0,
             status,
             score: 100,
-            time: time_usage_ms,
-            memory: memory_usage_kb,
+            time,
+            memory,
             message: message.join('\n').substring(0, 102400),
         },
     });
     if ([STATUS.STATUS_WRONG_ANSWER, STATUS.STATUS_RUNTIME_ERROR].includes(status)) {
-        const langConfig = ctx.getLang(ctx.lang);
+        const langConfig = ctx.session.getLang(ctx.lang);
         if (langConfig.analysis) {
             try {
                 ctx.analysis = true;
                 const r = await run(langConfig.analysis, {
                     copyIn: {
-                        ...copyIn,
-                        input: { src: stdin },
+                        ...ctx.execute.copyIn,
+                        input: { content: ctx.input },
                         [langConfig.code_file || 'foo']: ctx.code,
                         compile: { content: langConfig.compile || '' },
                         execute: { content: langConfig.execute || '' },
@@ -130,7 +114,7 @@ export const judge = async (ctx: Context) => {
     ctx.end({
         status,
         score: status === STATUS.STATUS_ACCEPTED ? 100 : 0,
-        time: Math.floor(time_usage_ms * 1000000) / 1000000,
-        memory: memory_usage_kb,
+        time: Math.floor(time * 1000000) / 1000000,
+        memory,
     });
 };

@@ -1,27 +1,19 @@
-import Queue from 'p-queue';
+import { basename } from 'path';
 import { STATUS } from '@hydrooj/utils/lib/status';
-import compile from '../compile';
-import { getConfig } from '../config';
+import compile, { compileInteractor } from '../compile';
+import { runFlow } from '../flow';
+import { Execute } from '../interface';
 import { runPiped } from '../sandbox';
 import signals from '../signals';
 import { parse } from '../testlib';
-import {
-    findFileSync, NormalizedCase, NormalizedSubtask, parseFilename,
-} from '../utils';
+import { NormalizedCase } from '../utils';
 import { Context, ContextSubTask } from './interface';
-
-const testlibSrc = findFileSync('@hydrooj/hydrojudge/vendor/testlib/testlib.h');
-const Score = {
-    sum: (a: number, b: number) => (a + b),
-    max: Math.max,
-    min: Math.min,
-};
 
 function judgeCase(c: NormalizedCase) {
     return async (ctx: Context, ctxSubtask: ContextSubTask) => {
         ctx.executeInteractor.copyIn.in = c.input ? { src: c.input } : { content: '' };
         ctx.executeInteractor.copyIn.out = c.output ? { src: c.output } : { content: '' };
-        const [{ code, time_usage_ms, memory_usage_kb }, resInteractor] = await runPiped(
+        const [{ code, time, memory }, resInteractor] = await runPiped(
             {
                 execute: ctx.executeUser.execute,
                 copyIn: ctx.executeUser.copyIn,
@@ -41,9 +33,9 @@ function judgeCase(c: NormalizedCase) {
         let status: number;
         let score = 0;
         let message: any = '';
-        if (time_usage_ms > c.time * ctx.executeUser.time) {
+        if (time > c.time * ctx.executeUser.time) {
             status = STATUS.STATUS_TIME_LIMIT_EXCEEDED;
-        } else if (memory_usage_kb > c.memory * 1024) {
+        } else if (memory > c.memory * 1024) {
             status = STATUS.STATUS_MEMORY_LIMIT_EXCEEDED;
         } else if ((code && code !== 13/* Broken Pipe */) || (code === 13 && !resInteractor.code)) {
             status = STATUS.STATUS_RUNTIME_ERROR;
@@ -56,87 +48,35 @@ function judgeCase(c: NormalizedCase) {
             message = result.message;
             if (resInteractor.code && !(resInteractor.stderr || '').trim().length) message += ` (Interactor exited with code ${resInteractor.code})`;
         }
-        ctxSubtask.score = Score[ctxSubtask.subtask.type](ctxSubtask.score, score);
-        ctxSubtask.status = Math.max(ctxSubtask.status, status);
-        ctx.total_time_usage_ms += time_usage_ms;
-        ctx.total_memory_usage_kb = Math.max(ctx.total_memory_usage_kb, memory_usage_kb);
-        ctx.next({
-            status: STATUS.STATUS_JUDGING,
-            case: {
-                id: c.id,
-                subtaskId: ctxSubtask.subtask.id,
-                status,
-                score,
-                time: time_usage_ms,
-                memory: memory_usage_kb,
-                message,
-            },
-            addProgress: 100 / ctx.config.count,
-        });
-    };
-}
-
-function judgeSubtask(subtask: NormalizedSubtask) {
-    return async (ctx: Context) => {
-        subtask.type = subtask.type || 'min';
-        const ctxSubtask = {
-            subtask,
-            status: 0,
-            score: subtask.type === 'min'
-                ? subtask.score
-                : 0,
+        return {
+            id: c.id,
+            subtaskId: ctxSubtask.subtask.id,
+            status,
+            score,
+            time,
+            memory,
+            message,
         };
-        const cases = [];
-        for (const cid in subtask.cases) {
-            cases.push(ctx.queue.add(() => judgeCase(subtask.cases[cid])(ctx, ctxSubtask)));
-        }
-        await Promise.all(cases);
-        ctx.total_status = Math.max(ctx.total_status, ctxSubtask.status);
-        ctx.total_score += ctxSubtask.score;
     };
 }
 
-export const judge = async (ctx: Context, startPromise = Promise.resolve()) => {
-    startPromise.then(() => ctx.next({ status: STATUS.STATUS_COMPILING }));
-    [ctx.executeUser, ctx.executeInteractor] = await Promise.all([
-        (() => {
-            const copyIn = {};
-            for (const file of ctx.config.user_extra_files) {
-                copyIn[parseFilename(file)] = { src: file };
-            }
-            return compile(ctx.getLang(ctx.lang), ctx.code, copyIn, ctx.next);
-        })(),
-        (() => {
-            const copyIn = {
-                'testlib.h': { src: testlibSrc },
-                user_code: ctx.code,
-            };
-            for (const file of ctx.config.judge_extra_files) {
-                copyIn[parseFilename(file)] = { src: file };
-            }
-            return compile(
-                ctx.getLang(parseFilename(ctx.config.interactor).split('.')[1].replace('@', '.')),
-                { src: ctx.config.interactor },
-                copyIn,
-            );
-        })(),
-    ]);
-    ctx.clean.push(ctx.executeUser.clean, ctx.executeInteractor.clean);
-    await startPromise;
-    ctx.next({ status: STATUS.STATUS_JUDGING, progress: 0 });
-    const tasks = [];
-    ctx.total_status = ctx.total_score = ctx.total_memory_usage_kb = ctx.total_time_usage_ms = 0;
-    ctx.queue = new Queue({ concurrency: getConfig('parallelism') });
-    for (const sid in ctx.config.subtasks) {
-        tasks.push(judgeSubtask(ctx.config.subtasks[sid])(ctx));
-    }
-    await Promise.all(tasks);
-    ctx.stat.done = new Date();
-    if (process.env.DEV) ctx.next({ message: JSON.stringify(ctx.stat) });
-    ctx.end({
-        status: ctx.total_status,
-        score: ctx.total_score,
-        time: ctx.total_time_usage_ms,
-        memory: ctx.total_memory_usage_kb,
-    });
-};
+export const judge = async (ctx: Context) => await runFlow(ctx, {
+    compile: async () => {
+        const markCleanup = (i: Execute) => {
+            ctx.clean.push(i.clean);
+            return i;
+        };
+        const userExtraFiles = Object.fromEntries(
+            (ctx.config.user_extra_files || []).map((i) => [basename(i), { src: i }]),
+        );
+        const interactorFiles = { user_code: ctx.code };
+        for (const file of ctx.config.judge_extra_files) {
+            interactorFiles[basename(file)] = { src: file };
+        }
+        [ctx.executeUser, ctx.executeInteractor] = await Promise.all([
+            compile(ctx.session.getLang(ctx.lang), ctx.code, userExtraFiles, ctx.next).then(markCleanup),
+            compileInteractor(ctx.session.getLang, ctx.config.interactor, interactorFiles).then(markCleanup),
+        ]);
+    },
+    judgeCase,
+});

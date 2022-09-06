@@ -1,30 +1,31 @@
-import axios, { AxiosInstance } from 'axios';
+import superagent from 'superagent';
+import { getConfig } from '../config';
 import { SandboxRequest, SandboxResult, SandboxVersion } from './interface';
 
-export class SandboxClient {
-    private client: AxiosInstance;
+let url;
 
-    constructor(baseURL: string) {
-        this.client = axios.create({ baseURL });
-    }
+const client = new Proxy({
+    run(req: SandboxRequest): Promise<SandboxResult[]> {
+        return superagent.post(`${url}/run`).send(req).then((res) => res.body);
+    },
+    getFile(fileId: string): Promise<Buffer> {
+        return superagent.get(`${url}/file/${fileId}`).then((res) => res.body);
+    },
+    deleteFile(fileId: string): Promise<void> {
+        return superagent.delete(`${url}/file/${fileId}`).then((res) => res.body);
+    },
+    listFiles(): Promise<Record<string, string>> {
+        return superagent.get(`${url}/file`).then((res) => res.body);
+    },
+    version(): Promise<SandboxVersion> {
+        return superagent.get(`${url}/version`).then((res) => res.body);
+    },
+}, {
+    get(self, key) {
+        url = getConfig('sandbox_host');
+        if (url.endsWith('/')) url = url.substring(0, url.length - 1);
+        return self[key];
+    },
+});
 
-    public run(req: SandboxRequest): Promise<SandboxResult[]> {
-        return this.client.post('/run', req).then((res) => res.data);
-    }
-
-    public getFile(fileId: string): Promise<Buffer> {
-        return this.client.get(`/file/${fileId}`).then((res) => res.data);
-    }
-
-    public deleteFile(fileId: string): Promise<never> {
-        return this.client.delete(`/file/${fileId}`);
-    }
-
-    public listFiles(): Promise<Record<string, string>> {
-        return this.client.get('/file').then((res) => res.data);
-    }
-
-    public version(): Promise<SandboxVersion> {
-        return this.client.get('/version').then((res) => res.data);
-    }
-}
+export default client;

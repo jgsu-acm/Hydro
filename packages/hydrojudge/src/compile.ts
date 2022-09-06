@@ -1,13 +1,16 @@
 import { LangConfig } from '@hydrooj/utils/lib/lang';
 import { STATUS } from '@hydrooj/utils/lib/status';
-import { CompileError } from './error';
+import { findFileSync } from '@hydrooj/utils/lib/utils';
+import checkers from './checkers';
+import { CompileError, FormatError } from './error';
 import { Execute } from './interface';
-import { del, run } from './sandbox';
-import { CopyInFile } from './sandbox/interface';
+import {
+    CopyIn, CopyInFile, del, run,
+} from './sandbox';
 import { compilerText } from './utils';
 
-export = async function compile(
-    lang: LangConfig, code: CopyInFile, copyIn: Record<string, CopyInFile> = {}, next?: Function,
+export default async function compile(
+    lang: LangConfig, code: CopyInFile, copyIn: CopyIn = {}, next?: Function,
 ): Promise<Execute> {
     const target = lang.target || 'foo';
     const execute = copyIn['execute.sh'] ? '/bin/bash execute.sh' : lang.execute;
@@ -25,7 +28,7 @@ export = async function compile(
         );
         if (status !== STATUS.STATUS_ACCEPTED) throw new CompileError({ status, stdout, stderr });
         if (!fileIds[target]) throw new CompileError({ stderr: 'Executable file not found.' });
-        if (next) next({ compilerText: compilerText(stdout, stderr) });
+        next?.({ compilerText: compilerText(stdout, stderr) });
         return {
             execute,
             copyIn: { ...copyIn, [target]: { fileId: fileIds[target] } },
@@ -39,4 +42,39 @@ export = async function compile(
         clean: () => Promise.resolve(null),
         time,
     };
+}
+
+const testlibFile = {
+    src: findFileSync('@hydrooj/hydrojudge/vendor/testlib/testlib.h'),
 };
+
+async function _compile(src: string, type: 'checker' | 'validator' | 'interactor', getLang, copyIn, withTestlib = true) {
+    const s = src.replace('@', '.').split('.');
+    let lang;
+    let langId = s.pop();
+    while (s.length) {
+        lang = getLang(langId, false);
+        if (lang) break;
+        langId = `${s.pop()}.${langId}`;
+    }
+    if (!lang) throw new FormatError(`Unknown ${type} language.`);
+    if (withTestlib) copyIn = { ...copyIn, 'testlib.h': testlibFile };
+    // TODO cache compiled binary
+    return await compile(lang, { src }, copyIn);
+}
+
+export async function compileChecker(getLang: Function, checkerType: string, checker: string, copyIn: CopyIn) {
+    if (['default', 'strict'].includes(checkerType)) {
+        return { execute: '', copyIn: {}, clean: () => Promise.resolve(null) };
+    }
+    if (!checkers[checkerType]) throw new FormatError('Unknown checker type {0}.', [checkerType]);
+    return _compile(checker, 'checker', getLang, copyIn, checkerType === 'testlib');
+}
+
+export async function compileInteractor(getLang: Function, interactor: string, copyIn: CopyIn) {
+    return _compile(interactor, 'interactor', getLang, copyIn);
+}
+
+export async function compileValidator(getLang: Function, validator: string, copyIn: CopyIn) {
+    return _compile(validator, 'validator', getLang, copyIn);
+}
