@@ -9,7 +9,10 @@
         "sysoev.language-stylus",
         "redhat.vscode-yaml",
         "VisualStudioExptTeam.vscodeintellicode",
-        "VisualStudioExptTeam.intellicode-api-usage-examples"
+        "VisualStudioExptTeam.intellicode-api-usage-examples",
+        "mhutchie.git-graph",
+        "donjayamanne.githistory",
+        "eamodio.gitlens"
     ],
     "forwardPorts": [
         2333,
