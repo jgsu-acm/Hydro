@@ -72,6 +72,7 @@ export default function (env: { production?: boolean, measure?: boolean } = {}) 
     devtool: env.production ? 'source-map' : false,
     entry: {
       hydro: './entry.js',
+      'svr-wrk': './service-worker.ts',
       polyfill: './polyfill.ts',
       'default.theme': './theme/default.js',
     },
@@ -90,7 +91,16 @@ export default function (env: { production?: boolean, measure?: boolean } = {}) 
       hashDigest: 'hex',
       hashDigestLength: 10,
       filename: '[name].js?[contenthash:4]',
-      chunkFilename: '[name].[chunkhash:4].chunk.js',
+      chunkFilename: (v) => {
+        const spMap = new Map([
+          ['HydroMessagesWorker', 'wrk.js'],
+        ]);
+        const { name } = v.chunk;
+        if (spMap.has(name)) {
+          return spMap.get(name);
+        }
+        return '[name].[chunkhash:4].chunk.js';
+      },
     },
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.cjs'],
@@ -150,13 +160,13 @@ export default function (env: { production?: boolean, measure?: boolean } = {}) 
         },
         {
           test: /\.[mc]?[jt]sx?$/,
-          exclude: [/@types\//, /components\/message\//, /entry\.js/],
+          exclude: [/@types\//, /components\/message\//, /entry\.js/, /service-worker\.ts/],
           type: 'javascript/auto',
           use: [esbuildLoader()],
         },
         {
           test: /\.[mc]?[jt]sx?$/,
-          include: [/components\/message\//, /entry\.js/],
+          include: [/components\/message\//, /entry\.js/, /service-worker\.ts/],
           type: 'javascript/auto',
           use: [{
             loader: 'ts-loader',

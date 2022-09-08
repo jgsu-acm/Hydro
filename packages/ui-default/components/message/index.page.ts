@@ -42,9 +42,19 @@ const url = new URL('/home/messages-conn', window.location.href);
 url.searchParams.append('sid', document.cookie);
 const endpoint = url.toString().replace('http', 'ws');
 
-const initWorkerMode = () => {
+const initWorkerMode = async () => {
   console.log('Messages: using SharedWorker');
-  const worker = new SharedWorker(new URL('./worker?inline', import.meta.url), { name: 'HydroMessagesWorker' });
+  let worker: SharedWorker;
+  try {
+    worker = new SharedWorker(new URL('./worker', import.meta.url), { name: 'HydroMessagesWorker' });
+  } catch (e) {
+    const target = new URL('wrk.js', window.location.origin);
+    const resp = await fetch(target.toString());
+    const jsRet = await resp.text();
+    const jsURL = URL.createObjectURL(new Blob([jsRet], { type: 'application/javascript' }));
+    worker = new SharedWorker(jsURL, { name: 'HydroMessagesWorker' });
+  }
+
   worker.port.start();
   window.addEventListener('beforeunload', () => {
     worker.port.postMessage({ type: 'unload' });
