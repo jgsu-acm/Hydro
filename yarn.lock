@@ -1994,7 +1994,6 @@ __metadata:
     stylus-loader: ^7.0.0
     tether: 1.4.7
     tether-drop: ^1.4.2
-    thirty-two: ^1.0.2
     through2: ^4.0.2
     timeago-react: ^3.0.5
     timeago.js: ^4.0.2
@@ -3122,6 +3121,13 @@ __metadata:
   version: 0.12.0
   resolution: "@types/retry@npm:0.12.0"
   checksum: 61a072c7639f6e8126588bf1eb1ce8835f2cb9c2aba795c4491cf6310e013267b0c8488039857c261c387e9728c1b43205099223f160bb6a76b4374f741b5603
+  languageName: node
+  linkType: hard
+
+"@types/saslprep@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@types/saslprep@npm:1.0.1"
+  checksum: fe6f71ea8265f7a1bf66304c90570ff7e5e209667ec0e19d7ea94efdc8ecc5b4e0c406ca66aff460ab52e2ebf6d0e01b989cdd9d6d4415e4b8ef7e8fbf1bc013
   languageName: node
   linkType: hard
 
@@ -10045,6 +10051,7 @@ fsevents@~2.3.2:
     "@types/mongodb": ^3.6.20
     "@types/nodemailer": ^6.4.5
     "@types/notp": ^2.0.2
+    "@types/saslprep": ^1.0.1
     "@types/semver": ^7.3.12
     "@types/serialize-javascript": ^5.0.2
     "@types/superagent": ^4.1.15
@@ -10078,6 +10085,7 @@ fsevents@~2.3.2:
     p-queue: ^7.3.0
     path-to-regexp: ^6.2.1
     require-resolve-hook: ^1.1.0
+    saslprep: ^1.0.3
     schemastery: ^3.5.4
     semver: ^7.3.7
     serialize-javascript: ^6.0.0
