@@ -2,7 +2,7 @@ account:
   type: number
   value:
 groupId:
-  type: number
+  type: string
   value:
 datadir:
   value:

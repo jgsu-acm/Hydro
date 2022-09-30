@@ -7,6 +7,9 @@
     "typings": "service.d.ts",
     "repository": "https://github.com/jgsu-acm/Hydro.git",
     "author": "AgOH",
+    "contributors": [
+        "Zxilly <zxilly@outlook.com>"
+    ],
     "license": "AGPL-3.0-or-later",
     "preferUnplugged": true,
     "dependencies": {
