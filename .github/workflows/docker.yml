@@ -55,13 +55,13 @@ jobs:
         id: b_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, stagoh/backend
+          images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, zxilly/hydro_backend
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, stagoh/judge
+          images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, zxilly/hydro_judge
 
       - name: Build and push Docker image Backend
         uses: docker/build-push-action@v3
