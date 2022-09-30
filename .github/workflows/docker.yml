@@ -56,19 +56,22 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, zxilly/hydro_backend
+          tags: latest
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, zxilly/hydro_judge
+          tags: latest
+          
 
       - name: Build and push Docker image Backend
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ${{ env.TENCENT_REGISTRY }}/hydro/backend:latest
+          tags: ${{ steps.b_meta.outputs.tags }}
           labels: ${{ steps.b_meta.outputs.labels }}
           file: docker/backend/Dockerfile
           cache-from: type=gha, scope=${{ github.workflow }}
@@ -79,7 +82,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.TENCENT_REGISTRY }}/hydro/judge:latest
+          tags: ${{ steps.j_meta.outputs.tags }}
           labels: ${{ steps.j_meta.outputs.labels }}
           file: docker/judge/Dockerfile
           cache-from: type=gha, scope=${{ github.workflow }}
