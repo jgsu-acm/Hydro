@@ -38,13 +38,13 @@ class OICQService implements BaseService {
         try {
             const account = system.get('hydro-oicq.account');
             if (!account) throw Error('no account');
-            const rawGroupIds = system.get('hydro-oicq.groupIds');
-            if (!rawGroupIds) throw Error('no groupIds');
+            const rawGroupIds = system.get('hydro-oicq.groups');
+            if (!rawGroupIds) throw Error('no groups string');
             const groupIds = rawGroupIds
                 .split(',')
-                .map((s) => s.trim())
-                .map((s) => parseInt(s, 10));
-            if (groupIds.length === 0) throw Error('no groupIds');
+                .map((s: string) => s.trim())
+                .map((s: string) => parseInt(s, 10));
+            if (groupIds.length === 0) throw Error('no group found');
             const platform = system.get('hydro-oicq.platform') || 1;
             const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
@@ -71,7 +71,7 @@ class OICQService implements BaseService {
             });
             this.client.on('system.online', () => {
                 logger.info('Logged in!');
-                this.groups = groupIds.map((id) => this.client.pickGroup(id, true));
+                this.groups = groupIds.map((id: number) => this.client.pickGroup(id, true));
             });
             this.client.on('system.offline.kickoff', () => logger.warn('Kicked offline!'));
             this.client.on('system.offline.network', () => logger.warn('Network error causes offline!'));
