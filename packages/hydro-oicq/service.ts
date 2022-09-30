@@ -15,7 +15,7 @@ const logger = new Logger('oicq');
 declare module 'hydrooj/src/interface' {
     interface SystemKeys {
         'hydro-oicq.account': number;
-        'hydro-oicq.groupId': string;
+        'hydro-oicq.groupIds': string;
         'hydro-oicq.platform': number;
         'hydro-oicq.datadir': string;
     }
@@ -38,11 +38,13 @@ class OICQService implements BaseService {
         try {
             const account = system.get('hydro-oicq.account');
             if (!account) throw Error('no account');
-            const groupIds = (system.get('hydro-oicq.groupId') || '')
+            const rawGroupIds = system.get('hydro-oicq.groupIds');
+            if (!rawGroupIds) throw Error('no groupIds');
+            const groupIds = rawGroupIds
                 .split(',')
                 .map((s) => s.trim())
                 .map((s) => parseInt(s, 10));
-            if (groupIds.length === 0) throw Error('no groupId');
+            if (groupIds.length === 0) throw Error('no groupIds');
             const platform = system.get('hydro-oicq.platform') || 1;
             const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
