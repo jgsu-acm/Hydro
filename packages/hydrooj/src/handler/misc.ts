@@ -11,13 +11,15 @@ import storage from '../model/storage';
 import * as system from '../model/system';
 import user from '../model/user';
 import {
-    Handler, param, post, Route, Types,
+    Handler, param, post, Types,
 } from '../service/server';
 import { encodeRFC5987ValueChars } from '../service/storage';
 import { builtinConfig } from '../settings';
 import { md5, sortFiles } from '../utils';
 
 class SwitchLanguageHandler extends Handler {
+    noCheckPermView = true;
+
     @param('lang', Types.Name)
     async get(domainId: string, lang: string) {
         if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
@@ -29,6 +31,8 @@ class SwitchLanguageHandler extends Handler {
 }
 
 export class FilesHandler extends Handler {
+    noCheckPermView = true;
+
     @param('pjax', Types.Boolean)
     async get(domainId: string, pjax = false) {
         if (!this.user._files?.length) this.checkPriv(PRIV.PRIV_CREATE_FILE);
@@ -85,6 +89,8 @@ export class FilesHandler extends Handler {
 }
 
 export class FSDownloadHandler extends Handler {
+    noCheckPermView = true;
+
     @param('uid', Types.Int)
     @param('filename', Types.Name)
     @param('noDisposition', Types.Boolean)
@@ -105,6 +111,8 @@ export class FSDownloadHandler extends Handler {
 }
 
 export class StorageHandler extends Handler {
+    noCheckPermView = true;
+
     @param('target', Types.Name)
     @param('filename', Types.Name, true)
     @param('expire', Types.UnsignedInt)
@@ -129,12 +137,10 @@ export class SwitchAccountHandler extends Handler {
     }
 }
 
-export async function apply() {
-    Route('switch_language', '/language/:lang', SwitchLanguageHandler);
-    Route('home_files', '/file', FilesHandler);
-    Route('fs_download', '/file/:uid/:filename', FSDownloadHandler);
-    Route('storage', '/storage', StorageHandler);
-    Route('switch_account', '/account', SwitchAccountHandler, PRIV.PRIV_EDIT_SYSTEM);
+export async function apply(ctx) {
+    ctx.Route('switch_language', '/language/:lang', SwitchLanguageHandler);
+    ctx.Route('home_files', '/file', FilesHandler);
+    ctx.Route('fs_download', '/file/:uid/:filename', FSDownloadHandler);
+    ctx.Route('storage', '/storage', StorageHandler);
+    ctx.Route('switch_account', '/account', SwitchAccountHandler, PRIV.PRIV_EDIT_SYSTEM);
 }
-
-global.Hydro.handler.misc = apply;

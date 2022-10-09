@@ -1,4 +1,4 @@
-import { debounce, omit } from 'lodash';
+import { omit, throttle } from 'lodash';
 import { FilterQuery, ObjectID } from 'mongodb';
 import {
     ContestNotAttendedError, ContestNotFoundError, ForbiddenError, PermissionError,
@@ -16,7 +16,7 @@ import TaskModel from '../model/task';
 import user from '../model/user';
 import * as bus from '../service/bus';
 import {
-    Connection, ConnectionHandler, Handler, param, Route, Types,
+    ConnectionHandler, Handler, param, Types,
 } from '../service/server';
 import { buildProjection } from '../utils';
 import { postJudge } from './judge';
@@ -133,7 +133,7 @@ class RecordDetailHandler extends Handler {
     // eslint-disable-next-line consistent-return
     async get(domainId: string, rid: ObjectID, download = false) {
         const rdoc = this.rdoc;
-        let tdoc;
+        let tdoc: Tdoc<30>;
         if (rdoc.contest?.toString() === '000000000000000000000000') {
             if (rdoc.uid !== this.user._id) throw new PermissionError(PERM.PERM_READ_RECORD_CODE);
         } else if (rdoc.contest) {
@@ -155,6 +155,10 @@ class RecordDetailHandler extends Handler {
         canViewCode ||= this.user.hasPriv(PRIV.PRIV_READ_RECORD_CODE);
         canViewCode ||= this.user.hasPerm(PERM.PERM_READ_RECORD_CODE);
         canViewCode ||= this.user.hasPerm(PERM.PERM_READ_RECORD_CODE_ACCEPT) && self?.status === STATUS.STATUS_ACCEPTED;
+        if (tdoc && tdoc.allowViewCode && contest.isDone(tdoc)) {
+            const tsdoc = await contest.getStatus(domainId, tdoc.docId, this.user._id);
+            canViewCode ||= tsdoc?.attend;
+        }
         if (!canViewCode) {
             rdoc.code = '';
             rdoc.files = {};
@@ -299,7 +303,7 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
     cleanup: bus.Disposable = () => { };
     rid: string = '';
     disconnectTimeout: NodeJS.Timeout;
-    debounceSend: any;
+    throttleSend: any;
 
     @param('rid', Types.ObjectID)
     async prepare(domainId: string, rid: ObjectID) {
@@ -330,7 +334,7 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
             if (!problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
         }
 
-        this.debounceSend = debounce(this.send, 1000);
+        this.throttleSend = throttle(this.send, 1000);
         this.rid = rid.toString();
         this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
         this.onRecordChange(rdoc);
@@ -355,15 +359,13 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
         if (![STATUS.STATUS_WAITING, STATUS.STATUS_JUDGING, STATUS.STATUS_COMPILING, STATUS.STATUS_FETCHED].includes(rdoc.status)) {
             this.sendUpdate(rdoc);
             this.disconnectTimeout = setTimeout(() => this.close(4001, 'Ended'), 30000);
-        } else this.debounceSend(rdoc);
+        } else this.throttleSend(rdoc);
     }
 }
 
-export async function apply() {
-    Route('record_main', '/record', RecordListHandler);
-    Route('record_detail', '/record/:rid', RecordDetailHandler);
-    Connection('record_conn', '/record-conn', RecordMainConnectionHandler);
-    Connection('record_detail_conn', '/record-detail-conn', RecordDetailConnectionHandler);
+export async function apply(ctx) {
+    ctx.Route('record_main', '/record', RecordListHandler);
+    ctx.Route('record_detail', '/record/:rid', RecordDetailHandler);
+    ctx.Connection('record_conn', '/record-conn', RecordMainConnectionHandler);
+    ctx.Connection('record_detail_conn', '/record-detail-conn', RecordDetailConnectionHandler);
 }
-
-global.Hydro.handler.record = apply;

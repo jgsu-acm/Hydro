@@ -2,11 +2,11 @@ import moment from 'moment-timezone';
 import notp from 'notp';
 import b32 from 'thirty-two';
 import {
-    BlacklistedError, InvalidTokenError, LoginError,
+    BlacklistedError, ForbiddenError, InvalidTokenError, LoginError,
     SystemError, UserAlreadyExistError, UserFacingError,
     UserNotFoundError, ValidationError, VerifyPasswordError,
 } from '../error';
-import { OAuthUserResponse, Udoc, User } from '../interface';
+import { Udoc, User } from '../interface';
 import avatar from '../lib/avatar';
 import { sendMail } from '../lib/mail';
 import { isDisplayName, isEmail, isJGSUEmail, isPassword } from '../lib/validator';
@@ -22,7 +22,7 @@ import task from '../model/task';
 import token from '../model/token';
 import user from '../model/user';
 import {
-    Handler, param, post, Route, Types,
+    Handler, param, post, Types,
 } from '../service/server';
 import { registerResolver, registerValue } from './api';
 
@@ -130,12 +130,41 @@ class UserLoginHandler extends Handler {
         if (!udoc.hasPriv(PRIV.PRIV_USER_PROFILE)) throw new BlacklistedError(uname);
         this.session.viewLang = '';
         this.session.uid = udoc._id;
+        this.session.sudo = null;
         this.session.scope = PERM.PERM_ALL.toString();
         this.session.save = rememberme;
         this.response.redirect = (redirect ? decodeURIComponent(redirect) : '')
             || ((this.request.referer || '/login').endsWith('/login')
                 ? this.url('homepage')
                 : this.request.referer);
+    }
+}
+
+class UserSudoHandler extends Handler {
+    async get() {
+        if (!this.session.sudoArgs?.method) throw new ForbiddenError();
+        this.response.template = 'user_sudo.html';
+    }
+
+    @param('password', Types.String)
+    @param('tfa', Types.String, true)
+    async post(domainId: string, password: string, tfa = '') {
+        if (!this.session.sudoArgs?.method) throw new ForbiddenError();
+        await Promise.all([
+            this.limitRate('user_sudo', 60, 5, true),
+            oplog.log(this, 'user.sudo', {}),
+        ]);
+        if (tfa) {
+            if (!this.user._tfa || !verifyToken(this.user._tfa, tfa)) throw new InvalidTokenError('2FA token invalid.');
+        } else {
+            this.user.checkPassword(password);
+        }
+        this.session.sudo = Date.now();
+        if (this.session.sudoArgs.method.toLowerCase() !== 'get') {
+            this.response.template = 'user_sudo_redirect.html';
+            this.response.body = this.session.sudoArgs;
+        } else this.response.redirect = this.session.sudoArgs.redirect;
+        this.session.sudoArgs.method = null;
     }
 }
 
@@ -148,6 +177,7 @@ class UserLogoutHandler extends Handler {
 
     async post() {
         this.session.uid = 0;
+        this.session.sudo = null;
         this.session.scope = PERM.PERM_ALL.toString();
         this.response.redirect = '/';
     }
@@ -167,7 +197,10 @@ export class UserRegisterHandler extends Handler {
             if (await user.getByEmail('system', mail)) throw new UserAlreadyExistError(mail);
             const mailDomain = mail.split('@')[1];
             if (await BlackListModel.get(`mail::${mailDomain}`)) throw new BlacklistedError(mailDomain);
-            await this.limitRate('send_mail', 3600, 30);
+            await Promise.all([
+                this.limitRate('send_mail', 3600, 30),
+                oplog.log(this, 'user.register', {}),
+            ]);
             const t = await token.add(
                 token.TYPE_REGISTRATION,
                 system.get('session.unsaved_expire_seconds'),
@@ -300,7 +333,7 @@ class UserDetailHandler extends Handler {
         const [udoc, sdoc, union] = await Promise.all([
             user.getById(domainId, uid),
             token.getMostRecentSessionByUid(uid, ['createAt', 'updateAt']),
-            domain.getUnion(domainId),
+            domain.get(domainId),
         ]);
         if (!udoc) throw new UserNotFoundError(uid);
         const pdocs: ProblemDoc[] = [];
@@ -361,7 +394,7 @@ class OauthHandler extends Handler {
 
     @param('type', Types.String)
     async get(domainId: string, type: string) {
-        await global.Hydro.lib[`oauth_${type}`]?.get?.call(this);
+        await global.Hydro.module.oauth[type]?.get.call(this);
     }
 }
 
@@ -369,8 +402,8 @@ class OauthCallbackHandler extends Handler {
     noCheckPermView = true;
 
     async get(args: any) {
-        if (!global.Hydro.lib[`oauth_${args.type}`]) throw new UserFacingError('Oauth type');
-        const r = await global.Hydro.lib[`oauth_${args.type}`].callback.call(this, args) as OAuthUserResponse;
+        if (!global.Hydro.module.oauth[args.type]) throw new UserFacingError('Oauth type');
+        const r = await global.Hydro.module.oauth[args.type].callback.call(this, args);
         const uid = await oauth.get(r._id);
         if (uid) {
             await user.setById(uid, { loginat: new Date(), loginip: this.request.ip });
@@ -424,17 +457,16 @@ class OauthCallbackHandler extends Handler {
     }
 }
 
-export async function apply() {
-    Route('user_login', '/login', UserLoginHandler);
-    Route('user_oauth', '/oauth/:type', OauthHandler);
-    Route('user_oauth_callback', '/oauth/:type/callback', OauthCallbackHandler);
-    Route('user_register', '/register', UserRegisterHandler, PRIV.PRIV_REGISTER_USER);
-    Route('user_register_with_code', '/register/:code', UserRegisterWithCodeHandler, PRIV.PRIV_REGISTER_USER);
-    Route('user_logout', '/logout', UserLogoutHandler, PRIV.PRIV_USER_PROFILE);
-    Route('user_lostpass', '/lostpass', UserLostPassHandler);
-    Route('user_lostpass_with_code', '/lostpass/:code', UserLostPassWithCodeHandler);
-    Route('user_delete', '/user/delete', UserDeleteHandler, PRIV.PRIV_USER_PROFILE);
-    Route('user_detail', '/user/:uid', UserDetailHandler);
+export async function apply(ctx) {
+    ctx.Route('user_login', '/login', UserLoginHandler);
+    ctx.Route('user_oauth', '/oauth/:type', OauthHandler);
+    ctx.Route('user_sudo', '/user/sudo', UserSudoHandler);
+    ctx.Route('user_oauth_callback', '/oauth/:type/callback', OauthCallbackHandler);
+    ctx.Route('user_register', '/register', UserRegisterHandler, PRIV.PRIV_REGISTER_USER);
+    ctx.Route('user_register_with_code', '/register/:code', UserRegisterWithCodeHandler, PRIV.PRIV_REGISTER_USER);
+    ctx.Route('user_logout', '/logout', UserLogoutHandler, PRIV.PRIV_USER_PROFILE);
+    ctx.Route('user_lostpass', '/lostpass', UserLostPassHandler);
+    ctx.Route('user_lostpass_with_code', '/lostpass/:code', UserLostPassWithCodeHandler);
+    ctx.Route('user_delete', '/user/delete', UserDeleteHandler, PRIV.PRIV_USER_PROFILE);
+    ctx.Route('user_detail', '/user/:uid', UserDetailHandler);
 }
-
-global.Hydro.handler.user = apply;

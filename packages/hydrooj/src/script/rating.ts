@@ -6,7 +6,6 @@ import Schema from 'schemastery';
 import { Tdoc, Udoc } from '../interface';
 import difficultyAlgorithm from '../lib/difficulty';
 import rating from '../lib/rating';
-import { addScript } from '../loader';
 import { PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
 import domain from '../model/domain';
@@ -65,7 +64,7 @@ export const RpTypes: Record<string, RpDef> = {
                     journal: { $ne: null },
                 }).sort(contest.RULES[tdoc.rule].statusSort);
                 if (!await cursor.count()) continue;
-                const [rankedTsdocs] = await contest.RULES[tdoc.rule].ranked(tdoc, cursor);
+                const rankedTsdocs = await contest.RULES[tdoc.rule].ranked(tdoc, cursor);
                 const users = rankedTsdocs.map((i) => ({ uid: i[1].uid, rank: i[0], old: udict[i[1].uid] }));
                 // FIXME sum(rating.new) always less than sum(rating.old)
                 for (const udoc of rating(users)) udict[udoc.uid] = udoc.new;
@@ -138,9 +137,8 @@ export async function calcLevel(domainId: string, report: Function) {
 }
 
 async function runInDomain(id: string, report: Function) {
-    const info = await domain.getUnion(id);
-    if (info) info.union.unshift(id);
-    const domainIds = info ? info.union : [id];
+    const info = await domain.get(id);
+    const domainIds = [id, ...(info.union || [])];
     const results: Record<keyof typeof RpTypes, ND> = {};
     const udict = new Proxy({}, { get: (self, key) => self[key] || 0 });
     for (const type in RpTypes) {
@@ -184,8 +182,7 @@ export async function run({ domainId }, report: Function) {
     return true;
 }
 
-addScript('rp', 'Calculate rp of a domain, or all domains')
-    .args(Schema.object({
-        domainId: Schema.string(),
-    }))
-    .action(run);
+export const apply = (ctx) => ctx.addScript(
+    'rp', 'Calculate rp of a domain, or all domains',
+    Schema.object({ domainId: Schema.string() }), run,
+);

@@ -12,7 +12,7 @@ import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import WebpackBar from 'webpackbar';
 import root from '../utils/root';
 
-export default function (env: { production?: boolean, measure?: boolean } = {}) {
+export default function (env: { watch?: boolean, production?: boolean, measure?: boolean } = {}) {
   function esbuildLoader() {
     return {
       loader: 'esbuild-loader',
@@ -34,7 +34,7 @@ export default function (env: { production?: boolean, measure?: boolean } = {}) 
   function postcssLoader() {
     return {
       loader: 'postcss-loader',
-      options: { postcssOptions: { sourceMap: env.production, config: root('postcss.config.js') } },
+      options: { postcssOptions: { sourceMap: false, config: root('postcss.config.js') } },
     };
   }
 
@@ -69,12 +69,14 @@ export default function (env: { production?: boolean, measure?: boolean } = {}) 
     stats: {
       preset: 'errors-warnings',
     },
-    devtool: env.production ? 'source-map' : false,
+    devtool: false,
     entry: {
       hydro: './entry.js',
       'svr-wrk': './service-worker.ts',
       polyfill: './polyfill.ts',
       'default.theme': './theme/default.js',
+      'service-worker': './service-worker.ts',
+      'messages-shared-worker': './components/message/worker.ts',
     },
     cache: {
       type: 'filesystem',

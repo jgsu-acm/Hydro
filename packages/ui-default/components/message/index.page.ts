@@ -44,17 +44,8 @@ const endpoint = url.toString().replace('http', 'ws');
 
 const initWorkerMode = async () => {
   console.log('Messages: using SharedWorker');
-  let worker: SharedWorker;
-  try {
-    worker = new SharedWorker(new URL('./worker', import.meta.url), { name: 'HydroMessagesWorker' });
-  } catch (e) {
-    const target = new URL('wrk.js', window.location.origin);
-    const resp = await fetch(target.toString());
-    const jsRet = await resp.text();
-    const jsURL = URL.createObjectURL(new Blob([jsRet], { type: 'application/javascript' }));
-    worker = new SharedWorker(jsURL, { name: 'HydroMessagesWorker' });
-  }
-
+  // @ts-ignore
+  const worker = new SharedWorker('/message-shared-worker.js', { name: 'HydroMessagesWorker' });
   worker.port.start();
   window.addEventListener('beforeunload', () => {
     worker.port.postMessage({ type: 'unload' });
@@ -109,7 +100,7 @@ const messagePage = new AutoloadPage('messagePage', (pagename) => {
     localStorage.setItem('pages', JSON.stringify(c.filter((i) => i !== selfId)));
     if (!isMaster) return;
     localStorage.removeItem('page.master');
-    channel?.postMessage({ type: 'master' });
+    channel.postMessage({ type: 'master' });
   };
 
   function asMaster() {

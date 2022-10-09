@@ -28,6 +28,7 @@ globalConfig.json
 /config.yaml
 /config.json
 tsconfig.json
+tsconfig.*.json
 
 # Project Rules
 ## Core

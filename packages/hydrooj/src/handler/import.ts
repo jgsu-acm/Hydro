@@ -4,11 +4,11 @@ import path from 'path';
 import AdmZip from 'adm-zip';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import { Context } from '../context';
 import { ValidationError } from '../error';
-import { ProblemAdd } from '../lib/ui';
 import { PERM, PRIV } from '../model/builtin';
 import problem, { ProblemDoc } from '../model/problem';
-import { Handler, Route } from '../service/server';
+import { Handler } from '../service/server';
 
 function findOverrideContent(dir: string) {
     let files = fs.readdirSync(dir);
@@ -37,7 +37,12 @@ class ProblemImportHydroHandler extends Handler {
         if (keepUser) this.checkPriv(PRIV.PRIV_EDIT_SYSTEM);
         if (!this.request.files.file) throw new ValidationError('file');
         const tmpdir = path.join(os.tmpdir(), 'hydro', `${Math.random()}.import`);
-        const zip = new AdmZip(this.request.files.file.filepath);
+        let zip: AdmZip;
+        try {
+            zip = new AdmZip(this.request.files.file.filepath);
+        } catch (e) {
+            throw new ValidationError('zip', null, e.message);
+        }
         await new Promise((resolve, reject) => {
             zip.extractAllToAsync(tmpdir, true, (err) => {
                 if (err) reject(err);
@@ -45,13 +50,16 @@ class ProblemImportHydroHandler extends Handler {
             });
         });
         try {
-            const problems = await fs.readdir(tmpdir);
-            for (const i of problems) {
+            const problems = await fs.readdir(tmpdir, { withFileTypes: true });
+            for (const p of problems) {
+                const i = p.name;
+                if (!p.isDirectory()) continue;
                 const files = await fs.readdir(path.join(tmpdir, i));
                 if (!files.includes('problem.yaml')) continue;
                 const content = fs.readFileSync(path.join(tmpdir, i, 'problem.yaml'), 'utf-8');
                 const pdoc: ProblemDoc = yaml.load(content) as any;
-                let pid = pdoc?.pid;
+                if (!pdoc) continue;
+                let pid = pdoc.pid;
                 if (pid) {
                     const current = await problem.get(domainId, pid);
                     if (current) pid = undefined;
@@ -93,9 +101,7 @@ class ProblemImportHydroHandler extends Handler {
     }
 }
 
-export async function apply() {
-    ProblemAdd('problem_import_hydro', {}, 'copy', 'Import From Hydro');
-    Route('problem_import_hydro', '/problem/import/hydro', ProblemImportHydroHandler, PERM.PERM_CREATE_PROBLEM);
+export async function apply(ctx: Context) {
+    ctx.Route('problem_import_hydro', '/problem/import/hydro', ProblemImportHydroHandler, PERM.PERM_CREATE_PROBLEM);
+    ctx.inject('ProblemAdd', 'problem_import_hydro', { icon: 'copy', text: 'Import From Hydro' });
 }
-
-global.Hydro.handler.import = apply;

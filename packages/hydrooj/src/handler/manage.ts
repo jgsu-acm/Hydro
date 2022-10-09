@@ -3,10 +3,10 @@ import { inspect } from 'util';
 import * as yaml from 'js-yaml';
 import Schema from 'schemastery';
 import * as check from '../check';
-import { BadRequestError, ValidationError } from '../error';
 import {
-    isEmail, isPassword, isUname, validate,
-} from '../lib/validator';
+    BadRequestError, ForbiddenError, UserNotFoundError, ValidationError,
+} from '../error';
+import { isEmail, isPassword, isUname } from '../lib/validator';
 import { Logger } from '../logger';
 import { PRIV, STATUS } from '../model/builtin';
 import domain from '../model/domain';
@@ -16,8 +16,7 @@ import * as system from '../model/system';
 import user from '../model/user';
 import * as bus from '../service/bus';
 import {
-    Connection, ConnectionHandler, Handler,
-    param, Route, Types,
+    ConnectionHandler, Handler, param, requireSudo, Types,
 } from '../service/server';
 import { configSource, saveConfig, SystemSettings } from '../settings';
 import * as judge from './judge';
@@ -106,9 +105,6 @@ class SystemScriptHandler extends SystemHandler {
         let args = JSON.parse(raw);
         if (typeof global.Hydro.script[id].validate === 'function') {
             args = global.Hydro.script[id].validate(args);
-        } else {
-            logger.warn('You are using the legacy script validation API, which will be dropped in the future.');
-            validate(global.Hydro.script[id].validate, args);
         }
         const rid = await record.add(domainId, -1, this.user._id, '-', id, false, { input: raw, type: 'pretest' });
         const report = (data) => judge.next({ domainId, rid, ...data });
@@ -147,6 +143,7 @@ class SystemScriptHandler extends SystemHandler {
 }
 
 class SystemSettingHandler extends SystemHandler {
+    @requireSudo
     async get() {
         this.response.template = 'manage_setting.html';
         this.response.body.current = {};
@@ -156,6 +153,7 @@ class SystemSettingHandler extends SystemHandler {
         }
     }
 
+    @requireSudo
     async post(args: any) {
         const tasks = [];
         const booleanKeys = args.booleanKeys || {};
@@ -184,6 +182,7 @@ class SystemSettingHandler extends SystemHandler {
 }
 
 class SystemConfigHandler extends SystemHandler {
+    @requireSudo
     async get() {
         this.response.template = 'manage_config.html';
         let value = configSource;
@@ -196,6 +195,7 @@ class SystemConfigHandler extends SystemHandler {
         };
     }
 
+    @requireSudo
     @param('value', Types.String)
     async post(domainId: string, value: string) {
         let config;
@@ -263,14 +263,54 @@ class SystemUserImportHandler extends SystemHandler {
     }
 }
 
-async function apply() {
-    Route('manage', '/manage', SystemMainHandler);
-    Route('manage_dashboard', '/manage/dashboard', SystemDashboardHandler);
-    Route('manage_script', '/manage/script', SystemScriptHandler);
-    Route('manage_setting', '/manage/setting', SystemSettingHandler);
-    Route('manage_config', '/manage/config', SystemConfigHandler);
-    Route('manage_user_import', '/manage/userimport', SystemUserImportHandler);
-    Connection('manage_check', '/manage/check-conn', SystemCheckConnHandler);
+const Priv = Object.fromEntries(Object.entries(PRIV).filter(
+    (i) => (!i[0].endsWith('SELF') && !['PRIV_DEFAULT', 'PRIV_NEVER', 'PRIV_NONE', 'PRIV_ALL'].includes(i[0])),
+));
+const allPriv = Math.sum(Object.values(Priv));
+
+class SystemUserPrivHandler extends SystemHandler {
+    @requireSudo
+    async get({ pjax }) {
+        const defaultPriv = system.get('default.priv');
+        const udocs = await user.getMulti({ _id: { $gte: -1000, $ne: 1 }, priv: { $nin: [0, defaultPriv] } }).limit(1000).sort({ _id: 1 }).toArray();
+        const banudocs = await user.getMulti({ _id: { $gte: -1000, $ne: 1 }, priv: 0 }).limit(1000).sort({ _id: 1 }).toArray();
+        this.response.body = {
+            udocs: [...udocs, ...banudocs],
+            defaultPriv,
+            Priv,
+        };
+        if (pjax) {
+            const html = await this.renderHTML('partials/manage_user_priv.html', this.response.body);
+            this.response.body = { fragments: [{ html }] };
+        } else this.response.template = 'manage_user_priv.html';
+    }
+
+    @requireSudo
+    @param('uid', Types.Int, true)
+    @param('priv', Types.UnsignedInt)
+    async post(domainId: string, uid: number, priv: number) {
+        if (typeof uid === 'number') {
+            const udoc = await user.getById(domainId, uid);
+            if (!udoc) throw new UserNotFoundError(uid);
+            if (udoc.priv === -1 || priv === -1 || priv === allPriv) throw new ForbiddenError('you can not edit user as SU in web.');
+            await user.setPriv(uid, priv);
+        } else {
+            const defaultPriv = system.get('default.priv');
+            await user.coll.updateMany({ priv: defaultPriv }, { $set: { priv } });
+            await system.set('default.priv', priv);
+            bus.broadcast('user/delcache', true);
+        }
+        this.back();
+    }
 }
 
-global.Hydro.handler.manage = apply;
+export async function apply(ctx) {
+    ctx.Route('manage', '/manage', SystemMainHandler);
+    ctx.Route('manage_dashboard', '/manage/dashboard', SystemDashboardHandler);
+    ctx.Route('manage_script', '/manage/script', SystemScriptHandler);
+    ctx.Route('manage_setting', '/manage/setting', SystemSettingHandler);
+    ctx.Route('manage_config', '/manage/config', SystemConfigHandler);
+    ctx.Route('manage_user_import', '/manage/userimport', SystemUserImportHandler);
+    ctx.Route('manage_user_priv', '/manage/userpriv', SystemUserPrivHandler);
+    ctx.Connection('manage_check', '/manage/check-conn', SystemCheckConnHandler);
+}

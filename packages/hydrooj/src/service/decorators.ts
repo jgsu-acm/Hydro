@@ -4,6 +4,7 @@ import { isSafeInteger } from 'lodash';
 import moment from 'moment-timezone';
 import { ObjectID } from 'mongodb';
 import saslprep from 'saslprep';
+import { Time } from '@hydrooj/utils';
 import { ValidationError } from '../error';
 import { isContent, isTitle } from '../lib/validator';
 import type { Handler } from './server';
@@ -43,10 +44,18 @@ export interface Types {
     Emoji: Type,
 }
 
+const safeSaslprep = (v) => {
+    try {
+        return saslprep(v.toString().trim());
+    } catch (e) {
+        return '';
+    }
+};
+
 export const Types: Types = {
     Content: [(v) => v.toString().trim(), isContent],
-    Name: [(v) => saslprep(v.toString().trim()), (v) => /^.{1,255}$/.test(saslprep(v.toString().trim()))],
-    Username: [(v) => saslprep(v.toString().trim()), (v) => /^.{3,31}$/.test(saslprep(v.toString().trim()))],
+    Name: [(v) => saslprep(v.toString().trim()), (v) => /^.{1,255}$/.test(safeSaslprep(v))],
+    Username: [(v) => saslprep(v.toString().trim()), (v) => /^.{3,31}$/.test(safeSaslprep(v))],
     Title: [(v) => v.toString().trim(), isTitle],
     String: [(v) => v.toString(), null],
     Int: [(v) => parseInt(v, 10), (v) => isSafeInteger(parseInt(v, 10))],
@@ -176,7 +185,7 @@ function _descriptor(v: ParamOption) {
                                 : this.request.body;
                     const value = src[item.name];
                     if (!item.isOptional || value) {
-                        if (!value) throw new ValidationError(item.name);
+                        if (value === undefined || value === null || value === '') throw new ValidationError(item.name);
                         if (item.validate && !item.validate(value)) throw new ValidationError(item.name);
                         if (item.convert) c.push(item.convert(value));
                         else c.push(value);
@@ -202,3 +211,23 @@ export const query: DescriptorBuilder = (name, ...args) => _descriptor(_buildPar
 export const post: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'post', ...args));
 export const route: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'route', ...args));
 export const param: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'all', ...args));
+
+export function requireSudo(target: any, funcName: string, obj: any) {
+    const originalMethod = obj.value;
+    obj.value = function sudo(this: Handler, ...args: any[]) {
+        if (this.session.sudo && Date.now() - this.session.sudo < Time.hour) {
+            if (this.session.sudoArgs?.referer) this.request.headers.referer = this.session.sudoArgs.referer;
+            this.session.sudoArgs = null;
+            return originalMethod.call(this, ...args);
+        }
+        this.session.sudoArgs = {
+            method: this.request.method,
+            referer: this.request.headers.referer,
+            args: this.args,
+            redirect: this.request.path,
+        };
+        this.response.redirect = this.url('user_sudo');
+        return 'cleanup';
+    };
+    return obj;
+}

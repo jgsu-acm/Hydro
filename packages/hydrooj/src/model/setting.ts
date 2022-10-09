@@ -3,11 +3,11 @@
 import yaml from 'js-yaml';
 import { Dictionary } from 'lodash';
 import moment from 'moment-timezone';
-import { parseLang } from '@hydrooj/utils/lib/lang';
+import { LangConfig, parseLang } from '@hydrooj/utils/lib/lang';
 import { retry } from '@hydrooj/utils/lib/utils';
+import { Context } from '../context';
 import { Setting as _Setting } from '../interface';
 import { Logger } from '../logger';
-import * as bus from '../service/bus';
 import * as builtin from './builtin';
 
 type SettingDict = Dictionary<_Setting>;
@@ -70,7 +70,7 @@ export const Setting = (
 
 export const PreferenceSetting = (...settings: _Setting[]) => {
     for (const setting of settings) {
-        if (PREFERENCE_SETTINGS.find((s) => s.key === setting.key)) throw new Error(`Duplicate setting key: ${setting.key}`);
+        if (PREFERENCE_SETTINGS.find((s) => s.key === setting.key)) logger.warn(`Duplicate setting key: ${setting.key}`);
         PREFERENCE_SETTINGS.push(setting);
         SETTINGS.push(setting);
         SETTINGS_BY_KEY[setting.key] = setting;
@@ -78,7 +78,7 @@ export const PreferenceSetting = (...settings: _Setting[]) => {
 };
 export const AccountSetting = (...settings: _Setting[]) => {
     for (const setting of settings) {
-        if (ACCOUNT_SETTINGS.find((s) => s.key === setting.key)) throw new Error(`Duplicate setting key: ${setting.key}`);
+        if (ACCOUNT_SETTINGS.find((s) => s.key === setting.key)) logger.warn(`Duplicate setting key: ${setting.key}`);
         ACCOUNT_SETTINGS.push(setting);
         SETTINGS.push(setting);
         SETTINGS_BY_KEY[setting.key] = setting;
@@ -86,21 +86,21 @@ export const AccountSetting = (...settings: _Setting[]) => {
 };
 export const DomainUserSetting = (...settings: _Setting[]) => {
     for (const setting of settings) {
-        if (DOMAIN_USER_SETTINGS.find((s) => s.key === setting.key)) throw new Error(`Duplicate setting key: ${setting.key}`);
+        if (DOMAIN_USER_SETTINGS.find((s) => s.key === setting.key)) logger.warn(`Duplicate setting key: ${setting.key}`);
         DOMAIN_USER_SETTINGS.push(setting);
         DOMAIN_USER_SETTINGS_BY_KEY[setting.key] = setting;
     }
 };
 export const DomainSetting = (...settings: _Setting[]) => {
     for (const setting of settings) {
-        if (DOMAIN_SETTINGS.find((s) => s.key === setting.key)) throw new Error(`Duplicate setting key: ${setting.key}`);
+        if (DOMAIN_SETTINGS.find((s) => s.key === setting.key)) logger.warn(`Duplicate setting key: ${setting.key}`);
         DOMAIN_SETTINGS.push(setting);
         DOMAIN_SETTINGS_BY_KEY[setting.key] = setting;
     }
 };
 export const SystemSetting = (...settings: _Setting[]) => {
     for (const setting of settings) {
-        if (SYSTEM_SETTINGS.find((s) => s.key === setting.key)) throw new Error(`Duplicate setting key: ${setting.key}`);
+        if (SYSTEM_SETTINGS.find((s) => s.key === setting.key)) logger.warn(`Duplicate setting key: ${setting.key}`);
         SYSTEM_SETTINGS.push(setting);
         SYSTEM_SETTINGS_BY_KEY[setting.key] = setting;
     }
@@ -217,7 +217,7 @@ SystemSetting(
     Setting('setting_limits', 'limit.submission_user', 15, 'number', 'limit.submission_user', 'Max submission count per user per minute'),
     Setting('setting_limits', 'limit.pretest', 60, 'number', 'limit.pretest', 'Max pretest count per minute'),
     Setting('setting_basic', 'avatar.gravatar_url', '//cn.gravatar.com/avatar/', 'text', 'avatar.gravatar_url', 'Gravatar URL Prefix'),
-    Setting('setting_basic', 'default.priv', builtin.PRIV.PRIV_DEFAULT, 'number', 'default.priv', 'Default Privilege', FLAG_PRO),
+    Setting('setting_basic', 'default.priv', builtin.PRIV.PRIV_DEFAULT, 'number', 'default.priv', 'Default Privilege', FLAG_HIDDEN),
     Setting('setting_basic', 'discussion.nodes', builtin.DEFAULT_NODES, 'yaml', 'discussion.nodes', 'Discussion Nodes'),
     Setting('setting_basic', 'problem.categories', builtin.CATEGORIES, 'yaml', 'problem.categories', 'Problem Categories'),
     Setting('setting_basic', 'pagination.problem', 100, 'number', 'pagination.problem', 'Problems per page'),
@@ -234,45 +234,42 @@ SystemSetting(
     Setting('setting_session', 'session.unsaved_expire_seconds', 3600 * 3,
         'number', 'session.unsaved_expire_seconds', 'Unsaved session expire seconds'),
     Setting('setting_storage', 'db.ver', 0, 'number', 'db.ver', 'Database version', FLAG_DISABLED | FLAG_HIDDEN),
+    Setting('setting_storage', 'system.webmanage', 'disabled', 'text', 'system.webmanage', 'Enable web manage', FLAG_DISABLED | FLAG_HIDDEN),
     Setting('setting_storage', 'installid', String.random(64), 'text', 'installid', 'Installation ID', FLAG_HIDDEN | FLAG_DISABLED),
 );
 
 // eslint-disable-next-line import/no-mutable-exports
-export let langs = {};
+export const langs: Record<string, LangConfig> = {};
 
-bus.once('app/started', async () => {
-    logger.debug('Ensuring settings');
+export async function apply(ctx: Context) {
+    logger.info('Ensuring settings');
     const system = global.Hydro.model.system;
     for (const setting of SYSTEM_SETTINGS) {
-        if (setting.value) {
-            const current = await global.Hydro.service.db.collection('system').findOne({ _id: setting.key });
-            if (!current || current.value == null || current.value === '') {
-                await retry(system.set, setting.key, setting.value);
-            }
+        if (!setting.value) continue;
+        const current = await global.Hydro.service.db.collection('system').findOne({ _id: setting.key });
+        if (!current || current.value == null || current.value === '') {
+            await retry(system.set, setting.key, setting.value);
         }
     }
     try {
-        langs = parseLang(system.get('hydrooj.langs'));
-        global.Hydro.model.setting.langs = langs;
+        Object.assign(langs, parseLang(system.get('hydrooj.langs')));
         const range = {};
         for (const key in langs) range[key] = langs[key].display;
         LangSettingNode.range = range;
         ServerLangSettingNode.range = range;
     } catch (e) { /* Ignore */ }
-});
-
-bus.on('system/setting', (args) => {
-    if (args.hydrooj?.langs) {
-        langs = parseLang(args.hydrooj.langs);
-        global.Hydro.model.setting.langs = langs;
+    ctx.on('system/setting', (args) => {
+        if (!args.hydrooj?.langs) return;
+        Object.assign(langs, parseLang(args.hydrooj.langs));
         const range = {};
         for (const key in langs) range[key] = langs[key].display;
         LangSettingNode.range = range;
         ServerLangSettingNode.range = range;
-    }
-});
+    });
+}
 
 global.Hydro.model.setting = {
+    apply,
     Setting,
     PreferenceSetting,
     AccountSetting,

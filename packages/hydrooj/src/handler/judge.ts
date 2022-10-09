@@ -1,5 +1,6 @@
 import assert from 'assert';
 import yaml from 'js-yaml';
+import { omit } from 'lodash';
 import { ObjectID } from 'mongodb';
 import {
     JudgeResultBody, ProblemConfigFile, RecordDoc, TestCase,
@@ -17,7 +18,7 @@ import task from '../model/task';
 import * as bus from '../service/bus';
 import { updateJudge } from '../service/monitor';
 import {
-    Connection, ConnectionHandler, Handler, post, Route, Types,
+    ConnectionHandler, Handler, post, Types,
 } from '../service/server';
 import { sleep } from '../utils';
 
@@ -101,7 +102,7 @@ export async function postJudge(rdoc: RecordDoc) {
                     status: STATUS.STATUS_ACCEPTED,
                     contest: { $ne: new ObjectID('0'.repeat(24)) },
                 }).project({ _id: 1, contest: 1 }).toArray();
-                const priority = await record.submissionPriority(rdoc.uid, -rdocs.length * 5 - 50);
+                const priority = await record.submissionPriority(rdoc.uid, -5000 - rdocs.length * 5 - 50);
                 await Promise.all(rdocs.map(
                     (r) => record.judge(rdoc.domainId, r._id, priority, r.contest ? { detail: false } : {}, { hackRejudge: input }),
                 ));
@@ -112,7 +113,7 @@ export async function postJudge(rdoc: RecordDoc) {
             }
         }
     }
-    await bus.serial('record/judge', rdoc, updated);
+    await bus.parallel('record/judge', rdoc, updated);
 }
 
 export async function end(body: Partial<JudgeResultBody>) {
@@ -209,7 +210,7 @@ class JudgeConnectionHandler extends ConnectionHandler {
     }
 
     async message(msg) {
-        if (msg.key !== 'ping' && msg.key !== 'prio') logger[['status', 'next'].includes(msg.key) ? 'debug' : 'info']('%o', msg);
+        if (msg.key !== 'ping' && msg.key !== 'prio') logger[['status', 'next'].includes(msg.key) ? 'debug' : 'info']('%o', omit(msg, 'key'));
         if (msg.key === 'next') await next(msg);
         else if (msg.key === 'end') {
             if (!msg.nop) await end({ judger: this.user._id, ...msg }).catch((e) => logger.error(e));
@@ -233,13 +234,11 @@ class JudgeConnectionHandler extends ConnectionHandler {
     }
 }
 
-export async function apply() {
-    Route('judge_files_download', '/judge/files', JudgeFilesDownloadHandler, builtin.PRIV.PRIV_JUDGE);
-    Route('judge_submission_download', '/judge/code', SubmissionDataDownloadHandler, builtin.PRIV.PRIV_JUDGE);
-    Connection('judge_conn', '/judge/conn', JudgeConnectionHandler, builtin.PRIV.PRIV_JUDGE);
+export async function apply(ctx) {
+    ctx.Route('judge_files_download', '/judge/files', JudgeFilesDownloadHandler, builtin.PRIV.PRIV_JUDGE);
+    ctx.Route('judge_submission_download', '/judge/code', SubmissionDataDownloadHandler, builtin.PRIV.PRIV_JUDGE);
+    ctx.Connection('judge_conn', '/judge/conn', JudgeConnectionHandler, builtin.PRIV.PRIV_JUDGE);
 }
 
 apply.next = next;
 apply.end = end;
-
-global.Hydro.handler.judge = apply;
