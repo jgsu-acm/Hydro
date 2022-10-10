@@ -1,33 +1,36 @@
 import os from 'os';
 import { cli } from 'lscontests';
 import * as oicq from 'oicq';
-import { BaseService } from 'hydrooj';
-import { Logger } from 'hydrooj/src/logger';
-import * as builtin from 'hydrooj/src/model/builtin';
-import DomainModel from 'hydrooj/src/model/domain';
-import { ProblemModel } from 'hydrooj/src/model/problem';
-import * as system from 'hydrooj/src/model/system';
-import UserModel from 'hydrooj/src/model/user';
-import * as bus from 'hydrooj/src/service/bus';
+import {
+    Context, definePlugin, DomainModel, Logger, ProblemModel, Service, STATUS, SystemModel, UserModel,
+} from 'hydrooj';
 
 const logger = new Logger('oicq');
 
-declare module 'hydrooj/src/interface' {
+declare module 'hydrooj' {
     interface SystemKeys {
         'hydro-oicq.account': number;
-        'hydro-oicq.groupIds': string;
+        'hydro-oicq.groups': string;
         'hydro-oicq.platform': number;
         'hydro-oicq.datadir': string;
+    }
+
+    interface Context {
+        oicq?: OICQService;
     }
 }
 
 const emojis = ['(╯‵□′)╯︵┻━┻', '∑(っ°Д°;)っ', '(σﾟ∀ﾟ)σ..:*☆', '┗( ▔, ▔ )┛', '(*/ω＼*)', '（づ￣3￣）づ╭❤～'];
 
-class OICQService implements BaseService {
+class OICQService extends Service {
     public started = false;
 
     private client: oicq.Client;
     public groups: oicq.Group[];
+
+    constructor(ctx: Context) {
+        super(ctx, 'oicq', true);
+    }
 
     validGroup(groupID: number) {
         const ids = this.groups.map((group) => group.group_id);
@@ -36,17 +39,17 @@ class OICQService implements BaseService {
 
     async start() {
         try {
-            const account = system.get('hydro-oicq.account');
+            const account = SystemModel.get('hydro-oicq.account');
             if (!account) throw Error('no account');
-            const rawGroupIds = system.get('hydro-oicq.groups');
+            const rawGroupIds = SystemModel.get('hydro-oicq.groups');
             if (!rawGroupIds) throw Error('no groups string');
             const groupIds = rawGroupIds
                 .split(',')
                 .map((s: string) => s.trim())
                 .map((s: string) => parseInt(s, 10));
             if (groupIds.length === 0) throw Error('no group found');
-            const platform = system.get('hydro-oicq.platform') || 1;
-            const datadir = system.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
+            const platform = SystemModel.get('hydro-oicq.platform') || 1;
+            const datadir = SystemModel.get('hydro-oicq.datadir') || `${os.homedir}/.hydro/oicq`;
 
             this.client = oicq.createClient(account, { data_dir: datadir, platform });
             this.client.on('system.login.slider', function f() {
@@ -118,61 +121,61 @@ class OICQService implements BaseService {
     }
 }
 
-const service = new OICQService();
-global.Hydro.service.oicq = service;
-declare module 'hydrooj/src/interface' {
-    interface Service {
-        oicq: typeof service
+export function apply(ctx: Context) {
+    ctx.plugin(OICQService);
+    const url = SystemModel.get('server.url');
+    const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
+
+    async function getName(uid: number) {
+        return (await DomainModel.getDomainUser('system', { _id: uid })).displayName || (await UserModel.getById('system', uid)).uname;
     }
+
+    ctx.on('record/judge', async (rdoc, updated) => {
+        if (rdoc.domainId !== 'system') return;
+        if (!updated || rdoc.status !== STATUS.STATUS_ACCEPTED) return;
+        const messages: string[] = [];
+        const { pid, uid, domainId } = rdoc;
+        const pdoc = await ProblemModel.get(domainId, pid);
+        if (pdoc.hidden || pdoc.owner === rdoc.uid) return;
+        const name = await getName(uid);
+        messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
+        await Promise.all(ctx.oicq.groups.map((group) => ctx.oicq.sendMsg(group, messages, prefix ? `${prefix}/p/${pdoc.pid || pdoc.docId}` : null)));
+    });
+
+    ctx.on('contest/add', async (tdoc, docId) => {
+        if (tdoc.domainId !== 'system') return;
+        const messages: string[] = [];
+        const name = await getName(tdoc.owner);
+        let _url: string;
+        if (tdoc.rule === 'homework') {
+            messages.push(`${name} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
+            messages.push(`结束时间：${tdoc.endAt}`);
+            _url = prefix ? `${prefix}/homework/${docId}` : null;
+        } else {
+            messages.push(`${name} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
+            messages.push(`开始时间：${tdoc.beginAt}`);
+            messages.push(`结束时间：${tdoc.endAt}`);
+            messages.push(`赛制：${tdoc.rule}`);
+            _url = prefix ? `${prefix}/contest/${docId}` : null;
+        }
+        await Promise.all(ctx.oicq.groups.map((group) => ctx.oicq.sendMsg(group, messages, _url)));
+    });
+
+    ctx.on('discussion/add', async (ddoc) => {
+        if (ddoc.domainId !== 'system') return;
+        const messages: string[] = [];
+        const name = await getName(ddoc.owner);
+        messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
+        await Promise.all(
+            ctx.oicq.groups.map(
+                (group) =>
+                    ctx.oicq.sendMsg(group, messages, prefix ? `${prefix}/discuss/${ddoc.docId}` : null),
+            ),
+        );
+    });
 }
 
-const url = system.get('server.url');
-const prefix = url.endsWith('/') ? url.slice(0, -1) : url;
-
-async function getName(uid: number) {
-    return (await DomainModel.getDomainUser('system', { _id: uid })).displayName || (await UserModel.getById('system', uid)).uname;
-}
-
-bus.on('record/judge', async (rdoc, updated) => {
-    if (rdoc.domainId !== 'system') return;
-    if (!updated || rdoc.status !== builtin.STATUS.STATUS_ACCEPTED) return;
-    const messages: string[] = [];
-    const { pid, uid, domainId } = rdoc;
-    const pdoc = await ProblemModel.get(domainId, pid);
-    if (pdoc.hidden || pdoc.owner === rdoc.uid) return;
-    const name = await getName(uid);
-    messages.push(`${name} 刚刚 AC 了 ${pdoc.pid} ${pdoc.title}，orz！`);
-    await Promise.all(service.groups.map((group) => service.sendMsg(group, messages, prefix ? `${prefix}/p/${pdoc.pid || pdoc.docId}` : null)));
-});
-
-bus.on('contest/add', async (tdoc, docId) => {
-    if (tdoc.domainId !== 'system') return;
-    const messages: string[] = [];
-    const name = await getName(tdoc.owner);
-    let _url: string;
-    if (tdoc.rule === 'homework') {
-        messages.push(`${name} 刚刚创建了作业：${tdoc.title}，快去完成吧~~~`);
-        messages.push(`结束时间：${tdoc.endAt}`);
-        _url = prefix ? `${prefix}/homework/${docId}` : null;
-    } else {
-        messages.push(`${name} 刚刚创建了比赛：${tdoc.title}，快去报名吧~~~`);
-        messages.push(`开始时间：${tdoc.beginAt}`);
-        messages.push(`结束时间：${tdoc.endAt}`);
-        messages.push(`赛制：${tdoc.rule}`);
-        _url = prefix ? `${prefix}/contest/${docId}` : null;
-    }
-    await Promise.all(service.groups.map((group) => service.sendMsg(group, messages, _url)));
-});
-
-bus.on('discussion/add', async (ddoc) => {
-    if (ddoc.domainId !== 'system') return;
-    const messages: string[] = [];
-    const name = await getName(ddoc.owner);
-    messages.push(`${name} 刚刚创建了讨论：${ddoc.title}，快去看看吧~~~`);
-    await Promise.all(
-        service.groups.map(
-            (group) =>
-                service.sendMsg(group, messages, prefix ? `${prefix}/discuss/${ddoc.docId}#${ddoc.updateAt.getTime()}` : null),
-        ),
-    );
+export default definePlugin({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    apply(ctx) { },
 });
