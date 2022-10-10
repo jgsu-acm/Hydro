@@ -8,6 +8,7 @@ env:
   YARN_ENABLE_IMMUTABLE_INSTALLS: false
   ALI_REGISTRY: registry.cn-hangzhou.aliyuncs.com
   TENCENT_REGISTRY: hkccr.ccs.tencentyun.com
+  HK_TENCENT_REGISTRY: hkccr.ccs.tencentyun.com
 
 jobs:
   build-and-push-image:
@@ -31,7 +32,14 @@ jobs:
           registry: ${{ env.TENCENT_REGISTRY }}
           username: "100003179408"
           password: ${{ secrets.TENCENT_DOCKER }}
-
+      
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.HK_TENCENT_REGISTRY }}
+          username: "100003179408"
+          password: ${{ secrets.TENCENT_DOCKER }}
+      
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
@@ -55,14 +63,14 @@ jobs:
         id: b_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, zxilly/hydro_backend
+          images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, ${{ env.HK_TENCENT_REGISTRY }}/hydro/backend, zxilly/hydro_backend
           tags: latest
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, zxilly/hydro_judge
+          images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, ${{ env.HK_TENCENT_REGISTRY }}/hydro/backend, zxilly/hydro_judge
           tags: latest
           
 
