@@ -8,15 +8,15 @@ services:
     volumes:
       - ./data/test/mongo:/data/db
 
-  oj-elastic:
-    image: elasticsearch:8.2.0
-    container_name: oj-elastic-test
-    restart: always
-    volumes:
-      - esdata_test:/usr/share/elasticsearch/data
-    environment:
-      - discovery.type=single-node
-      - ES_SETTING_XPACK_SECURITY_ENABLED=false
+  # oj-elastic:
+  #   image: elasticsearch:8.2.0
+  #   container_name: oj-elastic-test
+  #   restart: always
+  #   volumes:
+  #     - esdata_test:/usr/share/elasticsearch/data
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_SETTING_XPACK_SECURITY_ENABLED=false
 
   oj-backend:
     build:

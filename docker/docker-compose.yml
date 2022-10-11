@@ -9,15 +9,15 @@ services:
       - ./data/mongo:/data/db
       - ./data/backup:/dump
 
-  oj-elastic:
-    image: elasticsearch:8.2.0
-    container_name: oj-elastic
-    restart: always
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    environment:
-      - discovery.type=single-node
-      - ES_SETTING_XPACK_SECURITY_ENABLED=false
+  # oj-elastic:
+  #   image: elasticsearch:8.2.0
+  #   container_name: oj-elastic
+  #   restart: always
+  #   volumes:
+  #     - esdata:/usr/share/elasticsearch/data
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ES_SETTING_XPACK_SECURITY_ENABLED=false
 
   oj-backend:
     image: hkccr.ccs.tencentyun.com/hydro/backend
