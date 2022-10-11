@@ -12,7 +12,8 @@
         "VisualStudioExptTeam.intellicode-api-usage-examples",
         "mhutchie.git-graph",
         "donjayamanne.githistory",
-        "eamodio.gitlens"
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker"
     ],
     "forwardPorts": [
         2333,
