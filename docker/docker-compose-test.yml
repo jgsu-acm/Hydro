@@ -26,7 +26,7 @@ services:
     restart: always
     depends_on:
       - oj-mongo
-      - oj-elastic
+      # - oj-elastic
     volumes:
       - ./config/backend:/root/.hydro
       - ./data/file:/data/file
@@ -47,5 +47,5 @@ services:
     volumes:
       - ./config/judge:/root/.config/hydro
 
-volumes:
-  esdata_test:
+# volumes:
+#   esdata_test:
