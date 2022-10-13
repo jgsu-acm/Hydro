@@ -1,0 +1,11 @@
+{
+    "name": "hydro-api",
+    "version": "0.1.0",
+    "main": "index.ts",
+    "author": "Zxilly <zxilly@outlook.com>",
+    "license": "GPL-3.0",
+    "preferUnplugged": true,
+    "peerDependencies": {
+        "hydrooj": "*"
+    }
+}
