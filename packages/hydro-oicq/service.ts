@@ -131,6 +131,8 @@ export function apply(ctx: Context) {
     }
 
     ctx.on('record/judge', async (rdoc, updated) => {
+        const flag = SystemModel.get('hydro-oicq.ac');
+        if (flag === false) return;
         if (rdoc.domainId !== 'system') return;
         if (!updated || rdoc.status !== STATUS.STATUS_ACCEPTED) return;
         const messages: string[] = [];
@@ -143,6 +145,8 @@ export function apply(ctx: Context) {
     });
 
     ctx.on('contest/add', async (tdoc, docId) => {
+        const flag = SystemModel.get('hydro-oicq.create_contest');
+        if (flag === false) return;
         if (tdoc.domainId !== 'system') return;
         const messages: string[] = [];
         const name = await getName(tdoc.owner);
@@ -162,6 +166,8 @@ export function apply(ctx: Context) {
     });
 
     ctx.on('discussion/add', async (ddoc) => {
+        const flag = SystemModel.get('hydro-oicq.create_discussion');
+        if (flag === false) return;
         if (ddoc.domainId !== 'system') return;
         const messages: string[] = [];
         const name = await getName(ddoc.owner);

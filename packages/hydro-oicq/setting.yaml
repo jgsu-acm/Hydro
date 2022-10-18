@@ -8,3 +8,12 @@ datadir:
 platform:
   type: number
   value: 1
+ac:
+  type: boolean
+  value: true
+create_contest:
+  type: boolean
+  value: true
+create_discussion:
+  type: boolean
+  value: true
