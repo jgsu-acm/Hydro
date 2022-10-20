@@ -161,6 +161,20 @@ class LanguageHandler extends ResourceHandler {
   }
 }
 
+class SWConfigHandler extends ResourceHandler {
+  async get() {
+    this.response.body = {
+      preload: SystemModel.get('ui-default.preload'),
+      hosts: [
+        `http://${this.request.host}`,
+        `https://${this.request.host}`,
+        SystemModel.get('server.url'),
+        SystemModel.get('server.cdn'),
+      ],
+    };
+  }
+}
+
 class SystemConfigSchemaHandler extends Handler {
   async get() {
     const schema = convert(Schema.intersect(SystemSettings) as any, true);
@@ -227,6 +241,7 @@ export function apply(ctx: Context) {
   ctx.Route('markdown', '/markdown', MarkdownHandler);
   ctx.Route('config_schema', '/manage/config/schema.json', SystemConfigSchemaHandler, PRIV.PRIV_EDIT_SYSTEM);
   ctx.Route('lang', '/l/:lang', LanguageHandler);
+  ctx.Route('sw_config', '/sw-config', SWConfigHandler);
   ctx.Route('media', '/media', RichMediaHandler);
   ctx.on('app/started', buildUI);
   ctx.on('app/started', updateLogo);
