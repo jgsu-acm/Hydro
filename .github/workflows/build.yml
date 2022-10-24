@@ -67,7 +67,7 @@ jobs:
           parallel --tty -j+0 yarn ::: lint:ci build test
         fi
     - name: Upload Build UI Artifact
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v3.1.1
       with: 
         name: UI
         path: packages/ui-default/
