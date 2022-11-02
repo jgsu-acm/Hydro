@@ -1,3 +1,4 @@
+git config --global --add safe.directory /workspace
 yarn install
 npx hydrooj cli system set server.port 2333
 npx hydrooj cli system set hydro-elastic.host elastic
