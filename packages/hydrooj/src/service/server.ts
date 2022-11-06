@@ -8,7 +8,7 @@ import Compress from 'koa-compress';
 import proxy from 'koa-proxies';
 import cache from 'koa-static-cache';
 import WebSocket from 'ws';
-import { parseMemoryMB } from '@hydrooj/utils/lib/utils';
+import { Counter, isClass, parseMemoryMB } from '@hydrooj/utils/lib/utils';
 import { Context, Service } from '../context';
 import {
     HydroError, InvalidOperationError, MethodNotAllowedError,
@@ -386,26 +386,59 @@ class NotFoundHandler extends Handler {
     all() { }
 }
 
-class RouteService extends Service {
-    static readonly methods = ['Route', 'Connection'];
+export class RouteService extends Service {
+    static readonly methods = ['Route', 'Connection', 'withHandlerClass'];
+    private registry = {};
+    private registrationCount = Counter();
+
     constructor(ctx) {
         super(ctx, 'server', true);
     }
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    Route(...args: Parameters<typeof Route>) {
-        const res = Route(...args);
-        this.caller?.on('dispose', () => res());
+    private register(func: typeof Route | typeof Connection, ...args: Parameters<typeof Route>) {
+        const HandlerClass = args[2];
+        const name = HandlerClass.name;
+        if (!isClass(HandlerClass)) throw new Error('Invalid registration.');
+        if (this.registrationCount[name] && this.registry[name] !== HandlerClass) {
+            logger.warn('Route with name %s already exists.', name);
+        }
+        this.registry[name] = HandlerClass;
+        this.registrationCount[name]++;
+        const res = func(...args);
+        this.ctx.parallel(`handler/register/${name}`, HandlerClass);
+        this.caller?.on('dispose', () => {
+            this.registrationCount[name]--;
+            if (!this.registrationCount[name]) delete this.registry[name];
+            res();
+        });
+    }
+
+    public withHandlerClass(name: string, callback: (HandlerClass: typeof HandlerCommon) => any) {
+        if (this.registry[name]) callback(this.registry[name]);
+        this.ctx.on(`handler/register/${name}`, callback);
+        this.caller?.on('dispose', () => {
+            this.ctx.off(`handler/register/${name}`, callback);
+        });
     }
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    Connection(...args: Parameters<typeof Connection>) {
-        const res = Connection(...args);
-        this.caller?.on('dispose', () => res());
+    public Route(...args: Parameters<typeof Route>) {
+        this.register(Route, ...args);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    public Connection(...args: Parameters<typeof Connection>) {
+        this.register(Connection, ...args);
     }
 }
 
-export async function apply(pluginContext) {
+declare module '../context' {
+    interface Context {
+        server: RouteService;
+    }
+}
+
+export async function apply(pluginContext: Context) {
     Context.service('server', RouteService);
     pluginContext.server = new RouteService(pluginContext);
     app.keys = system.get('session.keys') as unknown as string[];
@@ -490,6 +523,7 @@ global.Hydro.service.server = {
     wsServer,
     router,
     captureAllRoutes,
+    RouteService,
     HandlerCommon,
     Handler,
     ConnectionHandler,

@@ -3,8 +3,6 @@ import { ValidationError } from '../error';
 const RE_UID = /^-?\d+$/i;
 const RE_DOMAINID = /^[a-zA-Z][a-zA-Z0-9_]{3,31}$/i;
 const RE_PID = /^[a-zA-Z]+[a-zA-Z0-9]*$/i;
-const RE_UNAME = /^[A-Za-z0-9_]{4,16}$/;
-const RE_ROLE = /^[_0-9A-Za-z]{1,256}$/i;
 // Ref to RFC 5322 Official Standard
 // eslint-disable-next-line no-control-regex,max-len
 const RE_MAIL = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])/;
@@ -12,6 +10,7 @@ const RE_JGSU_MAIL = /@jgsu.edu.cn$/;
 // A strong password must be alphanumeric with at least 1 special character, and length in [8,16]
 const RE_STRONG_PASSWORD = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/;
 const RE_DISPLAYNAME = /\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}/;
+const RE_ROLE = /^[_0-9A-Za-z]{1,31}$/i;
 
 export const isTitle = (s) => typeof s === 'string' && s.trim().length && s.trim().length < 64;
 export const checkTitle = (s) => { if (!(s?.trim()?.length && s.trim().length < 64)) throw new ValidationError('title'); else return s; };
@@ -19,8 +18,6 @@ export const isDomainId = (s) => RE_DOMAINID.test(s);
 export const checkDomainId = (s) => { if (!isDomainId(s)) throw new ValidationError('domainId'); else return s; };
 export const isUid = (s) => RE_UID.test(s);
 export const checkUid = (s) => { if (!isUid(s)) throw new ValidationError('uid'); else return s; };
-export const isUname = (s) => RE_UNAME.test(s);
-export const checkUname = (s) => { if (!isUname(s)) throw new ValidationError('uname'); else return s; };
 export const isRole = (s) => RE_ROLE.test(s);
 export const checkRole = (s) => { if (!isRole(s)) throw new ValidationError('role'); else return s; };
 export const isPassword = (s) => RE_STRONG_PASSWORD.test(s);
@@ -46,8 +43,6 @@ global.Hydro.lib.validator = {
     checkDomainId,
     isUid,
     checkUid,
-    isUname,
-    checkUname,
     isRole,
     checkRole,
     isPassword,
