@@ -2965,8 +2965,6 @@ __metadata:
 "@hydrooj/import-qduoj@workspace:packages/import-qduoj":
   version: 0.0.0-use.local
   resolution: "@hydrooj/import-qduoj@workspace:packages/import-qduoj"
-  dependencies:
-    decode-html: ^2.0.0
   languageName: unknown
   linkType: soft
 
