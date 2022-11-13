@@ -15,6 +15,9 @@
         "eamodio.gitlens",
         "ms-azuretools.vscode-docker"
     ],
+    "features": {
+        "git": "latest"
+    },
     "forwardPorts": [
         2333,
         8000,
