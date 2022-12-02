@@ -3,8 +3,7 @@ import { FilterQuery, ObjectID } from 'mongodb';
 import { ProblemNotFoundError, ValidationError } from '../error';
 import { Tdoc, TrainingDoc } from '../interface';
 import paginate from '../lib/paginate';
-import { PERM, PRIV } from '../model/builtin';
-import * as builtin from '../model/builtin';
+import { PERM, PRIV, STATUS } from '../model/builtin';
 import problem from '../model/problem';
 import * as system from '../model/system';
 import * as training from '../model/training';
@@ -91,25 +90,38 @@ class TrainingMainHandler extends Handler {
 
 class TrainingDetailHandler extends Handler {
     @param('tid', Types.ObjectID)
-    async get(domainId: string, tid: ObjectID) {
+    @param('uid', Types.PositiveInt, true)
+    async get(domainId: string, tid: ObjectID, uid: number) {
         const tdoc = await training.get(domainId, tid);
         await bus.parallel('training/get', tdoc, this);
+        let targetUser = this.user._id;
+        let enrollUsers: number[] = [];
+        let shouldCompare = false;
         const pids = training.getPids(tdoc.dag);
+        if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
+            enrollUsers = (await training.getMultiStatus(domainId, { docId: tid, uid: { $gt: 1 } })
+                .project({ uid: 1 }).limit(500).toArray()).map((x) => +x.uid);
+            if (uid) {
+                targetUser = uid;
+                shouldCompare = targetUser !== this.user._id;
+            }
+        }
         const canViewHidden = this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_HIDDEN) || this.user._id;
-        const [owner, pdict] = await Promise.all([
+        const [udoc, udict, pdict, psdict, selfPsdict] = await Promise.all([
             user.getById(domainId, tdoc.owner),
+            user.getListForRender(domainId, enrollUsers),
             problem.getList(domainId, pids, canViewHidden, true),
+            problem.getListStatus(domainId, targetUser, pids),
+            shouldCompare ? problem.getListStatus(domainId, this.user._id, pids) : {},
         ]);
-        const psdict = await problem.getListStatus(domainId, this.user._id, pids);
         const donePids = new Set<number>();
         const progPids = new Set<number>();
         for (const pid in psdict) {
             if (!+pid) continue;
             const psdoc = psdict[pid];
             if (psdoc.status) {
-                if (psdoc.status === builtin.STATUS.STATUS_ACCEPTED) {
-                    donePids.add(parseInt(pid, 10));
-                } else progPids.add(parseInt(pid, 10));
+                if (psdoc.status === STATUS.STATUS_ACCEPTED) donePids.add(+pid);
+                else progPids.add(+pid);
             }
         }
         const nsdict = {};
@@ -134,10 +146,11 @@ class TrainingDetailHandler extends Handler {
             donePids: Array.from(donePids),
             done: doneNids.size === tdoc.dag.length,
         });
-        this.response.template = 'training_detail.html';
         this.response.body = {
-            tdoc, tsdoc, pids, pdict, psdict, ndict, nsdict, owner,
+            tdoc, tsdoc, pids, pdict, psdict, ndict, nsdict, udoc, udict, selfPsdict,
         };
+        this.response.pjax = 'partials/training_detail.html';
+        this.response.template = 'training_detail.html';
     }
 
     @param('tid', Types.ObjectID)

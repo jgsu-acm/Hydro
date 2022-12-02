@@ -6,9 +6,8 @@ import { ObjectID } from 'mongodb';
 import { Counter, sortFiles, Time } from '@hydrooj/utils/lib/utils';
 import {
     BadRequestError, ContestNotEndedError, ContestNotFoundError, ContestNotLiveError,
-    ContestScoreboardHiddenError,
-    ForbiddenError, InvalidTokenError, PermissionError,
-    ValidationError,
+    ContestScoreboardHiddenError, FileLimitExceededError, FileUploadError, InvalidTokenError,
+    NotAssignedError, PermissionError, ValidationError,
 } from '../error';
 import { Tdoc } from '../interface';
 import paginate from '../lib/paginate';
@@ -101,7 +100,7 @@ export class ContestDetailBaseHandler extends Handler {
         if (this.tdoc.assign?.length && !this.user.own(this.tdoc)) {
             const groups = await user.listGroup(domainId, this.user._id);
             if (!Set.intersection(this.tdoc.assign, groups.map((i) => i.name)).size) {
-                throw new ForbiddenError('You are not assigned.');
+                throw new NotAssignedError('contest', tid);
             }
         }
         if (this.tdoc.duration && this.tsdoc?.startAt) {
@@ -191,7 +190,7 @@ export class ContestDetailHandler extends ContestDetailBaseHandler {
     @param('code', Types.String, true)
     async postAttend(domainId: string, tid: ObjectID, code = '') {
         if (contest.isDone(this.tdoc)) throw new ContestNotLiveError(tid);
-        if (this.tdoc._code && code !== this.tdoc._code) throw new InvalidTokenError(code);
+        if (this.tdoc._code && code !== this.tdoc._code) throw new InvalidTokenError('Contest Invitation', code);
         await contest.attend(domainId, tid, this.user._id);
         this.back();
     }
@@ -233,6 +232,7 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
     @param('tid', Types.ObjectID)
     @param('ext', Types.Range(['csv', 'html', 'ghost']), true)
     async get(domainId: string, tid: ObjectID, ext = '') {
+        if (!contest.canShowScoreboard.call(this, this.tdoc, true)) throw new ContestScoreboardHiddenError(tid);
         if (ext) {
             await this.exportScoreboard(domainId, tid, ext);
             return;
@@ -249,8 +249,7 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
     }
 
     async exportGhost(domainId: string, tid: ObjectID) {
-        const tdoc = await contest.get(domainId, tid);
-        if (!contest.canShowScoreboard.call(this, tdoc)) throw new ContestScoreboardHiddenError(tid);
+        const tdoc = this.tdoc;
         const [pdict, teams] = await Promise.all([
             problem.getList(domainId, tdoc.pids, true, false, undefined, true),
             contest.getMultiStatus(domainId, { docId: tid }).toArray(),
@@ -451,27 +450,17 @@ export class ContestCodeHandler extends Handler {
 
 export class ContestFilesHandler extends ContestDetailBaseHandler {
     @param('tid', Types.ObjectID)
-    @param('pjax', Types.Boolean)
-    async get(domainId: string, tid: ObjectID, pjax = false) {
+    async get(domainId: string, tid: ObjectID) {
         if (!this.user.own(this.tdoc)) this.checkPerm(PERM.PERM_EDIT_CONTEST);
-        const body = {
+        this.response.body = {
             tdoc: this.tdoc,
             tsdoc: this.tsdoc,
             owner_udoc: await user.getById(domainId, this.tdoc.owner),
             files: sortFiles(this.tdoc.files || []),
             urlForFile: (filename: string) => this.url('contest_file_download', { tid, filename }),
         };
-        if (pjax) {
-            this.response.body = {
-                fragments: (await Promise.all([
-                    this.renderHTML('partials/files.html', body),
-                ])).map((i) => ({ html: i })),
-            };
-            this.response.template = '';
-        } else {
-            this.response.template = 'contest_files.html';
-            this.response.body = body;
-        }
+        this.response.pjax = 'partials/files.html';
+        this.response.template = 'contest_files.html';
     }
 
     @param('tid', Types.ObjectID)
@@ -484,21 +473,21 @@ export class ContestFilesHandler extends ContestDetailBaseHandler {
     @post('filename', Types.Name, true)
     async postUploadFile(domainId: string, tid: ObjectID, filename: string) {
         if ((this.tdoc.files?.length || 0) >= system.get('limit.contest_files')) {
-            throw new ForbiddenError('File limit exceeded.');
+            throw new FileLimitExceededError('count');
         }
         const file = this.request.files?.file;
         if (!file) throw new ValidationError('file');
         const f = statSync(file.filepath);
         const size = Math.sum((this.tdoc.files || []).map((i) => i.size)) + f.size;
         if (size >= system.get('limit.contest_files_size')) {
-            throw new ForbiddenError('File size limit exceeded.');
+            throw new FileLimitExceededError('size');
         }
         if (!filename) filename = file.originalFilename || String.random(16);
         if (filename.includes('/') || filename.includes('..')) throw new ValidationError('filename', null, 'Bad filename');
         await storage.put(`contest/${domainId}/${tid}/${filename}`, file.filepath, this.user._id);
         const meta = await storage.getMeta(`contest/${domainId}/${tid}/${filename}`);
         const payload = { name: filename, ...pick(meta, ['size', 'lastModified', 'etag']) };
-        if (!meta) throw new Error('Upload failed');
+        if (!meta) throw new FileUploadError();
         await contest.edit(domainId, tid, { files: [...(this.tdoc.files || []), payload] });
         this.back();
     }
@@ -538,8 +527,8 @@ export async function apply(ctx) {
     ctx.Route('contest_detail', '/contest/:tid', ContestDetailHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_broadcast', '/contest/:tid/broadcast', ContestBroadcastHandler);
     ctx.Route('contest_edit', '/contest/:tid/edit', ContestEditHandler, PERM.PERM_VIEW_CONTEST);
-    ctx.Route('contest_scoreboard', '/contest/:tid/scoreboard', ContestScoreboardHandler, PERM.PERM_VIEW_CONTEST);
-    ctx.Route('contest_scoreboard_download', '/contest/:tid/export/:ext', ContestScoreboardHandler, PERM.PERM_VIEW_CONTEST);
+    ctx.Route('contest_scoreboard', '/contest/:tid/scoreboard', ContestScoreboardHandler, PERM.PERM_VIEW_CONTEST_SCOREBOARD);
+    ctx.Route('contest_scoreboard_download', '/contest/:tid/export/:ext', ContestScoreboardHandler, PERM.PERM_VIEW_CONTEST_SCOREBOARD);
     ctx.Route('contest_code', '/contest/:tid/code', ContestCodeHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_files', '/contest/:tid/file', ContestFilesHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_file_download', '/contest/:tid/file/:filename', ContestFileDownloadHandler, PERM.PERM_VIEW_CONTEST);

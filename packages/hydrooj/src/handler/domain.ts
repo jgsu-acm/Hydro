@@ -3,8 +3,8 @@ import { Dictionary } from 'lodash';
 import moment from 'moment-timezone';
 import { Context } from '../context';
 import {
-    DomainJoinAlreadyMemberError, DomainJoinForbiddenError, ForbiddenError,
-    InvalidJoinInvitationCodeError, PermissionError, RoleAlreadyExistError, ValidationError,
+    CannotDeleteSystemDomainError, DomainJoinAlreadyMemberError, DomainJoinForbiddenError,
+    InvalidJoinInvitationCodeError, OnlyOwnerCanDeleteDomainError, PermissionError, RoleAlreadyExistError, ValidationError,
 } from '../error';
 import type { DomainDoc } from '../interface';
 import avatar from '../lib/avatar';
@@ -102,8 +102,8 @@ class DomainEditHandler extends ManageHandler {
 
     @requireSudo
     async postDelete({ domainId }) {
-        if (domainId === 'system') throw new ForbiddenError('You are not allowed to delete system domain');
-        if (this.domain.owner !== this.user._id) throw new ForbiddenError('You are not the owner of this domain.');
+        if (domainId === 'system') throw new CannotDeleteSystemDomainError();
+        if (this.domain.owner !== this.user._id) throw new OnlyOwnerCanDeleteDomainError();
         await domain.del(domainId);
         this.response.redirect = this.url('home_domain', { domainId: 'system' });
     }
@@ -131,6 +131,7 @@ class DomainDashboardHandler extends ManageHandler {
 }
 
 class DomainUserHandler extends ManageHandler {
+    @requireSudo
     async get({ domainId }) {
         const rudocs = {};
         const [dudocs, roles] = await Promise.all([
@@ -156,6 +157,7 @@ class DomainUserHandler extends ManageHandler {
         };
     }
 
+    @requireSudo
     @post('uid', Types.Int)
     @post('role', Types.Name)
     async postSetUser(domainId: string, uid: number, role: string) {
@@ -166,6 +168,7 @@ class DomainUserHandler extends ManageHandler {
         this.back();
     }
 
+    @requireSudo
     @param('uid', Types.NumericArray)
     @param('role', Types.Name)
     async postSetUsers(domainId: string, uid: number[], role: string) {
@@ -178,6 +181,7 @@ class DomainUserHandler extends ManageHandler {
 }
 
 class DomainPermissionHandler extends ManageHandler {
+    @requireSudo
     async get({ domainId }) {
         const roles = await domain.getRoles(domainId);
         this.response.template = 'domain_permission.html';
@@ -186,6 +190,7 @@ class DomainPermissionHandler extends ManageHandler {
         };
     }
 
+    @requireSudo
     async post({ domainId }) {
         const roles = {};
         delete this.request.body.csrfToken;
@@ -202,6 +207,7 @@ class DomainPermissionHandler extends ManageHandler {
 }
 
 class DomainRoleHandler extends ManageHandler {
+    @requireSudo
     async get({ domainId }) {
         const roles = await domain.getRoles(domainId, true);
         this.response.template = 'domain_role.html';
@@ -218,6 +224,7 @@ class DomainRoleHandler extends ManageHandler {
         this.back();
     }
 
+    @requireSudo
     @param('roles', Types.Array)
     async postDelete(domainId: string, roles: string[]) {
         if (Set.intersection(roles, ['root', 'default', 'guest']).size > 0) {
@@ -239,9 +246,11 @@ class DomainJoinApplicationsHandler extends ManageHandler {
             delete this.response.body.expirations[domain.JOIN_EXPIRATION_KEEP_CURRENT];
         }
         this.response.body.url_prefix = (this.domain.host || [])[0] || system.get('server.url');
+        if (!this.response.body.url_prefix.endsWith('/')) this.response.body.url_prefix += '/';
         this.response.template = 'domain_join_applications.html';
     }
 
+    @requireSudo
     @post('method', Types.Range([domain.JOIN_METHOD_NONE, domain.JOIN_METHOD_ALL, domain.JOIN_METHOD_CODE]))
     @post('role', Types.Name, true)
     @post('expire', Types.Int, true)

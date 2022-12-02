@@ -4,7 +4,7 @@ import * as yaml from 'js-yaml';
 import Schema from 'schemastery';
 import * as check from '../check';
 import {
-    BadRequestError, ForbiddenError, UserNotFoundError, ValidationError,
+    CannotEditSuperAdminError, NotLaunchedByPM2Error, UserNotFoundError, ValidationError,
 } from '../error';
 import { isEmail, isPassword } from '../lib/validator';
 import { Logger } from '../logger';
@@ -86,7 +86,7 @@ class SystemDashboardHandler extends SystemHandler {
     }
 
     async postRestart() {
-        if (!process.env.pm_cwd) throw new BadRequestError('Not launched by pm2');
+        if (!process.env.pm_cwd) throw new NotLaunchedByPM2Error();
         exec(`pm2 reload "${process.env.name}"`);
         this.back();
     }
@@ -209,6 +209,7 @@ class SystemConfigHandler extends SystemHandler {
     }
 }
 
+/* eslint-disable no-await-in-loop */
 class SystemUserImportHandler extends SystemHandler {
     async get() {
         this.response.body.users = [];
@@ -219,49 +220,62 @@ class SystemUserImportHandler extends SystemHandler {
     @param('draft', Types.Boolean)
     async post(domainId: string, _users: string, draft: boolean) {
         const users = _users.split('\n');
-        const udocs = [];
+        const udocs: { email: string, username: string, password: string, displayName?: string, payload?: any }[] = [];
         const messages = [];
+        const mapping = {};
+        const groups: Record<string, string[]> = {};
         for (const i in users) {
             const u = users[i];
             if (!u.trim()) continue;
-            let [email, username, password, displayName] = u.split(',').map((t) => t.trim());
-            if (!email || !username || !password) [email, username, password, displayName] = u.split('\t').map((t) => t.trim());
+            let [email, username, password, displayName, extra] = u.split(',').map((t) => t.trim());
+            if (!email || !username || !password) [email, username, password, displayName, extra] = u.split('\t').map((t) => t.trim());
             if (email && username && password) {
                 if (!isEmail(email)) messages.push(`Line ${+i + 1}: Invalid email.`);
                 else if (!Types.Username[1](username)) messages.push(`Line ${+i + 1}: Invalid username`);
                 else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
-                // eslint-disable-next-line no-await-in-loop
                 else if (await user.getByEmail('system', email)) {
                     messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
-                    // eslint-disable-next-line no-await-in-loop
                 } else if (await user.getByUname('system', username)) {
                     messages.push(`Line ${+i + 1}: Username ${username} already exists.`);
                 } else {
+                    const payload: any = {};
+                    try {
+                        const data = JSON.parse(extra);
+                        if (data.group) {
+                            if (!groups[data.group]) groups[data.group] = [];
+                            groups[data.group].push(email);
+                        }
+                        if (data.school) payload.school = data.school;
+                    } catch (e) { }
                     udocs.push({
-                        email, username, password, displayName,
+                        email, username, password, displayName, payload,
                     });
                 }
             } else messages.push(`Line ${+i + 1}: Input invalid.`);
         }
         messages.push(`${udocs.length} users found.`);
         if (!draft) {
-            for (const {
-                email, username, password, displayName,
-            } of udocs) {
+            for (const udoc of udocs) {
                 try {
-                    // eslint-disable-next-line no-await-in-loop
-                    const uid = await user.create(email, username, password);
-                    // eslint-disable-next-line no-await-in-loop
-                    if (displayName) await domain.setUserInDomain(domainId, uid, { displayName });
+                    const uid = await user.create(udoc.email, udoc.username, udoc.password);
+                    mapping[udoc.email] = uid;
+                    if (udoc.displayName) await domain.setUserInDomain(domainId, uid, { displayName: udoc.displayName });
+                    if (udoc.payload?.school) await user.setById(uid, { school: udoc.payload.school });
+                    if (udoc.payload?.studentId) await user.setById(uid, { studentId: udoc.payload.studentId });
                 } catch (e) {
                     messages.push(e.message);
                 }
             }
         }
+        for (const name in groups) {
+            const uids = groups[name].map((i) => mapping[i]).filter((i) => i);
+            if (uids.length) await user.updateGroup(domainId, name, uids);
+        }
         this.response.body.users = udocs;
         this.response.body.messages = messages;
     }
 }
+/* eslint-enable no-await-in-loop */
 
 const Priv = Object.fromEntries(Object.entries(PRIV).filter(
     (i) => (!i[0].endsWith('SELF') && !['PRIV_DEFAULT', 'PRIV_NEVER', 'PRIV_NONE', 'PRIV_ALL'].includes(i[0])),
@@ -270,7 +284,7 @@ const allPriv = Math.sum(Object.values(Priv));
 
 class SystemUserPrivHandler extends SystemHandler {
     @requireSudo
-    async get({ pjax }) {
+    async get() {
         const defaultPriv = system.get('default.priv');
         const udocs = await user.getMulti({ _id: { $gte: -1000, $ne: 1 }, priv: { $nin: [0, defaultPriv] } }).limit(1000).sort({ _id: 1 }).toArray();
         const banudocs = await user.getMulti({ _id: { $gte: -1000, $ne: 1 }, priv: 0 }).limit(1000).sort({ _id: 1 }).toArray();
@@ -279,10 +293,8 @@ class SystemUserPrivHandler extends SystemHandler {
             defaultPriv,
             Priv,
         };
-        if (pjax) {
-            const html = await this.renderHTML('partials/manage_user_priv.html', this.response.body);
-            this.response.body = { fragments: [{ html }] };
-        } else this.response.template = 'manage_user_priv.html';
+        this.response.pjax = 'partials/manage_user_priv.html';
+        this.response.template = 'manage_user_priv.html';
     }
 
     @requireSudo
@@ -293,7 +305,7 @@ class SystemUserPrivHandler extends SystemHandler {
         if (!editSystem) {
             const udoc = await user.getById(domainId, uid);
             if (!udoc) throw new UserNotFoundError(uid);
-            if (udoc.priv === -1 || priv === -1 || priv === allPriv) throw new ForbiddenError('you can not edit user as SU in web.');
+            if (udoc.priv === -1 || priv === -1 || priv === allPriv) throw new CannotEditSuperAdminError();
             await user.setPriv(uid, priv);
         } else {
             const defaultPriv = system.get('default.priv');

@@ -6,8 +6,8 @@ import {
     ContestScoreboardHiddenError, ValidationError,
 } from '../error';
 import {
-    ContestRule, ContestRules, ProblemDict,
-    ScoreboardNode, ScoreboardRow, Tdoc, Udict,
+    BaseUserDict, ContestRule, ContestRules, ProblemDict,
+    ScoreboardNode, ScoreboardRow, Tdoc,
 } from '../interface';
 import ranked from '../lib/rank';
 import * as bus from '../service/bus';
@@ -178,7 +178,7 @@ const acm = buildContestRule({
     async scoreboard(isExport, _, tdoc, pdict, cursor) {
         const rankedTsdocs = await ranked(cursor, (a, b) => a.score === b.score && a.time === b.time);
         const uids = rankedTsdocs.map(([, tsdoc]) => tsdoc.uid);
-        const udict = await user.getList(tdoc.domainId, uids);
+        const udict = await user.getListForRender(tdoc.domainId, uids);
         // Find first accept
         const first = {};
         const data = await document.collStatus.aggregate([
@@ -309,7 +309,7 @@ const oi = buildContestRule({
     async scoreboard(isExport, _, tdoc, pdict, cursor) {
         const rankedTsdocs = await ranked(cursor, (a, b) => a.score === b.score);
         const uids = rankedTsdocs.map(([, tsdoc]) => tsdoc.uid);
-        const udict = await user.getList(tdoc.domainId, uids);
+        const udict = await user.getListForRender(tdoc.domainId, uids);
         const psdict = {};
         const first = {};
         await Promise.all(tdoc.pids.map(async (pid) => {
@@ -491,7 +491,7 @@ const homework = buildContestRule({
     async scoreboard(isExport, _, tdoc, pdict, cursor) {
         const rankedTsdocs = await ranked(cursor, (a, b) => a.score === b.score);
         const uids = rankedTsdocs.map(([, tsdoc]) => tsdoc.uid);
-        const udict = await user.getList(tdoc.domainId, uids);
+        const udict = await user.getListForRender(tdoc.domainId, uids);
         const columns = await this.scoreboardHeader(isExport, _, tdoc, pdict);
         const rows: ScoreboardRow[] = [
             columns,
@@ -722,7 +722,7 @@ export function canShowScoreboard(tdoc: Tdoc<30>, allowPermOverride = true) {
 
 export async function getScoreboard(
     this: Handler, domainId: string, tid: ObjectID, isExport = false,
-): Promise<[Tdoc<30>, ScoreboardRow[], Udict, ProblemDict]> {
+): Promise<[Tdoc<30>, ScoreboardRow[], BaseUserDict, ProblemDict]> {
     const tdoc = await get(domainId, tid);
     if (!canShowScoreboard.call(this, tdoc)) throw new ContestScoreboardHiddenError(tid);
     const tsdocsCursor = getMultiStatus(domainId, { docId: tid }).sort(RULES[tdoc.rule].statusSort);

@@ -21,7 +21,11 @@ export default (logger) => async (ctx: KoaContext, next) => {
             response.body.url = response.redirect;
         }
         if (!response.type) {
-            if (
+            if (response.pjax && args.pjax) {
+                const html = await ctx.renderHTML(response.pjax, response.body);
+                response.body = { fragments: [{ html }] };
+                response.type = 'application/json';
+            } else if (
                 request.json || response.redirect
                 || request.query.noTemplate || !response.template) {
                 // Send raw data

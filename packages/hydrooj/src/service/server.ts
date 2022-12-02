@@ -54,15 +54,19 @@ export interface HydroRequest {
     websocket: boolean;
 }
 export interface HydroResponse {
-    body: any,
-    type: string,
-    status: number,
-    template?: string,
-    redirect?: string,
-    disposition?: string,
-    etag?: string,
-    attachment: (name: string, stream?: any) => void,
-    addHeader: (name: string, value: string) => void,
+    body: any;
+    type: string;
+    status: number;
+    template?: string;
+    /** If set, and pjax content was request from client,
+     *  The template will be used for rendering.
+     */
+    pjax?: string;
+    redirect?: string;
+    disposition?: string;
+    etag?: string;
+    attachment: (name: string, stream?: any) => void;
+    addHeader: (name: string, value: string) => void;
 }
 interface HydroContext {
     request: HydroRequest;
@@ -453,18 +457,15 @@ export async function apply(pluginContext: Context) {
         rewrite: (p) => p.replace('/fs', ''),
     });
     app.use(async (ctx, next) => {
+        for (const key in captureAllRoutes) {
+            if (ctx.path.startsWith(key)) return captureAllRoutes[key](ctx, next);
+        }
         if (!ctx.path.startsWith('/fs/')) return await next();
         if (ctx.request.search.toLowerCase().includes('x-amz-credential')) return await proxyMiddleware(ctx, next);
         ctx.request.path = ctx.path = ctx.path.split('/fs')[1];
         return await next();
     });
     app.use(Compress());
-    app.use(async (ctx, next) => {
-        for (const key in captureAllRoutes) {
-            if (ctx.path.startsWith(key)) return captureAllRoutes[key](ctx, next);
-        }
-        return next();
-    });
     for (const addon of [...global.addons].reverse()) {
         const dir = resolve(addon, 'public');
         if (!fs.existsSync(dir)) continue;

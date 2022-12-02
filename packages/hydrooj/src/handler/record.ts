@@ -1,7 +1,7 @@
 import { omit, pick, throttle } from 'lodash';
 import { FilterQuery, ObjectID } from 'mongodb';
 import {
-    ContestNotAttendedError, ContestNotFoundError, ForbiddenError, PermissionError,
+    ContestNotAttendedError, ContestNotFoundError, HackRejudgeFailedError, PermissionError,
     ProblemNotFoundError, RecordNotFoundError, UserNotFoundError,
 } from '../error';
 import { RecordDoc, Tdoc } from '../interface';
@@ -133,7 +133,7 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
         const lang = langs[this.rdoc.lang]?.pretest || this.rdoc.lang;
         this.response.body = this.rdoc.code;
         this.response.type = 'text/plain';
-        this.response.disposition = `attachment; filename="${langs[lang].code_file || `foo.${this.rdoc.lang}`}"`;
+        this.response.disposition = `attachment; filename="${langs[lang]?.code_file || `foo.${this.rdoc.lang}`}"`;
     }
 
     @param('rid', Types.ObjectID)
@@ -170,8 +170,8 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
             if (this.tdoc.allowViewCode && contest.isDone(this.tdoc)) {
                 canViewCode ||= tsdoc?.attend;
             }
-            if (!tsdoc.attend && !problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
-        } else if (!problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
+            if (!tsdoc?.attend && !problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
+        } else if (pdoc && !problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
         if (!canViewCode) {
             rdoc.code = '';
             rdoc.files = {};
@@ -186,7 +186,7 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
     @param('rid', Types.ObjectID)
     async post() {
         this.checkPerm(PERM.PERM_REJUDGE);
-        if (this.rdoc.files?.hack) throw new ForbiddenError('Cannot rejudge a hack record.');
+        if (this.rdoc.files?.hack) throw new HackRejudgeFailedError();
     }
 
     @param('rid', Types.ObjectID)
@@ -345,7 +345,7 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
             if (!problem.canViewBy(pdoc, this.user)) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_HIDDEN);
         }
 
-        this.throttleSend = throttle(this.sendUpdate, 1000);
+        this.throttleSend = throttle(this.sendUpdate, 1000, { trailing: true });
         this.rid = rid.toString();
         this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
         this.onRecordChange(rdoc);
@@ -368,9 +368,9 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
         // TODO: frontend doesn't support incremental update
         // if ($set) this.send({ $set, $push });
         if (![STATUS.STATUS_WAITING, STATUS.STATUS_JUDGING, STATUS.STATUS_COMPILING, STATUS.STATUS_FETCHED].includes(rdoc.status)) {
-            this.sendUpdate(rdoc);
             this.disconnectTimeout = setTimeout(() => this.close(4001, 'Ended'), 30000);
-        } else this.throttleSend(rdoc);
+        }
+        this.throttleSend(rdoc);
     }
 }
 
