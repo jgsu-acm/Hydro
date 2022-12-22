@@ -4,12 +4,10 @@ import { InfoDialog } from 'vj/components/dialog';
 import VjNotification from 'vj/components/notification/index';
 import { FLAG_ALERT } from 'vj/constant/message';
 import { AutoloadPage } from 'vj/misc/Page';
-import i18n from 'vj/utils/i18n';
-import tpl from 'vj/utils/tpl';
+import { i18n, tpl } from 'vj/utils';
 
 const onmessage = (msg) => {
   console.log('Received message', msg);
-  if (document.hidden) return false;
   if (msg.mdoc.flag & FLAG_ALERT) {
     // Is alert
     new InfoDialog({
@@ -22,6 +20,7 @@ const onmessage = (msg) => {
     }).open();
     return true;
   }
+  if (document.hidden) return false;
   // Is message
   new VjNotification({
     ...(msg.udoc._id === 1 && msg.mdoc.flag & 4)

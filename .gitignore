@@ -26,6 +26,8 @@ globalConfig.json
 # Config Files
 /config.yaml
 /config.json
+yarn.lock
+pnpm-lock.yaml
 tsconfig.json
 tsconfig.*.json
 
