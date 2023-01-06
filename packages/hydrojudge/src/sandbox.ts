@@ -40,8 +40,6 @@ interface Parameter {
     env?: Record<string, string>;
     /** redirect stdin & stdout */
     filename?: string;
-    /** In megabytes */
-    stdioLimit?: number;
 }
 
 interface SandboxAdaptedResult {
@@ -74,14 +72,18 @@ function proc(params: Parameter): Cmd {
     const copyOut = supportOptional
         ? params.copyOut
         : (params.copyOut || []).map((i) => (i.endsWith('?') ? i.substring(0, i.length - 1) : i));
-    const size = params.stdioLimit || params.cacheStdoutAndStderr ? parseMemoryMB(getConfig('stdio_size')) : 4;
-    const rate = getConfig('rate');
+    const stdioLimit = parseMemoryMB(getConfig('stdio_size'));
+    const stdioSize = params.cacheStdoutAndStderr ? stdioLimit : 4;
     const copyOutCached = [...(params.copyOutCached || [])];
-    if (params.cacheStdoutAndStderr) copyOutCached.push(params.filename ? `${params.filename}.out?` : 'stdout', 'stderr');
+    if (params.cacheStdoutAndStderr) {
+        copyOutCached.push('stdout', 'stderr');
+        if (params.filename) copyOutCached.push(`${params.filename}.out?`);
+    }
     const copyIn = { ...(params.copyIn || {}) };
     const stdin = params.stdin || { content: '' };
     if (params.filename) copyIn[`${params.filename}.in`] = stdin;
     const time = params.time || 16000;
+    const cpuLimit = Math.floor(time * 1000 * 1000 * getConfig('rate'));
     const memory = params.memory || parseMemoryMB(getConfig('memoryMax'));
     return {
         args: parseArgs(params.execute || ''),
@@ -91,16 +93,16 @@ function proc(params: Parameter): Cmd {
         ],
         files: [
             params.filename ? { content: '' } : stdin,
-            { name: 'stdout', max: Math.floor(1024 * 1024 * size) },
-            { name: 'stderr', max: Math.floor(1024 * 1024 * size) },
+            { name: 'stdout', max: Math.floor(1024 * 1024 * stdioSize) },
+            { name: 'stderr', max: Math.floor(1024 * 1024 * stdioSize) },
         ],
-        cpuLimit: Math.floor(time * 1000 * 1000 * rate),
-        clockLimit: Math.floor(time * 3000 * 1000 * rate),
+        cpuLimit,
+        clockLimit: 3 * cpuLimit,
         memoryLimit: Math.floor(memory * 1024 * 1024),
         strictMemoryLimit: getConfig('strict_memory'),
         // stackLimit: memory * 1024 * 1024,
         procLimit: params.processLimit || getConfig('processLimit'),
-        copyOutMax: Math.floor(1024 * 1024 * size * 3),
+        copyOutMax: Math.floor(1024 * 1024 * stdioLimit * 3),
         copyIn,
         copyOut,
         copyOutCached,

@@ -17,7 +17,7 @@ import { PERM, STATUS } from './builtin';
 import * as document from './document';
 import problem from './problem';
 import RecordModel from './record';
-import user from './user';
+import user, { User } from './user';
 
 interface AcmJournal {
     rid: ObjectID;
@@ -33,19 +33,19 @@ interface AcmDetail extends AcmJournal {
     real: number;
 }
 
-function buildContestRule<T>(def: ContestRule<T>): ContestRule<T> {
-    const _originalRule = {
-        scoreboard: def.scoreboard,
-        scoreboardRow: def.scoreboardRow,
-        scoreboardHeader: def.scoreboardHeader,
-        stat: def.stat,
-    };
-    def.scoreboard = (def._originalRule?.scoreboard || def.scoreboard).bind(def);
-    def.scoreboardHeader = (def._originalRule?.scoreboardHeader || def.scoreboardHeader).bind(def);
-    def.scoreboardRow = (def._originalRule?.scoreboardRow || def.scoreboardRow).bind(def);
-    def.stat = (def._originalRule?.stat || def.stat).bind(def);
-    def._originalRule = _originalRule;
-    return def;
+function buildContestRule<T>(def: ContestRule<T>): ContestRule<T>;
+function buildContestRule<T>(def: Partial<ContestRule<T>>, baseRule: ContestRule<T>): ContestRule<T>;
+function buildContestRule<T>(def: Partial<ContestRule<T>>, baseRule: ContestRule<T> = {} as any) {
+    const base = baseRule._originalRule || {};
+    const funcs = ['scoreboard', 'scoreboardRow', 'scoreboardHeader', 'stat'];
+    const f = {};
+    const rule = { ...baseRule, ...def };
+    for (const key of funcs) {
+        f[key] = def[key] || base[key];
+        rule[key] = f[key].bind(rule);
+    }
+    rule._originalRule = f;
+    return rule;
 }
 
 const acm = buildContestRule({
@@ -349,13 +349,12 @@ const oi = buildContestRule({
 });
 
 const ioi = buildContestRule({
-    ...oi,
     TEXT: 'IOI',
     submitAfterAccept: false,
     showRecord: (tdoc, now) => now > tdoc.endAt,
     showSelfRecord: () => true,
     showScoreboard: (tdoc, now) => now > tdoc.beginAt,
-});
+}, oi);
 
 const homework = buildContestRule({
     TEXT: 'Assignment',
@@ -708,24 +707,24 @@ export async function unlockScoreboard(domainId: string, tid: ObjectID) {
     await edit(domainId, tid, { unlocked: true });
 }
 
-export function canViewHiddenScoreboard(tdoc: Tdoc<30>) {
+export function canViewHiddenScoreboard(this: { user: User }, tdoc: Tdoc<30>) {
     if (tdoc.rule === 'homework') return this.user.hasPerm(PERM.PERM_VIEW_HOMEWORK_HIDDEN_SCOREBOARD);
     return this.user.hasPerm(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
 }
 
-export function canShowRecord(tdoc: Tdoc<30>, allowPermOverride = true) {
+export function canShowRecord(this: { user: User }, tdoc: Tdoc<30>, allowPermOverride = true) {
     if (RULES[tdoc.rule].showRecord(tdoc, new Date())) return true;
     if (allowPermOverride && canViewHiddenScoreboard.call(this, tdoc)) return true;
     return false;
 }
 
-export function canShowSelfRecord(tdoc: Tdoc<30>, allowPermOverride = true) {
+export function canShowSelfRecord(this: { user: User }, tdoc: Tdoc<30>, allowPermOverride = true) {
     if (RULES[tdoc.rule].showSelfRecord(tdoc, new Date())) return true;
     if (allowPermOverride && canViewHiddenScoreboard.call(this, tdoc)) return true;
     return false;
 }
 
-export function canShowScoreboard(tdoc: Tdoc<30>, allowPermOverride = true) {
+export function canShowScoreboard(this: { user: User }, tdoc: Tdoc<30>, allowPermOverride = true) {
     if (RULES[tdoc.rule].showScoreboard(tdoc, new Date())) return true;
     if (allowPermOverride && canViewHiddenScoreboard.call(this, tdoc)) return true;
     return false;
