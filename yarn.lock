@@ -3892,6 +3892,7 @@ __metadata:
     prism-themes: ^1.9.0
     prismjs: ^1.29.0
     prop-types: ^15.8.1
+    qface: ^1.3.0
     qrcode: ^1.5.1
     queue-microtask: ^1.2.3
     react: ^18.2.0
@@ -13196,13 +13197,13 @@ __metadata:
   linkType: hard
 
 "json5@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "json5@npm:1.0.1"
+  version: 1.0.2
+  resolution: "json5@npm:1.0.2"
   dependencies:
     minimist: ^1.2.0
   bin:
     json5: lib/cli.js
-  checksum: e76ea23dbb8fc1348c143da628134a98adf4c5a4e8ea2adaa74a80c455fc2cdf0e2e13e6398ef819bfe92306b610ebb2002668ed9fc1af386d593691ef346fc3
+  checksum: 866458a8c58a95a49bef3adba929c625e82532bcff1fe93f01d29cb02cac7c3fe1f4b79951b7792c2da9de0b32871a8401a6e3c5b36778ad852bf5b8a61165d7
   languageName: node
   linkType: hard
 
@@ -16620,6 +16621,13 @@ __metadata:
   peerDependencies:
     puppeteer: "*"
   checksum: 840ac225267436ef4517aa6e14f90aec87f52fc30db58a62b0d38f55777cab3b20e136b7cf7e51a8237ff9d3663717287820aef1e2b25ce2297092aa85bc7288
+  languageName: node
+  linkType: hard
+
+"qface@npm:^1.3.0":
+  version: 1.3.0
+  resolution: "qface@npm:1.3.0"
+  checksum: 6990deedea920922bbb4340539b68785b7aa9a361d4e6e54f2e9745e9f18f19be237982f1e6cd5286595803914c2bd8a751bae869078591efdfc887651890a10
   languageName: node
   linkType: hard
 
