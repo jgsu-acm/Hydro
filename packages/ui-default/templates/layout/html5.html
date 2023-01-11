@@ -32,7 +32,7 @@
       --code-font-family: "{{ UserContext.codeFontFamily }}", "monaco", "Source Code Pro", "Consolas", "Lucida Console", "monospace";
       --font-ligatures: {{ "normal" if UserContext.codeFontLigatures else "none" }} !important;
     }
-    {% if not isIE(handler.request.headers['user-agent']) %}
+    {% if not isIE(handler.request.headers['user-agent']) and not handler.session.legacy %}
       #panel { display: flex; flex-direction: column; }
     {% endif %}
   </style>
@@ -41,7 +41,7 @@
   {% else %}
     <link rel="stylesheet" media="all" href="{{ UiContext.cdn_prefix }}default-{{ global.Hydro.version['ui-default'] }}.theme.css">
   {% endif %}
-  {% if not isIE(handler.request.headers['user-agent']) %}
+  {% if not isIE(handler.request.headers['user-agent']) and not handler.session.legacy %}
     <script>
       var _htmlNode = document.documentElement;
       _htmlNode.className = _htmlNode.className.replace(' nojs', ' hasjs');
@@ -58,7 +58,7 @@
 </head>
 <body>
   {% block body %}{% endblock %}
-  {% if not isIE(handler.request.headers['user-agent']) %}
+  {% if not isIE(handler.request.headers['user-agent']) and not handler.session.legacy %}
     <script>
       var UiContext = '{{ UiContext|json|jsesc|safe }}';
       var UserContext = '{{ UserContext|json|jsesc|safe }}';
