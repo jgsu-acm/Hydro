@@ -1,7 +1,7 @@
 FROM stagoh/jgsuoj-judge-base
 WORKDIR /root
 ADD docker/modify.js modify.js
-ADD LICENSE-AGPL3.txt LICENSE
+ADD LICENSE LICENSE
 ADD packages packages
 RUN node modify.js hydrooj hydrojudge && \
     prefix="file:/root/packages" && \
