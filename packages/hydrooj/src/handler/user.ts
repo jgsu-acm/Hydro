@@ -282,7 +282,7 @@ class UserRegisterWithCodeHandler extends Handler {
     @param('verifyPassword', Types.Password)
     @param('uname', Types.Username)
     @param('code', Types.String)
-    @param('displayName', Types.String, isDisplayName)
+    @param('displayName', Types.DisplayName)
     async post(
         domainId: string, password: string, verify: string,
         uname: string, code: string, displayName: string,

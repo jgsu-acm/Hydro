@@ -27,6 +27,7 @@ export interface Types {
     Title: Type<string>;
     Emoji: Type<string>;
     String: Type<string>;
+    DisplayName: Type<string>;
 
     // Number outputs
     Int: Type<number>;
@@ -88,6 +89,7 @@ export const Types: Types = {
     Role: saslprepString(/^[_0-9A-Za-z\u4e00-\u9fa5]{1,31}$/i),
     Title: basicString(/^.{1,64}$/),
     String: basicString(),
+    DisplayName: saslprepString(/\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}/),
 
     Int: [(v) => +v, (v) => /^[+-]?[0-9]+$/.test(v.toString().trim()) && isSafeInteger(+v)],
     UnsignedInt: [(v) => +v, (v) => /^(-0|\+?[0-9]+)$/.test(v.toString().trim()) && isSafeInteger(+v)],
