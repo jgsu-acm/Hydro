@@ -4,9 +4,8 @@ import { nanoid } from 'nanoid';
 import { ActionDialog, InfoDialog } from 'vj/components/dialog/index';
 import Notification from 'vj/components/notification';
 import { AutoloadPage } from 'vj/misc/Page';
-import {
-  i18n, pjax, request, tpl,
-} from 'vj/utils';
+import { i18n, request, tpl } from 'vj/utils';
+import uploadFiles from '../upload';
 
 async function startEdit(filename, value, fileCategory = 'file') {
   const { default: Editor } = await import('vj/components/editor/index');
@@ -106,7 +105,7 @@ async function previewOffice(link, src) {
   if (action === 'download') window.open(link);
 }
 
-export async function previewFile(ev, type = '') {
+export async function previewFile(ev?, type = '') {
   if (ev?.metaKey || ev?.ctrlKey || ev?.shiftKey) return null;
   if (ev) ev.preventDefault();
   const filename = ev
@@ -121,7 +120,7 @@ export async function previewFile(ev, type = '') {
   if (ev) {
     const link = $(ev.currentTarget).find('a').attr('href');
     if (!link) return null;
-    if (!type) type = ev.currentTarget.getAttribute('data-preview');
+    type ||= ev.currentTarget.getAttribute('data-preview');
     const ext = filename.split('.').pop();
     if (['zip', 'rar', '7z'].includes(ext) || filesize > 8 * 1024 * 1024) {
       const action = await new ActionDialog({
@@ -134,7 +133,7 @@ export async function previewFile(ev, type = '') {
     if (ext === 'pdf') return previewPDF(`${link}${link.includes('?') ? '&' : '?'}noDisposition=1`);
     Notification.info(i18n('Loading file...'));
     try {
-      const { url } = await request.get(link, {}, { headers: { 'Do-Not-Cache': 'on' } });
+      const { url } = await request.get(link, {}, { headers: { Pragma: 'no-cache' } });
       if (/^(doc|xls|ppt)x?$/.test(ext)) return previewOffice(link, url);
       content = await request.get(url, undefined, { dataType: 'text' });
     } catch (e) {
@@ -144,17 +143,17 @@ export async function previewFile(ev, type = '') {
   } else Notification.info(i18n('Loading editor...'));
   const val = await startEdit(filename, content, type || 'file');
   if (typeof val !== 'string') return null;
-  Notification.info(i18n('Saving file...'));
-  const data = new FormData();
-  data.append('filename', filename);
-  data.append('file', new Blob([val], { type: 'text/plain' }));
-  if (type) data.append('type', type);
-  data.append('operation', 'upload_file');
-  const postUrl = !window.location.href.endsWith('/files')
-    ? `${window.location.href.substring(0, window.location.href.lastIndexOf('/'))}/files` : '';
-  await request.postFile(postUrl, data);
-  Notification.success(i18n('File saved.'));
-  return pjax.request({ push: false });
+  const file = new File([val], filename, { type: 'text/plain' });
+  const endpoint = new URL(!window.location.href.endsWith('/files')
+    ? `${window.location.href.substring(0, window.location.href.lastIndexOf('/'))}/files` : '', window.location.href);
+  const sidebarType = type || $(ev.currentTarget).closest('[data-fragment-id]').data('type');
+  const sidebar = ev && $(ev.currentTarget).closest('[data-fragment-id]').data('sidebar') !== undefined;
+  await uploadFiles(endpoint.toString(), [file], {
+    type: sidebarType || type,
+    sidebar,
+    pjax: true,
+  });
+  return null;
 }
 
 const dataPreviewPage = new AutoloadPage('dataPreview', () => {

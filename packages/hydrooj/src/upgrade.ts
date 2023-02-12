@@ -513,6 +513,34 @@ const scripts: UpgradeScript[] = [
         await ScheduleModel.deleteMany({ subType: 'discussion.sort' });
         return true;
     },
+    async function _74_75() {
+        const list = {
+            READ_PRETEST_DATA: 1 << 5,
+            READ_PRETEST_DATA_SELF: 1 << 6,
+            DELETE_FILE_SELF: 1 << 19,
+        };
+        let defaultPriv = system.get('default.priv') as number;
+        for (const key in list) {
+            if (defaultPriv & list[key]) defaultPriv -= list[key];
+        }
+        await system.set('default.priv', defaultPriv);
+        for (const key in list) {
+            await user.coll.updateMany(
+                { priv: { $bitsAllSet: list[key] } },
+                { $inc: { priv: -list[key] } },
+            );
+        }
+        return true;
+    },
+    async function _75_76() {
+        const messages = await db.collection('message').find({ content: { $type: 'object' } }).toArray();
+        for (const m of messages) {
+            let content = '';
+            for (const key in m) content += m[key];
+            await db.collection('message').updateOne({ _id: m._id }, { $set: { content } });
+        }
+        return true;
+    },
 ];
 
 export default scripts;

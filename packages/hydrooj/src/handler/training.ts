@@ -15,7 +15,6 @@ import storage from '../model/storage';
 import * as system from '../model/system';
 import * as training from '../model/training';
 import user from '../model/user';
-import * as bus from '../service/bus';
 import {
     Handler, param, post, Types,
 } from '../service/server';
@@ -64,7 +63,7 @@ class TrainingMainHandler extends Handler {
     @param('page', Types.PositiveInt, true)
     async get(domainId: string, page = 1) {
         const query: FilterQuery<TrainingDoc> = {};
-        await bus.parallel('training/list', query, this);
+        await this.ctx.parallel('training/list', query, this);
         const [tdocs, tpcount] = await paginate(
             training.getMulti(domainId),
             page,
@@ -102,7 +101,7 @@ class TrainingDetailHandler extends Handler {
     @param('uid', Types.PositiveInt, true)
     async get(domainId: string, tid: ObjectID, uid: number) {
         const tdoc = await training.get(domainId, tid);
-        await bus.parallel('training/get', tdoc, this);
+        await this.ctx.parallel('training/get', tdoc, this);
         let targetUser = this.user._id;
         let enrollUsers: number[] = [];
         let shouldCompare = false;
@@ -256,7 +255,7 @@ export class TrainingFilesHandler extends Handler {
     }
 
     @param('tid', Types.ObjectID)
-    @post('filename', Types.Name, true)
+    @post('filename', Types.Filename, true)
     async postUploadFile(domainId: string, tid: ObjectID, filename: string) {
         if ((this.tdoc.files?.length || 0) >= system.get('limit.contest_files')) {
             throw new FileLimitExceededError('count');
@@ -268,8 +267,6 @@ export class TrainingFilesHandler extends Handler {
         if (size >= system.get('limit.contest_files_size')) {
             throw new FileLimitExceededError('size');
         }
-        filename ||= file.originalFilename || String.random(16);
-        if (filename.includes('/') || filename.includes('..')) throw new ValidationError('filename', null, 'Bad filename');
         await storage.put(`training/${domainId}/${tid}/${filename}`, file.filepath, this.user._id);
         const meta = await storage.getMeta(`training/${domainId}/${tid}/${filename}`);
         const payload = { _id: filename, name: filename, ...pick(meta, ['size', 'lastModified', 'etag']) };
@@ -279,7 +276,7 @@ export class TrainingFilesHandler extends Handler {
     }
 
     @param('tid', Types.ObjectID)
-    @post('files', Types.Array)
+    @post('files', Types.ArrayOf(Types.Filename))
     async postDeleteFiles(domainId: string, tid: ObjectID, files: string[]) {
         await Promise.all([
             storage.del(files.map((t) => `contest/${domainId}/${tid}/${t}`), this.user._id),
@@ -290,7 +287,7 @@ export class TrainingFilesHandler extends Handler {
 }
 export class TrainingFileDownloadHandler extends Handler {
     @param('tid', Types.ObjectID)
-    @param('filename', Types.Name)
+    @param('filename', Types.Filename)
     @param('noDisposition', Types.Boolean)
     async get(domainId: string, tid: ObjectID, filename: string, noDisposition = false) {
         this.response.addHeader('Cache-Control', 'public');

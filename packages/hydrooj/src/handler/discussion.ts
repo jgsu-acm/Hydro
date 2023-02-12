@@ -29,7 +29,7 @@ class DiscussionHandler extends Handler {
     drrdoc?: DiscussionTailReplyDoc;
     vnode?: any;
 
-    @param('type', Types.Name, true)
+    @param('type', Types.Range(Object.keys(typeMapper)), true)
     @param('name', Types.Name, true)
     @param('did', Types.ObjectID, true)
     @param('drid', Types.ObjectID, true)
@@ -94,7 +94,7 @@ class DiscussionMainHandler extends Handler {
 }
 
 class DiscussionNodeHandler extends DiscussionHandler {
-    @param('type', Types.Name)
+    @param('type', Types.Range(Object.keys(typeMapper)))
     @param('name', Types.Name)
     @param('page', Types.PositiveInt, true)
     async get(domainId: string, type: string, _name: string, page = 1) {
@@ -140,7 +140,7 @@ class DiscussionCreateHandler extends DiscussionHandler {
         this.response.body = { path, vnode: this.vnode };
     }
 
-    @param('type', Types.Name)
+    @param('type', Types.Range(Object.keys(typeMapper)))
     @param('title', Types.Title)
     @param('content', Types.Content)
     @param('highlight', Types.Boolean)
@@ -358,7 +358,7 @@ class DiscussionRawHandler extends DiscussionHandler {
     @param('drid', Types.ObjectID, true)
     @param('drrid', Types.ObjectID, true)
     @param('time', Types.UnsignedInt, true)
-    @param('all', Types.Boolean, true)
+    @param('all', Types.Boolean)
     async get(domainId: string, did: ObjectID, drid: ObjectID, drrid: ObjectID, ts: number, all = false) {
         if (all) {
             this.response.body.history = await discussion.getHistory(domainId, drrid || drid || did);

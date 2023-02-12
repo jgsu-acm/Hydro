@@ -17,6 +17,7 @@ import {
     UserFacingError,
 } from '../error';
 import { DomainDoc } from '../interface';
+import { Types } from '../lib/validator';
 import { Logger } from '../logger';
 import { PERM, PRIV } from '../model/builtin';
 import * as opcount from '../model/opcount';
@@ -35,6 +36,7 @@ import { Router } from './router';
 import { encodeRFC5987ValueChars } from './storage';
 
 export * from './decorators';
+export * from '../lib/validator';
 
 export interface HydroRequest {
     method: string;
@@ -96,6 +98,7 @@ export const router = new Router();
 export const httpServer = http.createServer(app.callback());
 export const wsServer = new WebSocket.Server({ server: httpServer });
 export const captureAllRoutes = {};
+app.proxy = !!system.get('server.xproxy') || !!system.get('server.xff');
 app.on('error', (error) => {
     if (error.code !== 'EPIPE' && error.code !== 'ECONNRESET' && !error.message.includes('Parse Error')) {
         logger.error('Koa app-level error', { error });
@@ -167,7 +170,7 @@ export class HandlerCommon {
 export class Handler extends HandlerCommon {
     loginMethods: any;
     noCheckPermView = false;
-    __param: Record<string, decorators.ParamOption[]>;
+    __param: Record<string, decorators.ParamOption<any>[]>;
 
     back(body?: any) {
         this.response.body = body || this.response.body || {};
@@ -196,7 +199,7 @@ export class Handler extends HandlerCommon {
     async onerror(error: HydroError) {
         error.msg ||= () => error.message;
         if (error instanceof UserFacingError && !process.env.DEV) error.stack = '';
-        if (!(error instanceof NotFoundError)) {
+        if (!(error instanceof NotFoundError) && !('nolog' in error)) {
             // eslint-disable-next-line max-len
             logger.error(`User: ${this.user._id}(${this.user.uname}) ${this.request.method}: /d/${this.domain._id}${this.request.path}`, error.msg(), error.params);
             if (error.stack) logger.error(error.stack);
@@ -371,17 +374,17 @@ export function Connection(
         await bus.parallel('connection/create', h);
         ctx.handler = h;
         h.conn = conn;
+        const disposables = [];
         try {
             checker.call(h);
             if (h._prepare) await h._prepare(args);
             if (h.prepare) await h.prepare(args);
-            if (h.message) {
-                conn.onmessage = (e) => {
-                    h.message(JSON.parse(e.data.toString()));
-                };
-            }
+            // eslint-disable-next-line @typescript-eslint/no-shadow
+            for (const { name, target } of h.__subscribe || []) disposables.push(bus.on(name, target.bind(h)));
+            conn.onmessage = (e) => h.message?.(JSON.parse(e.data.toString()));
             conn.onclose = () => {
                 bus.emit('connection/close', h);
+                disposables.forEach((d) => d());
                 h.cleanup?.(args);
             };
             await bus.parallel('connection/active', h);
@@ -459,7 +462,22 @@ export async function apply(pluginContext: Context) {
         changeOrigin: true,
         rewrite: (p) => p.replace('/fs', ''),
     });
+    const corsAllowHeaders = 'x-requested-with, accept, origin, content-type, upgrade-insecure-requests';
     app.use(async (ctx, next) => {
+        if (ctx.request.headers.origin) {
+            const host = new URL(ctx.request.headers.origin).host;
+            if (host !== ctx.request.headers.host && `,${system.get('server.cors')},`.includes(`,${host},`)) {
+                ctx.set('Access-Control-Allow-Credentials', 'true');
+                ctx.set('Access-Control-Allow-Origin', ctx.request.headers.origin);
+                ctx.set('Access-Control-Allow-Headers', corsAllowHeaders);
+                ctx.set('Vary', 'Origin');
+                ctx.cors = true;
+            }
+        }
+        if (ctx.request.method.toLowerCase() === 'options') {
+            ctx.body = 'ok';
+            return null;
+        }
         for (const key in captureAllRoutes) {
             if (ctx.path.startsWith(key)) return captureAllRoutes[key](ctx, next);
         }
@@ -540,6 +558,7 @@ ${ctx.response.status} ${endTime - startTime}ms ${ctx.response.length}`);
 
 global.Hydro.service.server = {
     ...decorators,
+    Types,
     app,
     httpServer,
     wsServer,

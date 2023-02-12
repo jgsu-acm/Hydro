@@ -1,12 +1,12 @@
 import { exec } from 'child_process';
 import { inspect } from 'util';
 import * as yaml from 'js-yaml';
+import { omit } from 'lodash';
 import Schema from 'schemastery';
 import * as check from '../check';
 import {
     CannotEditSuperAdminError, NotLaunchedByPM2Error, UserNotFoundError, ValidationError,
 } from '../error';
-import { isEmail, isPassword } from '../lib/validator';
 import { Logger } from '../logger';
 import { PRIV, STATUS } from '../model/builtin';
 import domain from '../model/domain';
@@ -14,7 +14,6 @@ import record from '../model/record';
 import * as setting from '../model/setting';
 import * as system from '../model/system';
 import user from '../model/user';
-import * as bus from '../service/bus';
 import {
     ConnectionHandler, Handler, param, requireSudo, Types,
 } from '../service/server';
@@ -176,7 +175,7 @@ class SystemSettingHandler extends SystemHandler {
             }
         }
         await Promise.all(tasks);
-        await bus.broadcast('system/setting', args);
+        this.ctx.broadcast('system/setting', args);
         this.back();
     }
 }
@@ -230,9 +229,9 @@ class SystemUserImportHandler extends SystemHandler {
             let [email, username, password, displayName, extra] = u.split(',').map((t) => t.trim());
             if (!email || !username || !password) [email, username, password, displayName, extra] = u.split('\t').map((t) => t.trim());
             if (email && username && password) {
-                if (!isEmail(email)) messages.push(`Line ${+i + 1}: Invalid email.`);
+                if (!Types.Email[1](email)) messages.push(`Line ${+i + 1}: Invalid email.`);
                 else if (!Types.Username[1](username)) messages.push(`Line ${+i + 1}: Invalid username`);
-                else if (!isPassword(password)) messages.push(`Line ${+i + 1}: Invalid password`);
+                else if (!Types.Password[1](password)) messages.push(`Line ${+i + 1}: Invalid password`);
                 else if (await user.getByEmail('system', email)) {
                     messages.push(`Line ${+i + 1}: Email ${email} already exists.`);
                 } else if (await user.getByUname('system', username)) {
@@ -277,9 +276,7 @@ class SystemUserImportHandler extends SystemHandler {
 }
 /* eslint-enable no-await-in-loop */
 
-const Priv = Object.fromEntries(Object.entries(PRIV).filter(
-    (i) => (!i[0].endsWith('SELF') && !['PRIV_DEFAULT', 'PRIV_NEVER', 'PRIV_NONE', 'PRIV_ALL'].includes(i[0])),
-));
+const Priv = omit(PRIV, ['PRIV_DEFAULT', 'PRIV_NEVER', 'PRIV_NONE', 'PRIV_ALL']);
 const allPriv = Math.sum(Object.values(Priv));
 
 class SystemUserPrivHandler extends SystemHandler {
@@ -300,7 +297,7 @@ class SystemUserPrivHandler extends SystemHandler {
     @requireSudo
     @param('uid', Types.Int)
     @param('priv', Types.UnsignedInt)
-    @param('system', Types.Boolean, true)
+    @param('system', Types.Boolean)
     async post(domainId: string, uid: number, priv: number, editSystem: boolean) {
         if (!editSystem) {
             const udoc = await user.getById(domainId, uid);
@@ -311,7 +308,7 @@ class SystemUserPrivHandler extends SystemHandler {
             const defaultPriv = system.get('default.priv');
             await user.coll.updateMany({ priv: defaultPriv }, { $set: { priv } });
             await system.set('default.priv', priv);
-            bus.broadcast('user/delcache', true);
+            this.ctx.broadcast('user/delcache', true);
         }
         this.back();
     }

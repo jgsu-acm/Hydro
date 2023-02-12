@@ -2,10 +2,12 @@
 import child from 'child_process';
 import os from 'os';
 import path from 'path';
+import readline from 'readline/promises';
 import cac from 'cac';
 import fs from 'fs-extra';
 import superagent from 'superagent';
 import tar from 'tar';
+import { size } from '@hydrooj/utils';
 
 const argv = cac().parse();
 let yarnVersion = 0;
@@ -60,7 +62,14 @@ if (!argv.args[0] || argv.args[0] === 'cli') {
     cli.command('db').action(() => {
         const dbConfig = fs.readFileSync(path.resolve(hydroPath, 'config.json'), 'utf-8');
         const url = buildUrl(JSON.parse(dbConfig));
-        child.spawn('mongo', [url], { stdio: 'inherit' });
+        try {
+            console.log('Detecting mongosh...');
+            const mongosh = child.execSync('mongosh --version').toString();
+            if (/\d+\.\d+\.\d+/.test(mongosh)) child.spawn('mongosh', [url], { stdio: 'inherit' });
+        } catch (e) {
+            console.log('Cannot run mongosh. Trying legacy mongo client...');
+            child.spawn('mongo', [url], { stdio: 'inherit' });
+        }
     });
     cli.command('backup').action(() => {
         const dbConfig = fs.readFileSync(path.resolve(hydroPath, 'config.json'), 'utf-8');
@@ -73,14 +82,22 @@ if (!argv.args[0] || argv.args[0] === 'cli') {
             exec('zip', ['-r', target, 'file'], { cwd: '/data', stdio: 'inherit' });
         }
         exec('rm', ['-rf', dir]);
-        console.log(`Database backup saved at ${target}`);
+        const stat = fs.statSync(target);
+        console.log(`Database backup saved at ${target} , size: ${size(stat.size)}`);
     });
-    cli.command('restore <filename>').action((filename) => {
+    cli.command('restore <filename>').action(async (filename) => {
         const dbConfig = fs.readFileSync(path.resolve(hydroPath, 'config.json'), 'utf-8');
         const url = buildUrl(JSON.parse(dbConfig));
         const dir = `${os.tmpdir()}/${Math.random().toString(36).substring(2)}`;
         if (!fs.existsSync(filename)) {
             console.error('Cannot find file');
+            return;
+        }
+        const rl = readline.createInterface(process.stdin, process.stdout);
+        const answer = await rl.question(`Overwrite current database with backup file ${filename}? [y/N]`);
+        rl.close();
+        if (answer.toLowerCase() !== 'y') {
+            console.log('Abort.');
             return;
         }
         exec('unzip', [filename, '-d', dir], { stdio: 'inherit' });

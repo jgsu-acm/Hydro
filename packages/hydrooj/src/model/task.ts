@@ -1,4 +1,5 @@
 import { hostname } from 'os';
+import cac from 'cac';
 import { FilterQuery, ObjectID } from 'mongodb';
 import { nanoid } from 'nanoid';
 import { sleep } from '@hydrooj/utils/lib/utils';
@@ -11,6 +12,7 @@ import db from '../service/db';
 const logger = new Logger('model/task');
 const coll = db.collection('task');
 const collEvent = db.collection('event');
+const argv = cac().parse();
 
 async function getFirst(query: FilterQuery<Task>) {
     if (process.env.CI) return null;
@@ -112,7 +114,6 @@ export async function apply(ctx: Context) {
     });
 
     if (process.env.NODE_APP_INSTANCE !== '0') return;
-    await collEvent.createIndex({ expire: 1 }, { expireAfterSeconds: 0 });
     const stream = collEvent.watch();
     const handleEvent = async (doc: EventDoc) => {
         const payload = JSON.parse(doc.payload);
@@ -131,13 +132,15 @@ export async function apply(ctx: Context) {
         while (true) {
             // eslint-disable-next-line no-await-in-loop
             const res = await collEvent.findOneAndUpdate(
-                { ack: { $nin: [id] } },
+                { expire: { $gt: new Date() }, ack: { $nin: [id] } },
                 { $push: { ack: id } },
             );
+            if (argv.options.showEvent) logger.info('Event: %o', res.value);
             // eslint-disable-next-line no-await-in-loop
             await (res.value ? handleEvent(res.value) : sleep(500));
         }
     });
+    await db.ensureIndexes(collEvent, { name: 'expire', key: { expire: 1 }, expireAfterSeconds: 0 });
     await db.ensureIndexes(coll, { name: 'task', key: { type: 1, subType: 1, priority: -1 } });
 }
 

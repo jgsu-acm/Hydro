@@ -1,63 +1,188 @@
-import { ValidationError } from '../error';
+import assert from 'assert';
+import emojiRegex from 'emoji-regex';
+import { isSafeInteger } from 'lodash';
+import moment from 'moment-timezone';
+import { ObjectID } from 'mongodb';
+import saslprep from 'saslprep';
 
-const RE_UID = /^-?\d+$/i;
-const RE_DOMAINID = /^[a-zA-Z][a-zA-Z0-9_]{3,31}$/i;
-const RE_PID = /^[a-zA-Z]+[a-zA-Z0-9]*$/i;
-// Ref to RFC 5322 Official Standard
-// eslint-disable-next-line no-control-regex,max-len
-const RE_MAIL = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])/;
-const RE_JGSU_MAIL = /@jgsu.edu.cn$/;
-// A strong password must be alphanumeric with at least 1 special character, and length in [8,16]
-const RE_STRONG_PASSWORD = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[^a-zA-Z0-9]).{8,16}$/;
-const RE_DISPLAYNAME = /\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}/;
-const RE_ROLE = /^[_0-9A-Za-z]{1,31}$/i;
+type InputType = string | number | Record<string, any> | any[];
+export type Converter<T> = (value: any) => T;
+export type Validator<Loose extends boolean = true> = (value: Loose extends true ? any : InputType) => boolean;
+export type Type<T> = readonly [Converter<T>, Validator<false>?, (boolean | 'convert')?];
 
-export const isTitle = (s) => typeof s === 'string' && s.trim().length && s.trim().length < 64;
-export const checkTitle = (s) => { if (!(s?.trim()?.length && s.trim().length < 64)) throw new ValidationError('title'); else return s; };
-export const isDomainId = (s) => RE_DOMAINID.test(s);
-export const checkDomainId = (s) => { if (!isDomainId(s)) throw new ValidationError('domainId'); else return s; };
-export const isUid = (s) => RE_UID.test(s);
-export const checkUid = (s) => { if (!isUid(s)) throw new ValidationError('uid'); else return s; };
-export const isRole = (s) => RE_ROLE.test(s);
-export const checkRole = (s) => { if (!isRole(s)) throw new ValidationError('role'); else return s; };
-export const isPassword = (s) => RE_STRONG_PASSWORD.test(s);
-export const checkPassword = (s) => { if (!(s && s.length >= 5)) throw new ValidationError('password'); else return s; };
-export const isEmail = (s) => RE_MAIL.test(s);
-export const isJGSUEmail = (s) => isEmail(s) && RE_JGSU_MAIL.test(s);
-export const checkEmail = (s) => { if (!RE_MAIL.test(s)) throw new ValidationError('mail'); else return s; };
-export const isContent = (s: any) => s && s.toString().trim().length < 65536;
-export const checkContent = (s) => { if (!(s && s.length < 65536)) throw new ValidationError('content'); else return s; };
-export const isPid = (s) => RE_PID.test(s.toString());
-export const checkPid = (s) => { if (!RE_PID.test(s)) throw new ValidationError('pid'); else return s; };
-export const isIntro = () => true;
-export const checkIntro = (s) => { if (!isIntro()) throw new ValidationError('intro'); else return s; };
-export const isDescription = (s: any) => s && s.length < 65536;
-export const checkDescription = (s) => { if (!(s && s.length < 65536)) throw new ValidationError('description'); else return s; };
-export const isDisplayName = (s: string) => RE_DISPLAYNAME.test(s);
-export const parsePid = (s) => (Number.isNaN(+s) ? s : `P${s}`);
+export interface Types {
+    // String outputs
+    Content: Type<string>;
+    Key: Type<string>;
+    /** @deprecated */
+    Name: Type<string>;
+    Username: Type<string>;
+    Password: Type<string>;
+    UidOrName: Type<string>;
+    Email: Type<string>;
+    Filename: Type<string>;
+    DomainId: Type<string>;
+    ProblemId: Type<string | number>;
+    Role: Type<string>;
+    Title: Type<string>;
+    Emoji: Type<string>;
+    String: Type<string>;
 
-global.Hydro.lib.validator = {
-    isTitle,
-    checkTitle,
-    isDomainId,
-    checkDomainId,
-    isUid,
-    checkUid,
-    isRole,
-    checkRole,
-    isPassword,
-    checkPassword,
-    isEmail,
-    checkEmail,
-    isContent,
-    checkContent,
-    isPid,
-    checkPid,
-    isIntro,
-    checkIntro,
-    isDescription,
-    checkDescription,
-    isJGSUEmail,
-    parsePid,
-    isDisplayName,
+    // Number outputs
+    Int: Type<number>;
+    UnsignedInt: Type<number>;
+    PositiveInt: Type<number>;
+    Float: Type<number>;
+
+    // Other
+    ObjectID: Type<ObjectID>;
+    Boolean: Type<boolean>;
+    Date: Type<string>;
+    Time: Type<string>;
+    Range: <T extends string | number>(range: Array<T> | Record<string, any>) => Type<T>;
+    /** @deprecated */
+    Array: Type<any[]>;
+    NumericArray: Type<number[]>;
+    CommaSeperatedArray: Type<string[]>;
+    Set: Type<Set<any>>;
+    Any: Type<any>;
+    ArrayOf: <T extends Type<any>>(type: T) => (T extends Type<infer R> ? Type<R[]> : never);
+    AnyOf: <T extends Type<any>>(...type: T[]) => (T extends Type<infer R> ? Type<R> : never);
+}
+
+const basicString = <T = string>(regex?: RegExp, cb?: (i: string) => boolean, convert?: (i: string) => T) => [
+    convert || ((v) => v.toString()),
+    (v) => {
+        const res = v.toString();
+        if (regex && !regex.test(res)) return false;
+        if (cb && !cb(res)) return false;
+        return !!res.length;
+    },
+] as [(v) => string, (v) => boolean];
+const saslprepString = <T = string>(regex?: RegExp, cb?: (i: string) => boolean, convert?: (i: string) => T) => [
+    convert || ((v) => saslprep(v.toString().trim())),
+    (v) => {
+        try {
+            const res = saslprep(v.toString().trim());
+            if (regex && !regex.test(res)) return false;
+            if (cb && !cb(res)) return false;
+            return !!res.length;
+        } catch (e) {
+            return false;
+        }
+    },
+] as [(v) => string, (v) => boolean];
+
+export const Types: Types = {
+    Content: [(v) => v.toString().trim(), (v) => v?.toString()?.trim() && v.toString().trim().length < 65536],
+    Key: saslprepString(/^[a-zA-Z0-9-_]+$/),
+    /** @deprecated */
+    Name: saslprepString(/^.{1,255}$/),
+    Filename: saslprepString(/^[^\\/?#~!|*]{1,255}$/, (i) => !['con', '.', '..'].includes(i)),
+    UidOrName: saslprepString(/^(.{3,31}|[\u4e00-\u9fa5]{2}|-?[0-9]+)$/),
+    Username: saslprepString(/^(.{3,31}|[\u4e00-\u9fa5]{2})$/),
+    Password: basicString(/^.{6,255}$/),
+    ProblemId: saslprepString(/^[a-zA-Z0-9]+$/i, () => true, (s) => (Number.isSafeInteger(+s) ? +s : s)),
+    Email: saslprepString(/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/i),
+    DomainId: saslprepString(/^[a-zA-Z][a-zA-Z0-9_]{3,31}$/),
+    Role: saslprepString(/^[_0-9A-Za-z\u4e00-\u9fa5]{1,31}$/i),
+    Title: basicString(/^.{1,64}$/),
+    String: basicString(),
+
+    Int: [(v) => +v, (v) => /^[+-]?[0-9]+$/.test(v.toString().trim()) && isSafeInteger(+v)],
+    UnsignedInt: [(v) => +v, (v) => /^(-0|\+?[0-9]+)$/.test(v.toString().trim()) && isSafeInteger(+v)],
+    PositiveInt: [(v) => +v, (v) => /^\+?[1-9][0-9]*$/.test(v.toString().trim()) && isSafeInteger(+v)],
+    Float: [(v) => +v, (v) => Number.isFinite(+v)],
+
+    ObjectID: [(v) => new ObjectID(v), ObjectID.isValid],
+    Boolean: [(v) => !!(v && !['false', 'off'].includes(v)), null, 'convert'],
+    Date: [
+        (v) => {
+            const d = v.split('-');
+            assert(d.length === 3);
+            return `${d[0]}-${d[1].length === 1 ? '0' : ''}${d[1]}-${d[2].length === 1 ? '0' : ''}${d[2]}`;
+        },
+        (v) => {
+            const d = v.toString().split('-');
+            if (d.length !== 3) return false;
+            const st = `${d[0]}-${d[1].length === 1 ? '0' : ''}${d[1]}-${d[2].length === 1 ? '0' : ''}${d[2]}`;
+            return moment(st).isValid();
+        },
+    ],
+    Time: [
+        (v) => {
+            const t = v.split(':');
+            assert(t.length === 2);
+            return `${(t[0].length === 1 ? '0' : '') + t[0]}:${t[1].length === 1 ? '0' : ''}${t[1]}`;
+        },
+        (v) => {
+            const t = v.toString().split(':');
+            if (t.length !== 2) return false;
+            return moment(`2020-01-01 ${(t[0].length === 1 ? '0' : '') + t[0]}:${t[1].length === 1 ? '0' : ''}${t[1]}`).isValid();
+        },
+    ],
+    Range: (range) => [
+        (v) => {
+            if (range instanceof Array) {
+                for (const item of range) {
+                    if (typeof item === 'number' && item === +v) return +v;
+                    if (item === v) return v;
+                }
+            }
+            return v;
+        },
+        (v) => {
+            if (range instanceof Array) {
+                for (const item of range) {
+                    if (typeof item === 'string' && item === v) return true;
+                    if (typeof item === 'number' && item === +v) return true;
+                }
+            } else {
+                for (const key in range) {
+                    if (key === v) return true;
+                }
+            }
+            return false;
+        },
+    ],
+    /** @deprecated suggested to use Types.ArrayOf instead. */
+    Array: [(v) => {
+        if (v instanceof Array) return v;
+        return v ? [v] : [];
+    }, null],
+    NumericArray: [(v) => {
+        if (v instanceof Array) return v.map(Number);
+        return v.split(',').map(Number);
+    }, (v) => {
+        if (v instanceof Array) return v.map(Number).every(Number.isSafeInteger);
+        return v.toString().split(',').map(Number).every(Number.isSafeInteger);
+    }],
+    CommaSeperatedArray: [
+        (v) => v.toString().replace(/，/g, ',').split(',').map((e) => e.trim()).filter((i) => i),
+        (v) => !!v.toString(),
+    ],
+    Set: [(v) => {
+        if (v instanceof Array) return new Set(v);
+        return v ? new Set([v]) : new Set();
+    }, null],
+    Emoji: [
+        (v: string) => v.matchAll(emojiRegex()).next().value[0],
+        (v) => emojiRegex().test(v.toString()),
+    ],
+    Any: [(v) => v, null],
+    ArrayOf: (type) => [
+        (v) => {
+            const arr = v instanceof Array ? v : [v];
+            return arr.map((i) => type[0](i));
+        },
+        (v) => {
+            if (!type[1]) return true;
+            const arr = v instanceof Array ? v : [v];
+            return arr.every((i) => type[1](i));
+        },
+    ] as any,
+    AnyOf: (...types) => [
+        (v) => types.find((type) => type[1](v))[0](v),
+        (v) => types.some((type) => type[1](v)),
+    ] as any,
 };

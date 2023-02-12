@@ -111,8 +111,9 @@ class DomainEditHandler extends ManageHandler {
 
 class DomainDashboardHandler extends ManageHandler {
     async get() {
+        const owner = await user.getById(this.domain._id, this.domain.owner);
         this.response.template = 'domain_dashboard.html';
-        this.response.body = { domain: this.domain };
+        this.response.body = { domain: this.domain, owner };
     }
 
     async postInitDiscussionNode({ domainId }) {
@@ -159,7 +160,7 @@ class DomainUserHandler extends ManageHandler {
 
     @requireSudo
     @post('uid', Types.Int)
-    @post('role', Types.Name)
+    @post('role', Types.Role)
     async postSetUser(domainId: string, uid: number, role: string) {
         await Promise.all([
             domain.setUserRole(domainId, uid, role),
@@ -170,7 +171,7 @@ class DomainUserHandler extends ManageHandler {
 
     @requireSudo
     @param('uid', Types.NumericArray)
-    @param('role', Types.Name)
+    @param('role', Types.Role)
     async postSetUsers(domainId: string, uid: number[], role: string) {
         await Promise.all([
             domain.setUserRole(domainId, uid, role),
@@ -213,7 +214,7 @@ class DomainRoleHandler extends ManageHandler {
         this.response.body = { roles, domain: this.domain };
     }
 
-    @param('role', Types.Name)
+    @param('role', Types.Role)
     async postAdd(domainId: string, role: string) {
         const roles = await domain.getRoles(this.domain);
         const rdict: Dictionary<any> = {};
@@ -224,7 +225,7 @@ class DomainRoleHandler extends ManageHandler {
     }
 
     @requireSudo
-    @param('roles', Types.Array)
+    @param('roles', Types.ArrayOf(Types.Role))
     async postDelete(domainId: string, roles: string[]) {
         if (Set.intersection(roles, ['root', 'default', 'guest']).size > 0) {
             throw new ValidationError('role', null, 'You cannot delete root, default or guest roles');
@@ -251,7 +252,7 @@ class DomainJoinApplicationsHandler extends ManageHandler {
 
     @requireSudo
     @post('method', Types.Range([domain.JOIN_METHOD_NONE, domain.JOIN_METHOD_ALL, domain.JOIN_METHOD_CODE]))
-    @post('role', Types.Name, true)
+    @post('role', Types.Role, true)
     @post('expire', Types.Int, true)
     @post('invitationCode', Types.Content, true)
     async post(domainId: string, method: number, role: string, expire: number, invitationCode = '') {

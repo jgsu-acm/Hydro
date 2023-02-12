@@ -33,7 +33,8 @@ export function getAvailableLangs(langsList?: string[]) {
   for (const key in window.LANGS) {
     if (prefixes.has(key)) continue;
     if (langsList && langsList.length && langsList.join('') && !langsList.includes(key)) continue;
-    else if (window.LANGS[key].hidden && !langsList?.includes(key)) continue;
+    if (window.LANGS[key].hidden && !langsList?.includes(key)) continue;
+    if (window.LANGS[key].disabled) continue;
     Langs[key] = window.LANGS[key];
   }
   return Langs;
@@ -66,7 +67,6 @@ export async function pipeStream(read, write, abort) {
 }
 
 // https://github.com/andrasq/node-mongoid-js/blob/master/mongoid.js
-/* eslint-disable */
 export function mongoId(idstring: string) {
   if (typeof idstring !== 'string') idstring = String(idstring);
   return {
@@ -76,7 +76,6 @@ export function mongoId(idstring: string) {
     sequence: parseInt(idstring.slice(18, 18 + 6), 16),
   };
 }
-/* eslint-enable */
 
 const loaded = {};
 

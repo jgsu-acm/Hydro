@@ -122,7 +122,7 @@ const AutoComplete = forwardRef(function Impl<T>(props: AutoCompleteProps<T>, re
       setCurrentItem(null);
       return;
     }
-    if (!queryCache[query]) queryCache[query] = await queryItems(query);
+    queryCache[query] ||= await queryItems(query);
     for (const item of queryCache[query]) valueCache[itemKey(item)] = item;
     setItemList(queryCache[query]);
     setCurrentItem((!freeSolo && queryCache[query].length > 0) ? 0 : null);
@@ -274,7 +274,7 @@ const AutoComplete = forwardRef(function Impl<T>(props: AutoCompleteProps<T>, re
   };
 
   return (
-    <div style={{ display: 'inline-block', width: '100%', marginBottom: '1rem' }}>
+    <div className="autocomplete-container" style={{ display: 'inline-block', width: '100%', marginBottom: '1rem' }}>
       <div
         className={focused ? 'autocomplete-wrapper focused' : 'autocomplete-wrapper'}
         style={{ width, height }}

@@ -43,7 +43,7 @@ export const DOMAIN_SETTINGS_BY_KEY: SettingDict = {};
 export const SYSTEM_SETTINGS_BY_KEY: SettingDict = {};
 
 // eslint-disable-next-line max-len
-export type SettingType = 'text' | 'yaml' | 'number' | 'float' | 'markdown' | 'password' | 'boolean' | 'textarea' | [string, string][] | Record<string, string>;
+export type SettingType = 'text' | 'yaml' | 'number' | 'float' | 'markdown' | 'password' | 'boolean' | 'textarea' | [string, string][] | Record<string, string> | 'json';
 
 export const Setting = (
     family: string, key: string, value: any = null,
@@ -170,7 +170,7 @@ DomainUserSetting(
     Setting('setting_storage', 'nSubmit', 0, 'number', 'nSubmit', null, FLAG_HIDDEN | FLAG_DISABLED),
     Setting('setting_storage', 'nLike', 0, 'number', 'nLike', null, FLAG_HIDDEN | FLAG_DISABLED),
     Setting('setting_storage', 'rp', 0, 'number', 'RP', null, FLAG_HIDDEN | FLAG_DISABLED),
-    Setting('setting_storage', 'rpInfo', '', 'text'/* JSON */, 'RP Detail', null, FLAG_HIDDEN | FLAG_DISABLED),
+    Setting('setting_storage', 'rpInfo', {}, 'json', 'RP Detail', null, FLAG_HIDDEN | FLAG_DISABLED),
     Setting('setting_storage', 'rpdelta', 0, 'number', 'RP.delta', null, FLAG_HIDDEN | FLAG_DISABLED),
     Setting('setting_storage', 'rank', 0, 'number', 'Rank', null, FLAG_DISABLED | FLAG_HIDDEN),
     Setting('setting_storage', 'level', 0, 'number', 'level', null, FLAG_HIDDEN | FLAG_DISABLED),
@@ -202,6 +202,8 @@ SystemSetting(
     Setting('setting_server', 'server.port', 8888, 'number', 'server.port', 'Server Port'),
     Setting('setting_server', 'server.xff', null, 'text', 'server.xff', 'IP Header'),
     Setting('setting_server', 'server.xhost', null, 'text', 'server.xhost', 'Hostname Header'),
+    Setting('setting_server', 'server.xproxy', false, 'boolean', 'server.xproxy', 'Use reverse_proxy'),
+    Setting('setting_server', 'server.cors', '', 'text', 'server.cors', 'CORS domains'),
     Setting('setting_server', 'server.language', 'zh_CN', langRange, 'server.language', 'Default display language'),
     Setting('setting_server', 'server.login', true, 'boolean', 'server.login', 'Allow builtin-login', FLAG_PRO),
     Setting('setting_server', 'server.message', true, 'boolean', 'server.message', 'Allow users send messages'),
@@ -231,7 +233,7 @@ SystemSetting(
     Setting('setting_basic', 'pagination.training', 10, 'number', 'pagination.training', 'Trainings per page'),
     Setting('setting_basic', 'pagination.reply', 50, 'number', 'pagination.reply', 'Replies per page'),
     Setting('setting_session', 'session.keys', [String.random(32)], 'text', 'session.keys', 'session.keys', FLAG_HIDDEN),
-    Setting('setting_session', 'session.secure', false, 'boolean', 'session.secure', 'session.secure', FLAG_HIDDEN),
+    Setting('setting_session', 'session.domain', '', 'text', 'session.domain', 'session.domain', FLAG_HIDDEN),
     Setting('setting_session', 'session.saved_expire_seconds', 3600 * 24 * 30,
         'number', 'session.saved_expire_seconds', 'Saved session expire seconds'),
     Setting('setting_session', 'session.unsaved_expire_seconds', 3600 * 3,

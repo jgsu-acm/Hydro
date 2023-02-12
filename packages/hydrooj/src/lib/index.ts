@@ -1,10 +1,8 @@
 import './i18n';
 import './mail';
-import './useragent';
 import './paginate';
 import './hash.hydro';
 import './rank';
-import './validator';
 import './ui';
 import './testdataConfig';
 import './difficulty';

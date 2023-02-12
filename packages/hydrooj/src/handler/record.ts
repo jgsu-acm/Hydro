@@ -1,4 +1,6 @@
-import { omit, pick, throttle } from 'lodash';
+import {
+    omit, pick, throttle, uniqBy,
+} from 'lodash';
 import { FilterQuery, ObjectID } from 'mongodb';
 import {
     ContestNotAttendedError, ContestNotFoundError, HackRejudgeFailedError,
@@ -15,8 +17,9 @@ import storage from '../model/storage';
 import * as system from '../model/system';
 import TaskModel from '../model/task';
 import user from '../model/user';
-import * as bus from '../service/bus';
-import { ConnectionHandler, param, Types } from '../service/server';
+import {
+    ConnectionHandler, param, subscribe, Types,
+} from '../service/server';
 import { buildProjection } from '../utils';
 import { ContestDetailBaseHandler } from './contest';
 import { postJudge } from './judge';
@@ -25,15 +28,15 @@ class RecordListHandler extends ContestDetailBaseHandler {
     tdoc?: Tdoc<30>;
 
     @param('page', Types.PositiveInt, true)
-    @param('pid', Types.Name, true)
+    @param('pid', Types.ProblemId, true)
     @param('tid', Types.ObjectID, true)
-    @param('uidOrName', Types.Name, true)
+    @param('uidOrName', Types.UidOrName, true)
     @param('lang', Types.String, true)
     @param('status', Types.Int, true)
     @param('fullStatus', Types.Boolean)
-    @param('allDomain', Types.Boolean, true)
+    @param('allDomain', Types.Boolean)
     async get(
-        domainId: string, page = 1, pid?: string, tid?: ObjectID,
+        domainId: string, page = 1, pid?: string | number, tid?: ObjectID,
         uidOrName?: string, lang?: string, status?: number, full = false,
         all = false,
     ) {
@@ -64,10 +67,10 @@ class RecordListHandler extends ContestDetailBaseHandler {
             if (udoc) q.uid = udoc._id;
             else invalid = true;
         }
-        if (pid && tdoc && /^[A-Z]$/.test(pid)) {
-            pid = tdoc.pids[parseInt(pid, 36) - 10];
-        }
         if (pid) {
+            if (typeof pid === 'string' && tdoc && /^[A-Z]$/.test(pid)) {
+                pid = tdoc.pids[parseInt(pid, 36) - 10];
+            }
             const pdoc = await problem.get(domainId, pid);
             if (pdoc) q.pid = pdoc.docId;
             else invalid = true;
@@ -90,8 +93,8 @@ class RecordListHandler extends ContestDetailBaseHandler {
             : await Promise.all([
                 user.getList(domainId, rdocs.map((rdoc) => rdoc.uid)),
                 canViewProblem
-                    ? problem.getList(domainId, rdocs.map((rdoc) => rdoc.pid), canViewHiddenProblem, false)
-                    : Object.fromEntries([rdocs.map((rdoc) => [rdoc.pid, { ...problem.default, pid: rdoc.pid }])]),
+                    ? problem.getList(domainId, rdocs.map((rdoc) => rdoc.pid), canViewHiddenProblem, false, problem.PROJECTION_LIST)
+                    : Object.fromEntries(uniqBy(rdocs, 'pid').map((rdoc) => [rdoc.pid, { ...problem.default, pid: rdoc.pid }])),
             ]);
         this.response.body = {
             page,
@@ -197,7 +200,7 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
         const priority = await record.submissionPriority(this.user._id, -20);
         const isContest = this.rdoc.contest && this.rdoc.contest.toString() !== '000000000000000000000000';
         const rdoc = await record.reset(domainId, rid, true);
-        bus.broadcast('record/change', rdoc);
+        this.ctx.broadcast('record/change', rdoc);
         await record.judge(domainId, rid, priority, isContest ? { detail: false } : {});
         this.back();
     }
@@ -226,7 +229,6 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
 }
 
 class RecordMainConnectionHandler extends ConnectionHandler {
-    cleanup: bus.Disposable = () => { };
     all = false;
     tid: string;
     uid: number;
@@ -236,13 +238,13 @@ class RecordMainConnectionHandler extends ConnectionHandler {
     tdoc: Tdoc<30>;
 
     @param('tid', Types.ObjectID, true)
-    @param('pid', Types.Name, true)
-    @param('uidOrName', Types.Name, true)
+    @param('pid', Types.ProblemId, true)
+    @param('uidOrName', Types.UidOrName, true)
     @param('status', Types.Int, true)
     @param('pretest', Types.Boolean)
     @param('allDomain', Types.Boolean)
     async prepare(
-        domainId: string, tid?: ObjectID, pid?: string, uidOrName?: string,
+        domainId: string, tid?: ObjectID, pid?: string | number, uidOrName?: string,
         status?: number, pretest = false, all = false,
     ) {
         if (tid) {
@@ -273,7 +275,6 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             this.checkPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN);
             this.all = true;
         }
-        this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
     }
 
     async message(msg: { rids: string[] }) {
@@ -283,6 +284,7 @@ class RecordMainConnectionHandler extends ConnectionHandler {
         for (const rdoc of rdocs) this.onRecordChange(rdoc);
     }
 
+    @subscribe('record/change')
     async onRecordChange(rdoc: RecordDoc) {
         if (!this.all) {
             if (rdoc.domainId !== this.args.domainId) return;
@@ -318,7 +320,6 @@ class RecordMainConnectionHandler extends ConnectionHandler {
 }
 
 class RecordDetailConnectionHandler extends ConnectionHandler {
-    cleanup: bus.Disposable = () => { };
     pdoc: ProblemDoc;
     rid: string = '';
     disconnectTimeout: NodeJS.Timeout;
@@ -356,7 +357,6 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
         this.pdoc = pdoc;
         this.throttleSend = throttle(this.sendUpdate, 1000, { trailing: true });
         this.rid = rid.toString();
-        this.cleanup = bus.on('record/change', this.onRecordChange.bind(this));
         this.onRecordChange(rdoc);
     }
 
@@ -367,6 +367,7 @@ class RecordDetailConnectionHandler extends ConnectionHandler {
         });
     }
 
+    @subscribe('record/change')
     // eslint-disable-next-line
     async onRecordChange(rdoc: RecordDoc, $set?: any, $push?: any) {
         if (rdoc._id.toString() !== this.rid) return;

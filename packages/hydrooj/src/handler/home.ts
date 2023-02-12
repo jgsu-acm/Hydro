@@ -1,18 +1,19 @@
 import path from 'path';
+import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server';
 import yaml from 'js-yaml';
-import { ObjectID } from 'mongodb';
-import { camelCase } from '@hydrooj/utils/lib/utils';
+import { pick } from 'lodash';
+import { Binary, ObjectID } from 'mongodb';
 import { Context } from '../context';
 import {
-    BlacklistedError, DomainAlreadyExistsError, InvalidTokenError,
+    AuthOperationError, BlacklistedError, DomainAlreadyExistsError, InvalidTokenError,
     NotFoundError, PermissionError, UserAlreadyExistError,
     UserNotFoundError, ValidationError, VerifyPasswordError,
 } from '../error';
 import { DomainDoc, MessageDoc, Setting } from '../interface';
-import avatar from '../lib/avatar';
+import avatar, { validate } from '../lib/avatar';
 import * as mail from '../lib/mail';
 import * as useragent from '../lib/useragent';
-import { isDomainId, isJGSUEmail, isPassword } from '../lib/validator';
+import { verifyTFA } from '../lib/verifyTFA';
 import BlackListModel from '../model/blacklist';
 import { PERM, PRIV } from '../model/builtin';
 import * as contest from '../model/contest';
@@ -26,11 +27,10 @@ import * as system from '../model/system';
 import token from '../model/token';
 import * as training from '../model/training';
 import user from '../model/user';
-import * as bus from '../service/bus';
 import {
-    ConnectionHandler, Handler, param, query, requireSudo, Types,
+    ConnectionHandler, Handler, param, query, requireSudo, subscribe, Types,
 } from '../service/server';
-import { md5 } from '../utils';
+import { camelCase, md5 } from '../utils';
 
 export class HomeHandler extends Handler {
     uids = new Set<number>();
@@ -167,15 +167,19 @@ class HomeSecurityHandler extends Handler {
         this.response.template = 'home_security.html';
         this.response.body = {
             sessions,
+            authenticators: this.user._authenticators.map((c) => pick(c, [
+                'credentialID', 'name', 'credentialType', 'credentialDeviceType',
+                'authenticatorAttachment', 'regat', 'fmt',
+            ])),
             geoipProvider: geoip?.provider,
-            icon: useragent.icon,
+            icon: (str = '') => str.split(' ')[0].toLowerCase(),
         };
     }
 
     @requireSudo
     @param('current', Types.String)
-    @param('password', Types.String, isPassword)
-    @param('verifyPassword', Types.String)
+    @param('password', Types.Password)
+    @param('verifyPassword', Types.Password)
     async postChangePassword(_: string, current: string, password: string, verify: string) {
         if (password !== verify) throw new VerifyPasswordError();
         this.user.checkPassword(current);
@@ -185,8 +189,8 @@ class HomeSecurityHandler extends Handler {
     }
 
     @requireSudo
-    @param('password', Types.String)
-    @param('mail', Types.Name, isJGSUEmail)
+    @param('password', Types.Password)
+    @param('mail', Types.Email)
     async postChangeMail(domainId: string, current: string, email: string) {
         const mailDomain = email.split('@')[1];
         if (await BlackListModel.get(`mail::${mailDomain}`)) throw new BlacklistedError(mailDomain);
@@ -226,6 +230,81 @@ class HomeSecurityHandler extends Handler {
         await token.delByUid(this.user._id);
         this.response.redirect = this.url('user_login');
     }
+
+    @requireSudo
+    @param('code', Types.String)
+    @param('secret', Types.String)
+    async postEnableTfa(domainId: string, code: string, secret: string) {
+        if (this.user._tfa) throw new AuthOperationError('2FA', 'enabled');
+        if (!verifyTFA(secret, code)) throw new InvalidTokenError('2FA');
+        await user.setById(this.user._id, { tfa: secret });
+        this.back();
+    }
+
+    @requireSudo
+    @param('type', Types.Range(['cross-platform', 'platform']))
+    async postRegister(domainId: string, type: 'cross-platform' | 'platform') {
+        const options = generateRegistrationOptions({
+            rpName: system.get('server.name'),
+            rpID: this.request.hostname,
+            userID: this.user._id.toString(),
+            userDisplayName: this.user.uname,
+            userName: `${this.user.uname}(${this.user.mail})`,
+            attestationType: 'direct',
+            excludeCredentials: this.user._authenticators.map((c) => ({
+                id: c.credentialID.buffer,
+                type: 'public-key',
+            })),
+            authenticatorSelection: {
+                authenticatorAttachment: type,
+            },
+        });
+        this.session.webauthnVerify = options.challenge;
+        this.response.body.authOptions = options;
+    }
+
+    @requireSudo
+    @param('name', Types.String)
+    async postEnableAuthn(domainId: string, name: string) {
+        if (!this.session.webauthnVerify) throw new InvalidTokenError(token.TYPE_TEXTS[token.TYPE_WEBAUTHN]);
+        const verification = await verifyRegistrationResponse({
+            response: this.args.result,
+            expectedChallenge: this.session.webauthnVerify,
+            expectedOrigin: this.request.headers.origin,
+            expectedRPID: this.request.hostname,
+        }).catch(() => { throw new ValidationError('verify'); });
+        if (!verification.verified) throw new ValidationError('verify');
+        const info = verification.registrationInfo;
+        const id = Buffer.from(info.credentialID);
+        if (this.user._authenticators.find((c) => c.credentialID.buffer.toString() === id.toString())) throw new ValidationError('authenticator');
+        this.user._authenticators.push({
+            ...info,
+            credentialID: new Binary(id),
+            credentialPublicKey: new Binary(Buffer.from(info.credentialPublicKey)),
+            attestationObject: new Binary(Buffer.from(info.attestationObject)),
+            name,
+            regat: Date.now(),
+            authenticatorAttachment: this.args.result.authenticatorAttachment || 'cross-platform',
+        });
+        await user.setById(this.user._id, { authenticators: this.user._authenticators });
+        this.back();
+    }
+
+    @requireSudo
+    @param('id', Types.String)
+    async postDisableAuthn(domainId: string, id: string) {
+        const authenticators = this.user._authenticators?.filter((c) => c.credentialID.buffer.toString('base64') !== id);
+        if (this.user._authenticators?.length === authenticators?.length) throw new ValidationError('authenticator');
+        await user.setById(this.user._id, { authenticators });
+        this.back();
+    }
+
+    @requireSudo
+    async postDisableTfa() {
+        if (!this.user._tfa) throw new AuthOperationError('2FA', 'disabled');
+        await user.setById(this.user._id, undefined, { tfa: '' });
+        this.back();
+    }
 }
 
 function set(s: Setting, key: string, value: any) {
@@ -254,7 +333,7 @@ function set(s: Setting, key: string, value: any) {
 }
 
 class HomeSettingsHandler extends Handler {
-    @param('category', Types.Name)
+    @param('category', Types.Range(['preference', 'account', 'domain']))
     async get(domainId: string, category: string) {
         this.response.template = 'home_settings.html';
         this.response.body = {
@@ -284,7 +363,7 @@ class HomeSettingsHandler extends Handler {
             if (val !== undefined) $set[key] = val;
         }
         for (const key in booleanKeys) if (!args[key]) $set[key] = false;
-        await setter($set);
+        if (Object.keys($set).length) await setter($set);
         if (args.viewLang && args.viewLang !== this.session.viewLang) this.session.viewLang = '';
         this.back();
     }
@@ -293,8 +372,10 @@ class HomeSettingsHandler extends Handler {
 class HomeAvatarHandler extends Handler {
     @param('avatar', Types.String, true)
     async post(domainId: string, input: string) {
-        if (input) await user.setById(this.user._id, { avatar: input });
-        else if (this.request.files.file) {
+        if (input) {
+            if (!validate(input)) throw new ValidationError('avatar');
+            await user.setById(this.user._id, { avatar: input });
+        } else if (this.request.files.file) {
             const file = this.request.files.file;
             if (file.size > 8 * 1024 * 1024) throw new ValidationError('file');
             const ext = path.extname(file.originalFilename);
@@ -364,7 +445,7 @@ class HomeDomainCreateHandler extends Handler {
         this.response.template = 'domain_create.html';
     }
 
-    @param('id', Types.Name, isDomainId)
+    @param('id', Types.DomainId)
     @param('name', Types.Title)
     @param('bulletin', Types.Content)
     @param('avatar', Types.Content, true)
@@ -437,21 +518,13 @@ class HomeMessagesHandler extends Handler {
 
 class HomeMessagesConnectionHandler extends ConnectionHandler {
     category = '#message';
-    dispose: bus.Disposable;
 
-    async prepare() {
-        this.dispose = bus.on('user/message', this.onMessageReceived.bind(this));
-    }
-
+    @subscribe('user/message')
     async onMessageReceived(uid: number, mdoc: MessageDoc) {
         if (uid !== this.user._id) return;
         const udoc = (await user.getById(this.args.domainId, mdoc.from))!;
         udoc.avatarUrl = avatar(udoc.avatar, 64);
         this.send({ udoc, mdoc });
-    }
-
-    async cleanup() {
-        if (this.dispose) this.dispose();
     }
 }
 

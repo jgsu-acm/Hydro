@@ -146,10 +146,7 @@ const Caddyfile = `\
 # 清注意在防火墙/安全组中放行端口，且部分运营商会拦截未经备案的域名。
 # For more information, refer to caddy v2 documentation.
 :80 {
-  reverse_proxy http://127.0.0.1:8888 {
-    header_up x-forwarded-for {remote_host}
-    header_up x-forwarded-host {hostport}
-  }
+  reverse_proxy http://127.0.0.1:8888
 }
 `;
 
@@ -268,7 +265,7 @@ connect-timeout = 10`);
         skip: () => installAsJudge,
         hidden: installAsJudge,
         operations: [
-            `nix-env -iA hydro.mongodb${avx2 ? 5 : 4}${CN ? '-cn' : ''} hydro.mongosh${avx2 ? 5 : 4}${CN ? '-cn' : ''} nixpkgs.mongodb-tools`,
+            `nix-env -iA hydro.mongodb${avx2 ? 5 : 4}${CN ? '-cn' : ''} nixpkgs.mongosh nixpkgs.mongodb-tools`,
         ],
     },
     {
@@ -334,7 +331,7 @@ connect-timeout = 10`);
                 pwd: password,
                 roles: [{ role: 'readWrite', db: 'hydro' }],
             })})`),
-            [`mongo 127.0.0.1:27017/hydro ${tmpFile}`, { retry: true }],
+            [`mongosh 127.0.0.1:27017/hydro ${tmpFile}`, { retry: true }],
             () => writeFileSync(`${process.env.HOME}/.hydro/config.json`, JSON.stringify({
                 uri: `mongodb://hydro:${password}@127.0.0.1:27017/hydro`,
             })),

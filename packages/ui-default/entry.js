@@ -3,7 +3,6 @@ import * as bus from './bus';
 
 window.Hydro = {
   extraPages: [],
-  preload: [],
   components: {},
   utils: {},
   node_modules: {},
@@ -11,6 +10,7 @@ window.Hydro = {
   bus,
 };
 window.externalModules = {};
+window.lazyModuleResolver = {};
 
 console.log(
   '%c%s%c%s',
@@ -27,9 +27,11 @@ console.log(
 `,
 );
 
+window.UiContext = JSON.parse(window.UiContext);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').then((registration) => {
+    const encodedConfig = encodeURIComponent(JSON.stringify(UiContext.SWConfig));
+    navigator.serviceWorker.register(`/service-worker.js?config=${encodedConfig}`).then((registration) => {
       console.log('SW registered: ', registration);
     }).catch((registrationError) => {
       console.log('SW registration failed: ', registrationError);
@@ -38,8 +40,6 @@ if ('serviceWorker' in navigator) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  window.UiContext = JSON.parse(window.UiContext);
-
   const PageLoader = '<div class="page-loader nojs--hide" style="display:none;"><div class="loader"></div></div>';
   $('body').prepend(PageLoader);
   $('.page-loader').fadeIn(500);
@@ -47,13 +47,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   try { __webpack_public_path__ = UiContext.cdn_prefix; } catch (e) { }
 
   const [data, HydroExports] = await Promise.all([
-    fetch(`/constant/${UiContext.constantVersion}`, { cache: 'force-cache' }).then((r) => r.json()),
+    fetch(`/constant/${UiContext.constantVersion}.js`).then((r) => r.text()),
     import('./api'),
   ]);
   Object.assign(window, { HydroExports });
-  eval(data[0]); // eslint-disable-line no-eval
-  data.shift();
-  window.Hydro.preload = data;
+  eval(data); // eslint-disable-line no-eval
 
   import('./hydro');
 }, false);

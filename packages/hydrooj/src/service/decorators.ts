@@ -1,151 +1,22 @@
-import assert from 'assert';
-import emojiRegex from 'emoji-regex';
-import { isSafeInteger } from 'lodash';
-import moment from 'moment-timezone';
-import { ObjectID } from 'mongodb';
-import saslprep from 'saslprep';
 import { Time } from '@hydrooj/utils';
 import { ValidationError } from '../error';
-import { isContent, isTitle } from '../lib/validator';
+import { Converter, Type, Validator } from '../lib/validator';
+import { EventMap } from './bus';
 import type { Handler } from './server';
 
-type MethodDecorator = (target: any, name: string, obj: any) => any;
-type Converter = (value: any) => any;
-type Validator = (value: any) => boolean;
-export interface ParamOption {
+type MethodDecorator = (target: any, funcName: string, obj: any) => any;
+type ClassDecorator = <T extends new (...args: any[]) => any>(Class: T) => T extends new (...args: infer R) => infer S ? (...args: R) => S : never;
+export interface ParamOption<T> {
     name: string,
     source: 'all' | 'get' | 'post' | 'route',
-    isOptional?: boolean,
-    convert?: Converter,
+    isOptional?: boolean | 'convert',
+    convert?: Converter<T>,
     validate?: Validator,
 }
 
-type Type = [Converter, Validator, boolean?];
-
-export interface Types {
-    Content: Type,
-    Name: Type,
-    Username: Type,
-    Title: Type,
-    String: Type,
-    Int: Type,
-    UnsignedInt: Type,
-    PositiveInt: Type,
-    Float: Type,
-    ObjectID: Type,
-    Boolean: Type,
-    Date: Type,
-    Time: Type,
-    Range: (range: Array<string | number> | Record<string, any>) => Type,
-    Array: Type,
-    NumericArray: Type,
-    CommaSeperatedArray: Type,
-    Set: Type,
-    Emoji: Type,
-}
-
-const safeSaslprep = (v) => {
-    try {
-        return saslprep(v.toString().trim());
-    } catch (e) {
-        return '';
-    }
-};
-
-export const Types: Types = {
-    Content: [(v) => v.toString().trim(), isContent],
-    Name: [(v) => saslprep(v.toString().trim()), (v) => /^.{1,255}$/.test(safeSaslprep(v))],
-    Username: [(v) => saslprep(v.toString().trim()), (v) => /^(.{3,31}|[\u4e00-\u9fa5]{2})$/.test(safeSaslprep(v))],
-    Title: [(v) => v.toString().trim(), isTitle],
-    String: [(v) => v.toString(), null],
-    Int: [(v) => parseInt(v, 10), (v) => isSafeInteger(parseInt(v, 10))],
-    UnsignedInt: [(v) => parseInt(v, 10), (v) => parseInt(v, 10) >= 0],
-    PositiveInt: [(v) => parseInt(v, 10), (v) => parseInt(v, 10) > 0],
-    Float: [(v) => +v, (v) => Number.isFinite(+v)],
-    // eslint-disable-next-line no-shadow
-    ObjectID: [(v) => new ObjectID(v), ObjectID.isValid],
-    Boolean: [(v) => !!v, null, true],
-    Date: [
-        (v) => {
-            const d = v.split('-');
-            assert(d.length === 3);
-            return `${d[0]}-${d[1].length === 1 ? '0' : ''}${d[1]}-${d[2].length === 1 ? '0' : ''}${d[2]}`;
-        },
-        (v) => {
-            const d = v.split('-');
-            if (d.length !== 3) return false;
-            const st = `${d[0]}-${d[1].length === 1 ? '0' : ''}${d[1]}-${d[2].length === 1 ? '0' : ''}${d[2]}`;
-            return moment(st).isValid();
-        },
-    ],
-    Time: [
-        (v) => {
-            const t = v.split(':');
-            assert(t.length === 2);
-            return `${(t[0].length === 1 ? '0' : '') + t[0]}:${t[1].length === 1 ? '0' : ''}${t[1]}`;
-        },
-        (v) => {
-            const t = v.split(':');
-            if (t.length !== 2) return false;
-            return moment(`2020-01-01 ${(t[0].length === 1 ? '0' : '') + t[0]}:${t[1].length === 1 ? '0' : ''}${t[1]}`).isValid();
-        },
-    ],
-    Range: (range) => [
-        (v) => {
-            if (range instanceof Array) {
-                for (const item of range) {
-                    if (typeof item === 'number') {
-                        if (item === parseInt(v, 10)) return parseInt(v, 10);
-                    } else if (item === v) return v;
-                }
-            }
-            return v;
-        },
-        (v) => {
-            if (range instanceof Array) {
-                for (const item of range) {
-                    if (typeof item === 'string') {
-                        if (item === v) return true;
-                    } else if (typeof item === 'number') {
-                        if (item === parseInt(v, 10)) return true;
-                    }
-                }
-            } else {
-                for (const key in range) {
-                    if (key === v) return true;
-                }
-            }
-            return false;
-        },
-    ],
-    Array: [(v) => {
-        if (v instanceof Array) return v;
-        return v ? [v] : [];
-    }, null],
-    NumericArray: [(v) => {
-        if (v instanceof Array) return v.map(Number);
-        return v.split(',').map(Number);
-    }, (v) => {
-        if (v instanceof Array) return v.map(Number).every(Number.isSafeInteger);
-        return v.split(',').map(Number).every(Number.isSafeInteger);
-    }],
-    CommaSeperatedArray: [
-        (v) => v.toString().replace(/，/g, ',').split(',').map((e) => e.trim()).filter((i) => i),
-        (v) => v.toString(),
-    ],
-    Set: [(v) => {
-        if (v instanceof Array) return new Set(v);
-        return v ? new Set([v]) : new Set();
-    }, null],
-    Emoji: [
-        (v: string) => v.matchAll(emojiRegex()).next().value[0],
-        (v) => emojiRegex().test(v),
-    ],
-};
-
-function _buildParam(name: string, source: 'get' | 'post' | 'all' | 'route', ...args: Array<Type | boolean | Validator | Converter>) {
+function _buildParam(name: string, source: 'get' | 'post' | 'all' | 'route', ...args: Array<Type<any> | boolean | Validator | Converter<any>>) {
     let cursor = 0;
-    const v: ParamOption = { name, source };
+    const v: ParamOption<any> = { name, source };
     let isValidate = true;
     while (cursor < args.length) {
         const current = args[cursor];
@@ -164,7 +35,7 @@ function _buildParam(name: string, source: 'get' | 'post' | 'all' | 'route', ...
     return v;
 }
 
-function _descriptor(v: ParamOption) {
+function _descriptor(v: ParamOption<any>) {
     return function desc(this: Handler, target: any, funcName: string, obj: any) {
         target.__param ||= {};
         target.__param[target.constructor.name] ||= {};
@@ -174,7 +45,7 @@ function _descriptor(v: ParamOption) {
             obj.value = function validate(this: Handler, rawArgs: any, ...extra: any[]) {
                 if (typeof rawArgs !== 'object' || extra.length) return originalMethod.call(this, rawArgs, ...extra);
                 const c = [];
-                const arglist: ParamOption[] = this.__param[target.constructor.name][funcName];
+                const arglist: ParamOption<any>[] = this.__param[target.constructor.name][funcName];
                 for (const item of arglist) {
                     const src = item.source === 'all'
                         ? rawArgs
@@ -189,6 +60,8 @@ function _descriptor(v: ParamOption) {
                         if (item.validate && !item.validate(value)) throw new ValidationError(item.name);
                         if (item.convert) c.push(item.convert(value));
                         else c.push(value);
+                    } else if (item.isOptional === 'convert') {
+                        c.push(item.convert ? item.convert(value) : value);
                     } else c.push(undefined);
                 }
                 return originalMethod.call(this, ...c);
@@ -200,17 +73,30 @@ function _descriptor(v: ParamOption) {
 }
 
 type DescriptorBuilder =
-    ((name: string, type: Type) => MethodDecorator)
-    & ((name: string, type: Type, validate: null, convert: Converter) => MethodDecorator)
-    & ((name: string, type: Type, validate?: Validator, convert?: Converter) => MethodDecorator)
-    & ((name: string, type?: Type, isOptional?: boolean, validate?: Validator, convert?: Converter) => MethodDecorator)
-    & ((name: string, ...args: Array<Type | boolean | Validator | Converter>) => MethodDecorator);
+    ((name: string, type: Type<any>) => MethodDecorator)
+    & ((name: string, type: Type<any>, validate: null, convert: Converter<any>) => MethodDecorator)
+    & ((name: string, type: Type<any>, validate?: Validator, convert?: Converter<any>) => MethodDecorator)
+    & ((name: string, type?: Type<any>, isOptional?: boolean, validate?: Validator, convert?: Converter<any>) => MethodDecorator)
+    & ((name: string, ...args: Array<Type<any> | boolean | Validator | Converter<any>>) => MethodDecorator);
 
 export const get: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'get', ...args));
 export const query: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'get', ...args));
 export const post: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'post', ...args));
 export const route: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'route', ...args));
 export const param: DescriptorBuilder = (name, ...args) => _descriptor(_buildParam(name, 'all', ...args));
+
+export const subscribe: (name: keyof EventMap) => MethodDecorator | ClassDecorator = (name) => (target, funcName, obj) => {
+    if (funcName) {
+        target.__subscribe ||= [];
+        target.__subscribe.push({ name, target: obj.value });
+        return obj;
+    }
+    return (...args) => {
+        const c = new target(...args); // eslint-disable-line new-cap
+        c.__subscribe = [{ name, target: c.send }];
+        return c;
+    };
+};
 
 export function requireSudo(target: any, funcName: string, obj: any) {
     const originalMethod = obj.value;

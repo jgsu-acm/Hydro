@@ -1,6 +1,9 @@
+import { AttestationFormat } from '@simplewebauthn/server/dist/helpers/decodeAttestationObject';
+import { AuthenticationExtensionsAuthenticatorOutputs } from '@simplewebauthn/server/dist/helpers/decodeAuthenticatorExtensions';
+import { CredentialDeviceType } from '@simplewebauthn/typescript-types';
 import type fs from 'fs';
 import type { Dictionary, NumericDictionary } from 'lodash';
-import type { Cursor, ObjectID } from 'mongodb';
+import type { Binary, Cursor, ObjectID } from 'mongodb';
 import type { Context } from './context';
 import type { ProblemDoc } from './model/problem';
 import type { Handler } from './service/server';
@@ -29,7 +32,6 @@ export interface SystemKeys {
     'limit.problem_files_max': number,
     'problem.categories': string,
     'session.keys': string[],
-    'session.secure': boolean,
     'session.saved_expire_seconds': number,
     'session.unsaved_expire_seconds': number,
     'user.quota': number,
@@ -54,6 +56,24 @@ export interface OAuthUserResponse {
     bio?: string;
     uname?: string[];
     viewLang?: string;
+}
+
+export interface Authenticator {
+    name: string;
+    regat: number;
+
+    fmt: AttestationFormat;
+    counter: number;
+    aaguid: string;
+    credentialID: Binary;
+    credentialPublicKey: Binary;
+    credentialType: 'public-key';
+    attestationObject: Binary;
+    userVerified: boolean;
+    credentialDeviceType: CredentialDeviceType;
+    credentialBackedUp: boolean;
+    authenticatorExtensionResults?: AuthenticationExtensionsAuthenticatorOutputs;
+    authenticatorAttachment: 'platform' | 'cross-platform';
 }
 
 export interface Udoc extends Dictionary<any> {
@@ -707,14 +727,11 @@ export type ProblemSearch = (domainId: string, q: string, options?: ProblemSearc
 export interface Lib extends Record<string, any> {
     difficulty: typeof import('./lib/difficulty');
     buildContent: typeof import('./lib/content').buildContent;
-    i18n: typeof import('./lib/i18n');
     mail: typeof import('./lib/mail');
     paginate: typeof import('./lib/paginate');
     rank: typeof import('./lib/rank');
     rating: typeof import('./lib/rating');
     testdataConfig: typeof import('./lib/testdataConfig');
-    useragent: typeof import('./lib/useragent');
-    validator: typeof import('./lib/validator');
     template?: any;
     problemSearch: ProblemSearch;
 }

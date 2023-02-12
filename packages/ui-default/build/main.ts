@@ -17,14 +17,16 @@ import root from './utils/root';
 const argv = cac().parse();
 
 async function runWebpack({
-  watch, production, measure, dev,
+  watch, production, measure, dev, https,
 }) {
   const compiler = webpack(webpackConfig({ watch, production, measure }));
   if (dev) {
     const server = new WebpackDevServer({
-      port: 8000,
+      port: https ? 8001 : 8000,
       compress: true,
       hot: true,
+      server: https ? 'https' : 'http',
+      allowedHosts: 'all',
       proxy: {
         context: (p) => p !== '/ws',
         target: 'http://localhost:2333',
@@ -118,8 +120,8 @@ async function main() {
     if (fs.existsSync('public/polyfill.js')) {
       fs.copyFileSync('public/polyfill.js', `public/polyfill-${pkg.version}.js`);
     }
-    if (fs.existsSync('public/default.theme.css')) {
-      fs.copyFileSync('public/default.theme.css', `public/default-${pkg.version}.theme.css`);
+    if (fs.existsSync('public/theme.css')) {
+      fs.copyFileSync('public/theme.css', `public/theme-${pkg.version}.css`);
     }
     if (argv.options.production) {
       for (const f of ['echarts', 'graphviz', 'mermaid', 'mathjax']) {

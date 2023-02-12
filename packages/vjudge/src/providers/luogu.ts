@@ -1,13 +1,10 @@
 /* eslint-disable no-await-in-loop */
-import { JSDOM } from 'jsdom';
-import superagent from 'superagent';
-import proxy from 'superagent-proxy';
 import {
     _, Logger, SettingModel, sleep, STATUS,
 } from 'hydrooj';
+import { BasicFetcher } from '../fetch';
 import { IBasicProvider, RemoteAccount } from '../interface';
 
-proxy(superagent);
 const logger = new Logger('remote/luogu');
 
 const STATUS_MAP = [
@@ -33,43 +30,27 @@ const UA = [
     `Vjudge/${global.Hydro.version.vjudge}`,
 ].join(' ');
 
-export default class LuoguProvider implements IBasicProvider {
+export default class LuoguProvider extends BasicFetcher implements IBasicProvider {
     constructor(public account: RemoteAccount, private save: (data: any) => Promise<void>) {
-        if (account.cookie) this.cookie = account.cookie;
-        setInterval(() => this.getCsrfToken('/user/setting'), 5 * 60 * 1000);
-    }
-
-    cookie: string[] = [];
-    csrf: string;
-
-    get(url: string) {
-        logger.debug('get', url);
-        if (!url.includes('//')) url = `${this.account.endpoint || 'https://www.luogu.com.cn'}${url}`;
-        const req = superagent.get(url)
-            .set('Cookie', this.cookie)
-            .set('User-Agent', UA);
-        if (this.account.proxy) return req.proxy(this.account.proxy);
-        return req;
-    }
-
-    post(url: string) {
-        logger.debug('post', url, this.cookie);
-        if (!url.includes('//')) url = `${this.account.endpoint || 'https://www.luogu.com.cn'}${url}`;
-        const req = superagent.post(url)
-            .set('Cookie', this.cookie)
-            .set('x-csrf-token', this.csrf)
-            .set('User-Agent', UA)
-            .set('x-requested-with', 'XMLHttpRequest')
-            .set('origin', 'https://www.luogu.com.cn');
-        if (this.account.proxy) return req.proxy(this.account.proxy);
-        return req;
+        super(account, 'https://www.luogu.com.cn', 'json', logger, {
+            headers: { 'User-Agent': UA },
+            post: {
+                headers: {
+                    'x-requested-with': 'XMLHttpRequest',
+                    origin: 'https://www.luogu.com.cn',
+                },
+            },
+        });
+        setInterval(() => {
+            this.ensureLogin();
+            this.getCsrfToken('/user/setting');
+        }, 5 * 60 * 1000);
     }
 
     async getCsrfToken(url: string) {
-        const { text: html } = await this.get(url);
-        const $dom = new JSDOM(html);
-        this.csrf = $dom.window.document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        logger.info('csrf-token=', this.csrf);
+        const csrf = (await this.html(url)).document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        logger.info('csrf-token=', csrf);
+        // this.fetchOptions.post.headers['x-csrf-token'] = csrf;
     }
 
     get loggedIn() {
@@ -82,18 +63,22 @@ export default class LuoguProvider implements IBasicProvider {
             return true;
         }
         logger.info('retry login');
-        // TODO login;
+        const res = await this.post(`/api/auth/userPassLogin${this.account.query || ''}`)
+            .set('referer', 'https://www.luogu.com.cn/user/setting')
+            .send({
+                username: this.account.handle,
+                password: this.account.password,
+            });
+        if (res.headers['set-cookie']) this.setCookie(res.headers['set-cookie']);
+        if (await this.loggedIn) {
+            await this.getCsrfToken('/user/setting');
+            return true;
+        }
         return false;
     }
 
-    async getProblem(id: string) {
-        return {
-            title: id,
-            data: {},
-            files: {},
-            tag: [],
-            content: '',
-        };
+    async getProblem() {
+        return null;
     }
 
     async listProblem() {
@@ -109,6 +94,7 @@ export default class LuoguProvider implements IBasicProvider {
         }
         if (!lang.startsWith('luogu.')) {
             end({ status: STATUS.STATUS_COMPILE_ERROR, message: `Language not supported: ${lang}` });
+            return null;
         }
         if (comment) {
             const msg = `Hydro submission #${info.rid}@${new Date().toLocaleString()}`;

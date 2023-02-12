@@ -385,12 +385,12 @@ export class ContestEditHandler extends Handler {
     @param('pids', Types.Content)
     @param('rated', Types.Boolean)
     @param('code', Types.String, true)
-    @param('autoHide', Types.Boolean, true)
+    @param('autoHide', Types.Boolean)
     @param('assign', Types.CommaSeperatedArray, true)
     @param('lock', Types.UnsignedInt, true)
     @param('contestDuration', Types.Float, true)
     @param('maintainer', Types.NumericArray, true)
-    @param('allowViewCode', Types.Boolean, true)
+    @param('allowViewCode', Types.Boolean)
     async postUpdate(
         domainId: string, tid: ObjectID, beginAtDate: string, beginAtTime: string, duration: number,
         title: string, content: string, rule: string, _pids: string, rated = false,
@@ -533,7 +533,7 @@ export class ContestManagementHandler extends ContestManagementBaseHandler {
     }
 
     @param('tid', Types.ObjectID)
-    @post('filename', Types.Name, true)
+    @post('filename', Types.Filename, true)
     async postUploadFile(domainId: string, tid: ObjectID, filename: string) {
         if ((this.tdoc.files?.length || 0) >= system.get('limit.contest_files')) {
             throw new FileLimitExceededError('count');
@@ -556,7 +556,7 @@ export class ContestManagementHandler extends ContestManagementBaseHandler {
     }
 
     @param('tid', Types.ObjectID)
-    @post('files', Types.Array)
+    @post('files', Types.ArrayOf(Types.Filename))
     async postDeleteFiles(domainId: string, tid: ObjectID, files: string[]) {
         await Promise.all([
             storage.del(files.map((t) => `contest/${domainId}/${tid}/${t}`), this.user._id),
@@ -568,7 +568,7 @@ export class ContestManagementHandler extends ContestManagementBaseHandler {
 
 export class ContestFileDownloadHandler extends ContestDetailBaseHandler {
     @param('tid', Types.ObjectID)
-    @param('filename', Types.Name)
+    @param('filename', Types.Filename)
     @param('noDisposition', Types.Boolean)
     async get(domainId: string, tid: ObjectID, filename: string, noDisposition = false) {
         this.response.addHeader('Cache-Control', 'public');
