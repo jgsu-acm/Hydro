@@ -3,9 +3,9 @@ import LRU from 'lru-cache';
 import { FilterQuery } from 'mongodb';
 import { ValidationError } from '../error';
 import { DomainDoc } from '../interface';
-import { isDisplayName } from '../lib/validator';
 import * as bus from '../service/bus';
 import db from '../service/db';
+import { Types } from '../service/server';
 import { MaybeArray, NumberKeys } from '../typeutils';
 import { ArgMethod } from '../utils';
 import { BUILTIN_ROLES, PRIV } from './builtin';
@@ -227,7 +227,7 @@ class DomainModel {
 
     static async setUserInDomain(domainId: string, uid: number, params: any) {
         if (params.displayName !== undefined) {
-            if (!isDisplayName(params.displayName)) {
+            if (!Types.DisplayName[1](params.displayName)) {
                 throw new ValidationError('DisplayName');
             }
         }
