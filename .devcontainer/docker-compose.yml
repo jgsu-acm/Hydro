@@ -1,23 +1,26 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  hydro:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    privileged: true
-    volumes:
-      - ..:/workspace:cached
-      - .hydro:/root/.hydro
-      - testdata:/data/file
-      - ~/.ssh:/root/.ssh
-
   mongo:
     image: mongo:4-focal
     restart: unless-stopped
     volumes:
       - mongodata:/data/db
+  hydro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    privileged: true
+    depends_on:
+      - mongo
+    volumes:
+      - ..:/workspace:cached
+      - cfgdata:/home/node/.hydro:rw
+      - testdata:/data/file:rw
+      - ~/.gitconfig:/home/node/.gitconfig:ro
+      - ~/.ssh:/home/node/.ssh:ro
 
 volumes:
   mongodata:
+  cfgdata:
   testdata:

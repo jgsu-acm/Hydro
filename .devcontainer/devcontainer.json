@@ -3,27 +3,22 @@
     "dockerComposeFile": "docker-compose.yml",
     "service": "hydro",
     "workspaceFolder": "/workspace",
-    "extensions": [
-        "dbaeumer.vscode-eslint",
-        "ronnidc.nunjucks",
-        "sysoev.language-stylus",
-        "redhat.vscode-yaml",
-        "VisualStudioExptTeam.vscodeintellicode",
-        "VisualStudioExptTeam.intellicode-api-usage-examples",
-        "mhutchie.git-graph",
-        "donjayamanne.githistory",
-        "eamodio.gitlens",
-        "ms-azuretools.vscode-docker"
-    ],
-    "features": {
-        "git": "latest"
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "dbaeumer.vscode-eslint",
+                "ronnidc.nunjucks",
+                "sysoev.language-stylus",
+                "redhat.vscode-yaml",
+                "foxundermoon.shell-format",
+                "eamodio.gitlens"
+            ]
+        }
     },
     "forwardPorts": [
         2333,
         8000,
-        9200,
         27017
     ],
-    "postCreateCommand": "sh /workspace/.devcontainer/init.sh",
-    "remoteUser": "root"
+    "postCreateCommand": "sh /workspace/.devcontainer/init.sh"
 }
