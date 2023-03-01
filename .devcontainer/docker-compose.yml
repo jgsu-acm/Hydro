@@ -15,12 +15,10 @@ services:
       - mongo
     volumes:
       - ..:/workspace:cached
-      - cfgdata:/home/node/.hydro:rw
-      - testdata:/data/file:rw
-      - ~/.gitconfig:/home/node/.gitconfig:ro
-      - ~/.ssh:/home/node/.ssh:ro
+      - cfgdata:/home/node/.hydro
+      - filesdata:/data/file
 
 volumes:
   mongodata:
   cfgdata:
-  testdata:
+  filesdata:
