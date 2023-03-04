@@ -36,8 +36,8 @@
         "@types/node": "^18.14.1",
         "@types/semver": "^7.3.13",
         "@types/supertest": "^2.0.12",
-        "@typescript-eslint/eslint-plugin": "^5.53.0",
-        "@typescript-eslint/parser": "^5.53.0",
+        "@typescript-eslint/eslint-plugin": "^5.54.0",
+        "@typescript-eslint/parser": "^5.54.0",
         "autocannon": "^7.10.0",
         "cac": "^6.7.14",
         "chokidar": "^3.5.3",
@@ -79,6 +79,7 @@
     "resolutions": {
         "@types/node": "18.11.18",
         "@types/react": "18.0.27",
-        "cosmokit": "1.4.0"
+        "cosmokit": "1.4.0",
+        "react-split-pane@^0.1.92": "patch:react-split-pane@npm%3A0.1.92#./.yarn/patches/react-split-pane-npm-0.1.92-93dbf51dff.patch"
     }
 }

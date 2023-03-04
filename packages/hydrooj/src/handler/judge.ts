@@ -59,6 +59,7 @@ function processPayload(rdoc: RecordDoc, body: Partial<JudgeResultBody>) {
     if (Number.isFinite(body.time)) $set.time = body.time;
     if (Number.isFinite(body.memory)) $set.memory = body.memory;
     if (body.progress !== undefined) $set.progress = body.progress;
+    if (body.subtasks) $set.subtasks = body.subtasks;
     return { $set, $push };
 }
 
@@ -78,7 +79,7 @@ export async function postJudge(rdoc: RecordDoc) {
     if (rdoc.contest) {
         await contest.updateStatus(
             rdoc.domainId, rdoc.contest, rdoc.uid, rdoc._id,
-            rdoc.pid, rdoc.status, rdoc.score,
+            rdoc.pid, rdoc.status, rdoc.score, rdoc.subtasks,
         );
     } else if (accept && updated) await domain.incUserInDomain(rdoc.domainId, rdoc.uid, 'nAccept', 1);
     const isNormalSubmission = ![
