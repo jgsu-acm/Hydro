@@ -11,7 +11,7 @@ import {
     ContestScoreboardHiddenError, FileLimitExceededError, FileUploadError,
     InvalidTokenError, NotAssignedError, PermissionError, ValidationError,
 } from '../error';
-import { Tdoc } from '../interface';
+import { ScoreboardConfig, Tdoc } from '../interface';
 import paginate from '../lib/paginate';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
@@ -265,14 +265,21 @@ export class ContestProblemListHandler extends ContestDetailBaseHandler {
 export class ContestScoreboardHandler extends ContestDetailBaseHandler {
     @param('tid', Types.ObjectId)
     @param('ext', Types.Range(['csv', 'html', 'ghost']), true)
-    async get(domainId: string, tid: ObjectId, ext = '') {
+    @param('realtime', Types.Boolean)
+    async get(domainId: string, tid: ObjectId, ext = '', realtime) {
         if (!contest.canShowScoreboard.call(this, this.tdoc, true)) throw new ContestScoreboardHiddenError(tid);
+        if (realtime && !this.user.own(this.tdoc)) {
+            this.checkPerm(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
+        }
         if (ext) {
             await this.exportScoreboard(domainId, tid, ext);
             return;
         }
-        const [, rows, udict, pdict] = await contest.getScoreboard.call(this, domainId, tid, false);
-        this.response.template = 'contest_scoreboard.html';
+        const config: ScoreboardConfig = { isExport: false };
+        if (!realtime && this.tdoc.lockAt && !this.tdoc.unlocked) {
+            config.lockAt = this.tdoc.lockAt;
+        }
+        const [, rows, udict, pdict] = await contest.getScoreboard.call(this, domainId, tid, config);
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const page_name = this.tdoc.rule === 'homework'
             ? 'homework_scoreboard'
@@ -280,6 +287,8 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
         this.response.body = {
             tdoc: this.tdoc, rows, udict, pdict, page_name,
         };
+        this.response.pjax = 'partials/scoreboard.html';
+        this.response.template = 'contest_scoreboard.html';
     }
 
     async exportGhost(domainId: string, tid: ObjectId) {
@@ -322,6 +331,9 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
     async exportScoreboard(domainId: string, tid: ObjectId, ext: string) {
         await this.limitRate('scoreboard_download', 60, 3);
         if (ext === 'ghost') {
+            if (contest.isLocked(this.tdoc) && !this.user.own(this.tdoc)) {
+                this.checkPerm(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
+            }
             await this.exportGhost(domainId, tid);
             return;
         }
@@ -329,7 +341,7 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
             csv: async (rows) => `\uFEFF${rows.map((c) => (c.map((i) => i.value?.toString().replace(/\n/g, ' ')).join(','))).join('\n')}`,
             html: (rows, tdoc) => this.renderHTML('contest_scoreboard_download_html.html', { rows, tdoc }),
         };
-        const [, rows] = await contest.getScoreboard.call(this, domainId, tid, true);
+        const [, rows] = await contest.getScoreboard.call(this, domainId, tid, { isExport: true, lockAt: this.tdoc.lockAt });
         this.binary(await getContent[ext](rows, this.tdoc), `${this.tdoc.title}.${ext}`);
     }
 

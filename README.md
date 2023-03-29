@@ -32,13 +32,44 @@ bug 和功能建议请在 Issues 提出。
 
 ## 联系我们
 
-QQ [3402182471](https://wpa.qq.com/msgrd?v=3&uin=3402182471&site=qq&menu=yes)  
 Hydro 用户群：1085853538  
 Telegram 群 [@hydrodev](https://t.me/hydrodev)
 Telegram [@webpack_exports_undefined](https://t.me/webpack_exports_undefined)  
 
 <details>
 <summary><h2>更新日志（点击展开）</h2></summary>
+
+### Hydro 4.9.7 / UI 4.48.10
+- ui: websocket: 添加心跳包
+- judge: 修复客观题和文件 IO 题提交
+- judge: 添加 compile_time_limit 选项
+- core: 添加 kotlin 和 pypy3 预设
+- ui: scoreboard: 支持自动更新
+- core: contest: 封榜后允许管理员查看实时分数
+- judge: 支持按题目设置语言时空限制倍率
+- install: 支持自动导入 hustoj 数据
+- install: 支持指定安装源
+- core: 支持从 npmjs 自动安装插件
+- core&ui: 漏洞修复
+- judge: 设置最低评测优先级
+- core: 修复部分赛制下封榜时仍能查看提交列表的问题
+
+### Hydro 4.9.0 / UI 4.48.0
+- core: 优化讨论鉴权
+- judge: 优化统一回调评测状态回显
+- judge: 移除 `processTestdata` 步骤
+- judge: 客观题子任务分数回显
+- core: 压平测试数据结构
+- core: rp: 修复比赛分数
+- core&ui: 首次使用 OAuth 时要求设置密码
+- ui: 评测设置 UI 升级
+- install: 根据系统内存调整 wtCacheSize
+- ui: 加载速度优化
+- core: 检测域 ID 大小写
+- ui: 导航栏域索引
+- ui: 支持按权限组过滤作业/比赛
+- judge: 将 Javascript 默认解释器设置为 node
+- judge: 修复删除未评测完成的题目导致评测队列卡死的问题
 
 ### Hydro 4.8.0 / UI 4.47.6
 - core: 升级至 mongodb@5

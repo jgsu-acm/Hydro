@@ -3,7 +3,7 @@ import {
 } from 'lodash';
 import { Filter, ObjectId } from 'mongodb';
 import {
-    ContestNotAttendedError, ContestNotFoundError, HackRejudgeFailedError,
+    ContestNotFoundError, HackRejudgeFailedError,
     PermissionError, ProblemConfigError,
     ProblemNotFoundError, RecordNotFoundError, UserNotFoundError,
 } from '../error';
@@ -51,13 +51,14 @@ class RecordListHandler extends ContestDetailBaseHandler {
             this.tdoc = tdoc;
             if (!tdoc) throw new ContestNotFoundError(domainId, pid);
             if (!contest.canShowScoreboard.call(this, tdoc, true)) throw new PermissionError(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
+            if (!contest.canShowRecord.call(this, tdoc, true)) {
+                throw new PermissionError(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
+            }
             if (!(await contest.getStatus(domainId, tid, this.user._id))?.attend) {
-                if (contest.canShowRecord.call(this, tdoc, true)) {
-                    const name = tdoc.rule === 'homework'
-                        ? "You haven't claimed this homework yet."
-                        : "You haven't attended this contest yet.";
-                    notification.push({ name, args: { type: 'note' }, checker: () => true });
-                } else throw new ContestNotAttendedError(domainId, tid);
+                const name = tdoc.rule === 'homework'
+                    ? "You haven't claimed this homework yet."
+                    : "You haven't attended this contest yet.";
+                notification.push({ name, args: { type: 'note' }, checker: () => true });
             }
         }
         if (uidOrName) {

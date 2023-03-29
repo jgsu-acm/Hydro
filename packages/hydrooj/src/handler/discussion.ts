@@ -215,7 +215,7 @@ class DiscussionDetailHandler extends DiscussionHandler {
         this.back();
     }
 
-    @param('type', Types.Range(['did', 'drid']))
+    @param('nodeType', Types.Range(['did', 'drid']))
     @param('id', Types.ObjectId)
     @param('emoji', Types.Emoji)
     @param('reverse', Types.Boolean)
@@ -363,7 +363,12 @@ class DiscussionRawHandler extends DiscussionHandler {
             this.response.body.history = await discussion.getHistory(domainId, drrid || drid || did);
         } else {
             const [doc] = await discussion.getHistory(domainId, drrid || drid || did, ts ? { time: new Date(ts) } : {});
-            if (!doc && ts) throw new DiscussionNotFoundError(drrid || drid || did);
+            if (!doc) {
+                if (ts) throw new DiscussionNotFoundError(drrid || drid || did);
+                if (drrid && !this.drrdoc) throw new DiscussionNotFoundError(drrid);
+                if (drid && !this.drdoc) throw new DiscussionNotFoundError(drid);
+                if (did && !this.ddoc) throw new DiscussionNotFoundError(did);
+            }
             this.response.type = 'text/markdown';
             this.response.body = doc ? doc.content : drrid ? this.drrdoc.content : drid ? this.drdoc.content : this.ddoc.content;
         }

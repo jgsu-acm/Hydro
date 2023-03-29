@@ -6,6 +6,7 @@ export * from './components/dialog';
 export { Context, Service, ctx } from './context';
 export { default as AnsiUp } from 'ansi_up';
 export { default as loadMonaco } from './components/monaco/loader';
+export { default as Socket } from './components/socket/index';
 export { default as uploadFiles } from './components/upload';
 export * as redux from 'react-redux';
 export * from './components/zipDownloader';
@@ -14,6 +15,7 @@ export { default as _ } from 'lodash';
 export { default as React } from 'react';
 export { default as ReactDOM } from 'react-dom/client';
 export * from './misc/Page';
+export { initPageLoader } from './hydro';
 
 const lazyModules = {};
 export default async function load(name: string) {
