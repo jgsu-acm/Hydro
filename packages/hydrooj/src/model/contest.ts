@@ -58,7 +58,7 @@ const acm = buildContestRule({
     stat(tdoc, journal: AcmJournal[]) {
         const naccept = Counter<number>();
         const npending = Counter<number>();
-        const display: Record<number, AcmJournal> = {};
+        const display: Record<number, AcmDetail> = {};
         const detail: Record<number, AcmDetail> = {};
         let accept = 0;
         let time = 0;
@@ -66,24 +66,25 @@ const acm = buildContestRule({
         const lockAt = isLocked(tdoc) ? tdoc.lockAt : null;
         for (const j of journal) {
             if (!this.submitAfterAccept && display[j.pid]?.status === STATUS.STATUS_ACCEPTED) continue;
-            if (lockAt && j.rid.getTimestamp() > lockAt) {
-                npending[j.pid]++;
-                continue;
-            }
-            display[j.pid] = j;
+            const real = Math.floor((j.rid.getTimestamp().getTime() - tdoc.beginAt.getTime()) / 1000);
+            const penalty = 20 * 60 * naccept[j.pid];
+            detail[j.pid] = {
+                ...j, naccept: naccept[j.pid], time: real + penalty, real, penalty,
+            };
             if (![STATUS.STATUS_ACCEPTED, STATUS.STATUS_COMPILE_ERROR, STATUS.STATUS_FORMAT_ERROR].includes(j.status)) {
                 naccept[j.pid]++;
             }
+            if (lockAt && j.rid.getTimestamp() > lockAt) {
+                npending[j.pid]++;
+                // FIXME this is tricky
+                // @ts-ignore
+                display[j.pid] ||= {};
+                display[j.pid].npending = npending[j.pid];
+                continue;
+            }
+            display[j.pid] = detail[j.pid];
         }
-        for (const pid in display) {
-            const j = display[pid];
-            const real = Math.floor((j.rid.getTimestamp().getTime() - tdoc.beginAt.getTime()) / 1000);
-            const penalty = 20 * 60 * naccept[j.pid];
-            detail[pid] = {
-                ...j, naccept: naccept[j.pid], time: real + penalty, real, penalty, npending: npending[j.pid],
-            };
-        }
-        for (const d of Object.values(detail).filter((i) => i.status === STATUS.STATUS_ACCEPTED)) {
+        for (const d of Object.values(display).filter((i) => i.status === STATUS.STATUS_ACCEPTED)) {
             accept++;
             time += d.time;
         }
@@ -387,12 +388,9 @@ const strictioi = buildContestRule({
         let score = 0;
         const subtasks: Record<number, SubtaskResult> = {};
         for (const j of journal.filter((i) => tdoc.pids.includes(i.pid))) {
-            Object.keys(j.subtasks).forEach((i) => {
-                if (!subtasks[i] || subtasks[i].score < j.subtasks[i].score) {
-                    subtasks[i] = j.subtasks[i];
-                    subtasks[i].rid = j.rid;
-                }
-            });
+            for (const i in j.subtasks) {
+                if (!subtasks[i] || subtasks[i].score < j.subtasks[i].score) subtasks[i] = j.subtasks[i];
+            }
             j.score = sumBy(Object.values(subtasks), 'score');
             j.status = Math.max(...Object.values(subtasks).map((i) => i.status));
             j.subtasks = subtasks;
@@ -422,8 +420,8 @@ const strictioi = buildContestRule({
         for (const pid of tdoc.pids) {
             row.push({
                 type: 'record',
-                value: tsddict[pid]?.penaltyScore || '',
-                hover: Object.values(tsddict[pid]?.subtasks).map((i: SubtaskResult) => `${STATUS_SHORT_TEXTS[i.status]} ${i.score}`).join(','),
+                value: tsddict[pid]?.score || '',
+                hover: Object.values(tsddict[pid]?.subtasks || {}).map((i: SubtaskResult) => `${STATUS_SHORT_TEXTS[i.status]} ${i.score}`).join(','),
                 raw: tsddict[pid]?.rid,
                 style: tsddict[pid]?.status === STATUS.STATUS_ACCEPTED && tsddict[pid]?.rid.getTimestamp().getTime() === meta?.first?.[pid]
                     ? 'background-color: rgb(217, 240, 199);'
