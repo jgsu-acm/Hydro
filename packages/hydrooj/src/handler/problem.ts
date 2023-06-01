@@ -114,8 +114,8 @@ function buildQuery(udoc: User) {
 
 const defaultSearch = async (domainId: string, q: string, options?: ProblemSearchOptions) => {
     const escaped = escapeRegExp(q.toLowerCase());
-    const $regex = new RegExp(q.length >= 3 ? escaped : `\\A${escaped}`, 'gmi');
-    const filter = { $or: [{ pid: { $regex } }, { title: { $regex } }] };
+    const $regex = new RegExp(q.length >= 2 ? escaped : `\\A${escaped}`, 'gmi');
+    const filter = { $or: [{ pid: { $regex } }, { title: { $regex } }, { tag: q }] };
     const pdocs = await problem.getMulti(domainId, filter, ['domainId', 'docId', 'pid'])
         .skip(options.skip || 0).limit(options.limit || system.get('pagination.problem')).toArray();
     if (!Number.isNaN(+q)) {
@@ -340,7 +340,7 @@ export class ProblemDetailHandler extends ContestDetailBaseHandler {
             let baseLangs;
             if (this.pdoc.config.type === 'remote_judge') {
                 const p = this.pdoc.config.subType;
-                const dl = [p, ...Object.keys(setting.langs).filter((i) => i.startsWith(`${p}.`))];
+                const dl = [p, ...Object.keys(setting.langs).filter((i) => i.startsWith(`${p}.`) || setting.langs[i].validAs[p])];
                 baseLangs = dl;
             } else {
                 baseLangs = Object.keys(setting.langs).filter((i) => !setting.langs[i].remote);
@@ -371,6 +371,7 @@ export class ProblemDetailHandler extends ContestDetailBaseHandler {
         };
         if (this.tdoc && this.tsdoc) {
             const fields = ['attend', 'startAt'];
+            if (this.tdoc.duration) fields.push('endAt');
             if (contest.canShowSelfRecord.call(this, this.tdoc, true)) fields.push('detail');
             this.response.body.tsdoc = pick(this.tsdoc, fields);
         }
@@ -512,7 +513,6 @@ export class ProblemSubmitHandler extends ProblemDetailHandler {
         }
         if (pretest) {
             if (setting.langs[lang]?.pretest) lang = setting.langs[lang].pretest as string;
-            if (setting.langs[lang]?.pretest === false) throw new ProblemNotAllowPretestError('language');
             if (!['default', 'fileio', 'remote_judge'].includes(this.response.body.pdoc.config?.type)) {
                 throw new ProblemNotAllowPretestError('type');
             }
@@ -823,7 +823,7 @@ export class ProblemSolutionHandler extends ProblemDetailHandler {
     async get(domainId: string, page = 1, tid?: ObjectId, sid?: ObjectId) {
         if (tid) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_SOLUTION);
         this.response.template = 'problem_solution.html';
-        const accepted = this.tsdoc?.status === STATUS.STATUS_ACCEPTED;
+        const accepted = this.psdoc?.status === STATUS.STATUS_ACCEPTED;
         if (!accepted || !this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_SOLUTION_ACCEPT)) {
             this.checkPerm(PERM.PERM_VIEW_PROBLEM_SOLUTION);
         }
@@ -934,7 +934,7 @@ export class ProblemSolutionRawHandler extends ProblemDetailHandler {
     @param('tid', Types.ObjectId, true)
     async get(domainId: string, psid: ObjectId, psrid?: ObjectId, tid?: ObjectId) {
         if (tid) throw new PermissionError(PERM.PERM_VIEW_PROBLEM_SOLUTION);
-        const accepted = this.tsdoc?.status === STATUS.STATUS_ACCEPTED;
+        const accepted = this.psdoc?.status === STATUS.STATUS_ACCEPTED;
         if (!accepted || !this.user.hasPerm(PERM.PERM_VIEW_PROBLEM_SOLUTION_ACCEPT)) {
             this.checkPerm(PERM.PERM_VIEW_PROBLEM_SOLUTION);
         }

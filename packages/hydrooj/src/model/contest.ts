@@ -247,8 +247,7 @@ const oi = buildContestRule({
     },
     showScoreboard: (tdoc, now) => now > tdoc.endAt,
     showSelfRecord: (tdoc, now) => now > tdoc.endAt,
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    showRecord: (tdoc, now) => now > tdoc.endAt && !isLocked(tdoc),
+    showRecord: (tdoc, now) => now > tdoc.endAt,
     async scoreboardHeader(config, _, tdoc, pdict) {
         const columns: ScoreboardNode[] = [
             { type: 'rank', value: '#' },
@@ -372,7 +371,8 @@ const oi = buildContestRule({
 const ioi = buildContestRule({
     TEXT: 'IOI',
     submitAfterAccept: false,
-    showRecord: (tdoc, now) => now > tdoc.endAt,
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    showRecord: (tdoc, now) => now > tdoc.endAt && !isLocked(tdoc),
     showSelfRecord: () => true,
     showScoreboard: (tdoc, now) => now > tdoc.beginAt,
 }, oi);
@@ -839,6 +839,7 @@ export async function recalcStatus(domainId: string, tid: ObjectId) {
 export async function unlockScoreboard(domainId: string, tid: ObjectId) {
     const tdoc = await document.get(domainId, document.TYPE_CONTEST, tid);
     if (!tdoc.lockAt || tdoc.unlocked) return;
+    await recalcStatus(domainId, tid);
     await edit(domainId, tid, { unlocked: true });
 }
 

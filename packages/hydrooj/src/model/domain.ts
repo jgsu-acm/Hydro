@@ -1,4 +1,4 @@
-import { Dictionary } from 'lodash';
+import { Dictionary, escapeRegExp } from 'lodash';
 import { LRUCache } from 'lru-cache';
 import { Filter } from 'mongodb';
 import { ValidationError } from '../error';
@@ -275,7 +275,7 @@ class DomainModel {
 
     @ArgMethod
     static async getPrefixSearch(prefix: string, limit: number = 50) {
-        const $regex = new RegExp(prefix, 'mi');
+        const $regex = new RegExp(escapeRegExp(prefix), 'mi');
         const ddocs = await coll.find({
             $or: [{ _id: { $regex } }, { name: { $regex } }],
         }).limit(limit).toArray();
@@ -302,7 +302,12 @@ bus.on('ready', () => Promise.all([
         { key: { domainId: 1, rp: -1, uid: 1 }, name: 'rp', sparse: true },
     ),
 ]));
-bus.on('domain/delete-cache', (domainId: string) => {
+bus.on('domain/delete-cache', async (domainId: string) => {
+    const ddoc = await DomainModel.get(domainId);
+    if (!ddoc) return;
+    for (const host of ddoc.hosts || []) {
+        cache.delete(`host::${host}`);
+    }
     cache.delete(`id::${domainId}`);
 });
 export default DomainModel;

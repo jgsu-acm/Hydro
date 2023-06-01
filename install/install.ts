@@ -62,6 +62,7 @@ const locales = {
         'install.compiler': 'Installing compiler...',
         'install.hydro': 'Installing Hydro...',
         'install.done': 'Hydro installation completed!',
+        'install.alldone': 'Hydro installation completed.',
         'install.editJudgeConfigAndStart': 'Please edit config at ~/.hydro/judge.yaml than start hydrojudge with:\npm2 start hydrojudge && pm2 save.',
         'extra.dbUser': 'Database username: hydro',
         'extra.dbPassword': 'Database password: %s',
@@ -200,7 +201,8 @@ processLimit: 128
 testcases_max: 120
 total_time_limit: 600
 retry_delay_sec: 3
-parallelism: ${Math.floor(cpus().length / 2)}
+parallelism: ${Math.max(1, Math.floor(cpus().length / 4))}
+singleTaskParallelism: 2
 rate: 1.00
 rerun: 2
 secret: Hydro-Judge-Secret
@@ -343,6 +345,12 @@ ${nixConfBase}`);
         skip: () => installAsJudge,
         hidden: installAsJudge,
         operations: [
+            () => writeFileSync(`${process.env.HOME}/.config/nixpkgs/config.nix`, `\
+{
+    permittedInsecurePackages = [
+        "openssl-1.1.1t"
+    ];
+}`),
             `nix-env -iA hydro.mongodb${avx2 ? 5 : 4}${CN ? '-cn' : ''} nixpkgs.mongosh nixpkgs.mongodb-tools`,
         ],
     },
