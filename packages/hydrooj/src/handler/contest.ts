@@ -77,7 +77,8 @@ export class ContestListHandler extends Handler {
     @param('page', Types.PositiveInt, true)
     async get(domainId: string, rule = '', group = '', page = 1) {
         if (rule && contest.RULES[rule].hidden) throw new BadRequestError();
-        const groups = (await user.listGroup(domainId, this.user._id)).map((i) => i.name);
+        const groups = (await user.listGroup(domainId, this.user.hasPerm(PERM.PERM_VIEW_HIDDEN_CONTEST) ? undefined : this.user._id))
+            .map((i) => i.name);
         if (group && !groups.includes(group)) throw new NotAssignedError(group);
         const rules = Object.keys(contest.RULES).filter((i) => !contest.RULES[i].hidden);
         const q = {
@@ -94,16 +95,17 @@ export class ContestListHandler extends Handler {
             ...rule ? { rule } : { rule: { $in: rules } },
             ...group ? { assign: { $in: [group] } } : {},
         };
-        const cursor = contest.getMulti(domainId, q);
+        const cursor = contest.getMulti(domainId, q).sort({ endAt: -1, beginAt: -1, _id: -1 });
         let qs = rule ? `rule=${rule}` : '';
         if (group) qs += qs ? `&group=${group}` : `group=${group}`;
         const [tdocs, tpcount] = await paginate<Tdoc>(cursor, page, system.get('pagination.contest'));
         const tids = [];
         for (const tdoc of tdocs) tids.push(tdoc.docId);
         const tsdict = await contest.getListStatus(domainId, this.user._id, tids);
+        const groupsFilter = groups.filter((i) => !Number.isSafeInteger(+i));
         this.response.template = 'contest_main.html';
         this.response.body = {
-            page, tpcount, qs, rule, tdocs, tsdict, groups, group,
+            page, tpcount, qs, rule, tdocs, tsdict, groups: groupsFilter, group,
         };
     }
 }
@@ -287,6 +289,7 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
     @param('realtime', Types.Boolean)
     async get(domainId: string, tid: ObjectId, ext = '', realtime) {
         if (!contest.canShowScoreboard.call(this, this.tdoc, true)) throw new ContestScoreboardHiddenError(tid);
+        if (contest.isNotStarted(this.tdoc)) throw new ContestNotLiveError(domainId, tid);
         if (realtime && !this.user.own(this.tdoc)) {
             this.checkPerm(PERM.PERM_VIEW_CONTEST_HIDDEN_SCOREBOARD);
         }

@@ -87,7 +87,7 @@ export const Types: Types = {
     Email: saslprepString(/^[a-zA-Z0-9_.+-]+@jgsu.edu.cn$/i),
     DomainId: saslprepString(/^[a-zA-Z][a-zA-Z0-9_]{3,31}$/),
     Role: saslprepString(/^[_0-9A-Za-z\u4e00-\u9fa5]{1,31}$/i),
-    Title: basicString(/^.{1,64}$/),
+    Title: basicString(/^.{1,64}$/, (i) => !!i.trim()),
     String: basicString(),
     DisplayName: saslprepString(/\d\d[\u4E00-\u9FFF]{2}\d-[\u4E00-\u9FFF]{2,5}/),
 

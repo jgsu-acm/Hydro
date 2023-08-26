@@ -105,6 +105,33 @@ Telegram [@webpack_exports_undefined](https://t.me/webpack_exports_undefined)
 <details>
 <summary><h2>更新日志（点击展开）</h2></summary>
 
+### Hydro 4.9.22 / UI 4.48.22
+- ui: 在线IDE：添加设置页面
+- core: 导出题目时添加难度信息
+- ui: 修复特定情况下 markdown 标签补全出错的问题
+- import-qduoj: 检查 pid 合法性
+- core: 排序作业列表
+- ui: 修复讨论编辑显示
+- core: 导出 pwsh 函数
+- vjudge: codeforces: 修复比赛 921 爬取异常
+
+### Hydro 4.9.21 / UI 4.48.21
+- core: 修复 strictioi 比赛计分
+- ui: 修复已参加训练列表显示
+- core: 在比赛开始前禁用计分板
+- ui: 在添加用户到域的时候隐藏 default 和 guest 选项
+- core: 允许管理员筛选所有小组
+- ui: 修复语言过滤（#598）
+- ui: 修复讨论 reaction
+
+### Hydro 4.9.20 / UI 4.48.20
+- vjudge: 修复 Codeforces 提交结果获取
+- core: 优化系统自检功能
+- vjudge: 支持 detail 设置（#582）
+- ui: 禁用视频自动播放
+- install: 支持安装时自动从 UOJ 导入数据
+- ui: 修复 preferredPrefix 功能异常的问题
+
 ### Hydro 4.9.19 / UI 4.48.19
 - core: 修复比赛代码导出功能无法处理选手提交的二进制文件的问题
 - core: 修复比赛管理显示用户参与排名状态
