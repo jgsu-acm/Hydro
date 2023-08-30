@@ -40,7 +40,7 @@
         "lru-cache": "^9.1.2",
         "mime-types": "^2.1.35",
         "moment-timezone": "^0.5.43",
-        "mongodb": "^5.7.0",
+        "mongodb": "^4.17.0",
         "nanoid": "^4.0.2",
         "nodemailer": "^6.9.4",
         "notp": "^2.0.3",
