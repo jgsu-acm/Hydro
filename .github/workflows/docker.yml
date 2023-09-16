@@ -28,9 +28,9 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.TENCENT_REGISTRY }}
-          username: "100003179408"
-          password: ${{ secrets.TENCENT_DOCKER }}
+          registry: ${{ env.ALI_REGISTRY }}
+          username: stagoh
+          password: ${{ secrets.ALIYUN_DOCKER }}
       
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -53,14 +53,14 @@ jobs:
         id: b_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/backend, stagoh/jgsuoj-backend
+          images: ${{ env.ALI_REGISTRY }}/jgsu-acm/backend, stagoh/jgsuoj-backend
           tags: latest
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.TENCENT_REGISTRY }}/hydro/judge, stagoh/jgsuoj-judge
+          images: ${{ env.ALI_REGISTRY }}/jgsu-acm/judge, stagoh/jgsuoj-judge
           tags: latest
           
 
