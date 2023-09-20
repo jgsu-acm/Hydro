@@ -44,6 +44,11 @@ mount:
   - type: bind
     source: /dev/null
     target: /dev/null
+  # java 17 wants /etc/java-17-openjdk
+  - type: bind
+    source: /etc/java-17-openjdk
+    target: /etc/java-17-openjdk
+    readonly: true
   # node wants /dev/urandom
   - type: bind
     source: /dev/urandom
@@ -70,6 +75,11 @@ mount:
   - type: bind
     source: containerPasswd.txt
     target: /etc/passwd
+  # (optional) bind a /.env to load default environment variable for the container
+  - type: bind
+    source: dotenv
+    target: /.env
+    readonly: true
 # java & ghc wants /proc/self/exe
 proc: true
 # create /dev standard io
