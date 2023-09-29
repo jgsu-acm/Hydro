@@ -51,14 +51,14 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Backend Image
         id: b_meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.ALI_REGISTRY }}/jgsu-acm/backend, stagoh/jgsuoj-backend
           tags: latest
 
       - name: Extract metadata (tags, labels) for Judge Image
         id: j_meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.ALI_REGISTRY }}/jgsu-acm/judge, stagoh/jgsuoj-judge
           tags: latest
