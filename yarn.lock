@@ -4430,7 +4430,7 @@ __metadata:
     reggol: ^1.4.4
     search-query-parser: ^1.6.0
     source-map-support: ^0.5.21
-    systeminformation: ^5.20.0
+    systeminformation: ^5.21.7
   languageName: unknown
   linkType: soft
 
@@ -18810,12 +18810,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.20.0":
-  version: 5.21.4
-  resolution: "systeminformation@npm:5.21.4"
+"systeminformation@npm:^5.21.7":
+  version: 5.21.9
+  resolution: "systeminformation@npm:5.21.9"
   bin:
     systeminformation: lib/cli.js
-  checksum: 2324456d1fee85efd3f5408d989afc29f4c8e1cc071f9c1082fc500cc3a4acb7d3be4e5706e706acf1558a4637bd8db028cafd5dcb3ccfd11514177ff0b870aa
+  checksum: 33f8ee313f4e15d5dfde98e071110c5ee377dace8e34d5a4775224efd4cc1005771898a99a4f20ef4948c5249ad4ad961c10f10f235a11c3042399e879677b87
   conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
   languageName: node
   linkType: hard
