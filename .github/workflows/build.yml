@@ -49,7 +49,7 @@ jobs:
         LICENSE_KEY: ${{ secrets.MAXMIND_KEY }}
     - name: Get specific changed files
       id: ui-changed-files
-      uses: tj-actions/changed-files@v23.1
+      uses: tj-actions/changed-files@v32
       with:
         files: |
           /package.json
