@@ -111,7 +111,7 @@ export async function previewFile(ev?, type = '') {
   const filename = ev
     ? ev.currentTarget.closest('[data-filename]').getAttribute('data-filename')
     // eslint-disable-next-line no-alert
-    : prompt('Filename');
+    : prompt(i18n('Filename'));
   if (!filename) return null;
   const filesize = ev
     ? +ev.currentTarget.closest('[data-size]').getAttribute('data-size')
@@ -121,7 +121,7 @@ export async function previewFile(ev?, type = '') {
     const link = $(ev.currentTarget).find('a').attr('href');
     if (!link) return null;
     type ||= ev.currentTarget.getAttribute('data-preview');
-    const ext = filename.split('.').pop();
+    const ext = filename.split('.').pop().toLowerCase();
     if (['zip', 'rar', '7z'].includes(ext) || filesize > 8 * 1024 * 1024) {
       const action = await new ActionDialog({
         $body: tpl.typoMsg(i18n('Cannot preview this file. Download now?')),

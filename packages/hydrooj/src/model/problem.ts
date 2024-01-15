@@ -282,6 +282,22 @@ export class ProblemModel {
         await bus.emit('problem/addTestdata', domainId, pid, name, payload);
     }
 
+    static async renameTestdata(domainId: string, pid: number, file: string, newName: string, operator = 1) {
+        if (file === newName) return;
+        const [, sdoc] = await document.getSub(domainId, document.TYPE_PROBLEM, pid, 'data', newName);
+        if (sdoc) await ProblemModel.delTestdata(domainId, pid, newName);
+        const payload = { _id: newName, name: newName, lastModified: new Date() };
+        await Promise.all([
+            storage.rename(
+                `problem/${domainId}/${pid}/testdata/${file}`,
+                `problem/${domainId}/${pid}/testdata/${newName}`,
+                operator,
+            ),
+            document.setSub(domainId, document.TYPE_PROBLEM, pid, 'data', file, payload),
+        ]);
+        await bus.emit('problem/renameTestdata', domainId, pid, file, newName);
+    }
+
     static async delTestdata(domainId: string, pid: number, name: string | string[], operator = 1) {
         const names = (name instanceof Array) ? name : [name];
         await Promise.all([
@@ -305,6 +321,22 @@ export class ProblemModel {
         if (!fileinfo) await ProblemModel.push(domainId, pid, 'additional_file', { _id: name, ...payload });
         else await document.setSub(domainId, document.TYPE_PROBLEM, pid, 'additional_file', name, payload);
         await bus.emit('problem/addAdditionalFile', domainId, pid, name, payload);
+    }
+
+    static async renameAdditionalFile(domainId: string, pid: number, file: string, newName: string, operator = 1) {
+        if (file === newName) return;
+        const [, sdoc] = await document.getSub(domainId, document.TYPE_PROBLEM, pid, 'additional_file', newName);
+        if (sdoc) await ProblemModel.delAdditionalFile(domainId, pid, newName);
+        const payload = { _id: newName, name: newName, lastModified: new Date() };
+        await Promise.all([
+            storage.rename(
+                `problem/${domainId}/${pid}/additional_file/${file}`,
+                `problem/${domainId}/${pid}/additional_file/${newName}`,
+                operator,
+            ),
+            document.setSub(domainId, document.TYPE_PROBLEM, pid, 'additional_file', file, payload),
+        ]);
+        await bus.emit('problem/renameAdditionalFile', domainId, pid, file, newName);
     }
 
     static async delAdditionalFile(domainId: string, pid: number, name: MaybeArray<string>, operator = 1) {
@@ -435,6 +467,7 @@ export class ProblemModel {
         try {
             const problems = await fs.readdir(tmpdir, { withFileTypes: true });
             for (const p of problems) {
+                if (process.env.HYDRO_CLI) logger.info(`Importing problem ${p.name}`);
                 const i = p.name;
                 if (!p.isDirectory()) continue;
                 const files = await fs.readdir(path.join(tmpdir, i));
@@ -459,6 +492,7 @@ export class ProblemModel {
                 }
                 const overrideContent = findOverrideContent(path.join(tmpdir, i));
                 if (pdoc.difficulty && !Number.isSafeInteger(pdoc.difficulty)) delete pdoc.difficulty;
+                if (typeof pdoc.title !== 'string') throw new ValidationError('title', null, 'Invalid title');
                 const docId = await ProblemModel.add(
                     domainId, pid, pdoc.title.trim(), overrideContent || pdoc.content || 'No content',
                     operator || pdoc.owner, pdoc.tag || [], { hidden: pdoc.hidden, difficulty: pdoc.difficulty },
@@ -557,6 +591,15 @@ bus.on('problem/addTestdata', async (domainId, docId, name) => {
 bus.on('problem/delTestdata', async (domainId, docId, names) => {
     if (!names.includes('config.yaml')) return;
     await ProblemModel.edit(domainId, docId, { config: '' });
+});
+bus.on('problem/renameTestdata', async (domainId, docId, file, newName) => {
+    if (['config.yaml', 'config.yml', 'Config.yaml', 'Config.yml'].includes(file)) {
+        await ProblemModel.edit(domainId, docId, { config: '' });
+    }
+    if (['config.yaml', 'config.yml', 'Config.yaml', 'Config.yml'].includes(newName)) {
+        const buf = await storage.get(`problem/${domainId}/${docId}/testdata/${newName}`);
+        await ProblemModel.edit(domainId, docId, { config: (await streamToBuffer(buf)).toString() });
+    }
 });
 
 global.Hydro.model.problem = ProblemModel;
