@@ -13,7 +13,6 @@ import {
     InvalidTokenError, NotAssignedError, PermissionError, ValidationError,
 } from '../error';
 import { ScoreboardConfig, Tdoc } from '../interface';
-import paginate from '../lib/paginate';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as contest from '../model/contest';
 import * as discussion from '../model/discussion';
@@ -58,20 +57,6 @@ registerResolver(
     'Get a contest by ID',
 );
 
-ScheduleModel.Worker.addHandler('contest', async (doc) => {
-    const tdoc = await contest.get(doc.domainId, doc.tid);
-    if (!tdoc) return;
-    const tasks = [];
-    for (const op of doc.operation) {
-        if (op === 'unhide') {
-            for (const pid of tdoc.pids) {
-                tasks.push(problem.edit(doc.domainId, pid, { hidden: false }));
-            }
-        }
-    }
-    await Promise.all(tasks);
-});
-
 export class ContestListHandler extends Handler {
     @param('rule', Types.Range(contest.RULES), true)
     @param('group', Types.Name, true)
@@ -99,7 +84,7 @@ export class ContestListHandler extends Handler {
         const cursor = contest.getMulti(domainId, q).sort({ endAt: -1, beginAt: -1, _id: -1 });
         let qs = rule ? `rule=${rule}` : '';
         if (group) qs += qs ? `&group=${group}` : `group=${group}`;
-        const [tdocs, tpcount] = await paginate<Tdoc>(cursor, page, system.get('pagination.contest'));
+        const [tdocs, tpcount] = await this.paginate(cursor, page, 'contest');
         const tids = [];
         for (const tdoc of tdocs) tids.push(tdoc.docId);
         const tsdict = await contest.getListStatus(domainId, this.user._id, tids);
@@ -329,9 +314,11 @@ export class ContestScoreboardHandler extends ContestDetailBaseHandler {
         if (!realtime && this.tdoc.lockAt && !this.tdoc.unlocked) {
             config.lockAt = this.tdoc.lockAt;
         }
-        const [, rows, udict, pdict] = await contest.getScoreboard.call(this, domainId, tid, config);
-        const groups = this.user.hasPerm(PERM.PERM_EDIT_DOMAIN)
-            ? await user.listGroup(domainId) : [];
+        const allGroups = this.user.hasPerm(PERM.PERM_EDIT_CONTEST_SELF) || (this.user.own(this.tdoc) && this.user.hasPerm(PERM.PERM_EDIT_CONTEST));
+        const [[, rows, udict, pdict], groups] = await Promise.all([
+            contest.getScoreboard.call(this, domainId, tid, config),
+            user.listGroup(domainId, allGroups ? undefined : this.user._id),
+        ]);
         // eslint-disable-next-line @typescript-eslint/naming-convention
         const page_name = this.tdoc.rule === 'homework'
             ? 'homework_scoreboard'
@@ -774,4 +761,17 @@ export async function apply(ctx: Context) {
     ctx.Route('contest_file_download', '/contest/:tid/file/:filename', ContestFileDownloadHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_user', '/contest/:tid/user', ContestUserHandler, PERM.PERM_VIEW_CONTEST);
     ctx.Route('contest_balloon', '/contest/:tid/balloon', ContestBalloonHandler, PERM.PERM_VIEW_CONTEST);
+    ctx.worker.addHandler('contest', async (doc) => {
+        const tdoc = await contest.get(doc.domainId, doc.tid);
+        if (!tdoc) return;
+        const tasks = [];
+        for (const op of doc.operation) {
+            if (op === 'unhide') {
+                for (const pid of tdoc.pids) {
+                    tasks.push(problem.edit(doc.domainId, pid, { hidden: false }));
+                }
+            }
+        }
+        await Promise.all(tasks);
+    });
 }

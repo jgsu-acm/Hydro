@@ -54,6 +54,7 @@ class RecordListHandler extends ContestDetailBaseHandler {
             if (udoc) q.uid = udoc._id;
             else invalid = true;
         }
+        if (q.uid !== this.user._id) this.checkPerm(PERM.PERM_VIEW_RECORD);
         if (tid) {
             tdoc = await contest.get(domainId, tid);
             this.tdoc = tdoc;
@@ -136,6 +137,7 @@ class RecordDetailHandler extends ContestDetailBaseHandler {
     async prepare(domainId: string, rid: ObjectId) {
         this.rdoc = await record.get(domainId, rid);
         if (!this.rdoc) throw new RecordNotFoundError(rid);
+        if (this.rdoc.uid !== this.user._id) this.checkPerm(PERM.PERM_VIEW_RECORD);
     }
 
     async download() {
@@ -253,6 +255,8 @@ class RecordMainConnectionHandler extends ConnectionHandler {
     pretest = false;
     tdoc: Tdoc;
     applyProjection = false;
+    queue: Map<string, () => Promise<any>> = new Map();
+    throttleQueueClear: () => void;
 
     @param('tid', Types.ObjectId, true)
     @param('pid', Types.ProblemId, true)
@@ -286,6 +290,7 @@ class RecordMainConnectionHandler extends ConnectionHandler {
                 else throw new UserNotFoundError(uidOrName);
             }
         }
+        if (this.uid !== this.user._id) this.checkPerm(PERM.PERM_VIEW_RECORD);
         if (pid) {
             const pdoc = await problem.get(domainId, pid);
             if (pdoc) this.pid = pdoc.docId;
@@ -301,6 +306,7 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             this.checkPriv(PRIV.PRIV_MANAGE_ALL_DOMAIN);
             this.allDomain = true;
         }
+        this.throttleQueueClear = throttle(this.queueClear, 100, { trailing: true });
     }
 
     async message(msg: { rids: string[] }) {
@@ -338,14 +344,24 @@ class RecordMainConnectionHandler extends ConnectionHandler {
             if (!this.user.hasPerm(PERM.PERM_VIEW_PROBLEM)) pdoc = null;
         }
         if (this.applyProjection && typeof rdoc.input !== 'string') rdoc = contest.applyProjection(tdoc, rdoc, this.user);
-        if (this.pretest) this.send({ rdoc: omit(rdoc, ['code', 'input']) });
+        if (this.pretest) this.queueSend(rdoc._id.toHexString(), async () => ({ rdoc: omit(rdoc, ['code', 'input']) }));
         else {
-            this.send({
+            this.queueSend(rdoc._id.toHexString(), async () => ({
                 html: await this.renderHTML('record_main_tr.html', {
                     rdoc, udoc, pdoc, tdoc, allDomain: this.allDomain,
                 }),
-            });
+            }));
         }
+    }
+
+    queueSend(rid: string, fn: () => Promise<any>) {
+        this.queue.set(rid, fn);
+        this.throttleQueueClear();
+    }
+
+    async queueClear() {
+        await Promise.all([...this.queue.values()].map(async (fn) => this.send(await fn())));
+        this.queue.clear();
     }
 }
 

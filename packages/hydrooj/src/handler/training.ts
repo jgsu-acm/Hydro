@@ -7,7 +7,6 @@ import {
     FileLimitExceededError, FileUploadError, ProblemNotFoundError, ValidationError,
 } from '../error';
 import { Tdoc, TrainingDoc } from '../interface';
-import paginate from '../lib/paginate';
 import { PERM, PRIV, STATUS } from '../model/builtin';
 import * as oplog from '../model/oplog';
 import problem from '../model/problem';
@@ -64,10 +63,10 @@ class TrainingMainHandler extends Handler {
     async get(domainId: string, page = 1) {
         const query: Filter<TrainingDoc> = {};
         await this.ctx.parallel('training/list', query, this);
-        const [tdocs, tpcount] = await paginate(
+        const [tdocs, tpcount] = await this.paginate(
             training.getMulti(domainId),
             page,
-            system.get('pagination.training'),
+            'training',
         );
         const tids: Set<ObjectId> = new Set();
         for (const tdoc of tdocs) tids.add(tdoc.docId);
@@ -106,7 +105,7 @@ class TrainingDetailHandler extends Handler {
         let shouldCompare = false;
         const pids = training.getPids(tdoc.dag);
         if (this.user.hasPriv(PRIV.PRIV_USER_PROFILE)) {
-            enrollUsers = (await training.getMultiStatus(domainId, { docId: tid, uid: { $gt: 1 } })
+            enrollUsers = (await training.getMultiStatus(domainId, { docId: tid, uid: { $gt: 1 }, enroll: 1 })
                 .project({ uid: 1 }).limit(500).toArray()).map((x) => +x.uid);
             shouldCompare = uid !== this.user._id;
         } else uid = this.user._id;
