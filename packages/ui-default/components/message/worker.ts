@@ -33,6 +33,7 @@ function initConn(path: string, port: MessagePort, cookie: any) {
   else if (conn && conn.readyState === conn.OPEN) return;
   lcookie = cookie;
   console.log('Init connection for', path);
+  conn?.close();
   conn = new ReconnectingWebsocket(path);
   ports.push(port);
   conn.onopen = () => conn.send(cookie);
@@ -40,6 +41,10 @@ function initConn(path: string, port: MessagePort, cookie: any) {
   conn.onclose = (ev) => broadcastMsg({ type: 'close', error: ev.reason });
   conn.onmessage = (message) => {
     if (process.env.NODE_ENV !== 'production') console.log('SharedWorker.port.onmessage: ', message);
+    if (message.data === 'ping') {
+      conn.send('pong');
+      return;
+    }
     const payload = JSON.parse(message.data);
     if (payload.event === 'auth') {
       if (['PermissionError', 'PrivilegeError'].includes(payload.error)) {
